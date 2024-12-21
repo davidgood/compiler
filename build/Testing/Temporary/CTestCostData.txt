@@ -1,0 +1,14 @@
+arraylist_tests 1 0.00324124
+compiler_tests 0 0
+evaluator_tests 1 0.00393817
+hash_table_tests 1 0.00272962
+lexer_tests 1 0.00220717
+linked_list_tests 1 0.00169747
+object_tests 1 0.00179746
+opcode_tests 1 0.00160406
+parser_tests 1 0.00239091
+symbol_table_tests 1 0.00188487
+vm_tests 0 0
+---
+compiler_tests
+vm_tests

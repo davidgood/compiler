@@ -1,0 +1,13 @@
+/home/dgood/Projects/C/compiler/test/build/CMakeFiles/arraylist_tests.dir
+/home/dgood/Projects/C/compiler/test/build/CMakeFiles/compiler_tests.dir
+/home/dgood/Projects/C/compiler/test/build/CMakeFiles/evaluator_tests.dir
+/home/dgood/Projects/C/compiler/test/build/CMakeFiles/hash_table_tests.dir
+/home/dgood/Projects/C/compiler/test/build/CMakeFiles/lexer_tests.dir
+/home/dgood/Projects/C/compiler/test/build/CMakeFiles/linked_list_tests.dir
+/home/dgood/Projects/C/compiler/test/build/CMakeFiles/object_tests.dir
+/home/dgood/Projects/C/compiler/test/build/CMakeFiles/opcode_tests.dir
+/home/dgood/Projects/C/compiler/test/build/CMakeFiles/parser_tests.dir
+/home/dgood/Projects/C/compiler/test/build/CMakeFiles/symbol_table_tests.dir
+/home/dgood/Projects/C/compiler/test/build/CMakeFiles/vm_tests.dir
+/home/dgood/Projects/C/compiler/test/build/CMakeFiles/edit_cache.dir
+/home/dgood/Projects/C/compiler/test/build/CMakeFiles/rebuild_cache.dir

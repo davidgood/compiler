@@ -1,0 +1,150 @@
+{
+	"configurations" : 
+	[
+		{
+			"directories" : 
+			[
+				{
+					"build" : ".",
+					"jsonFile" : "directory-.-Debug-f5ebdc15457944623624.json",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.30"
+					},
+					"projectIndex" : 0,
+					"source" : ".",
+					"targetIndexes" : 
+					[
+						0,
+						1,
+						2,
+						3,
+						4,
+						5,
+						6,
+						7,
+						8,
+						9,
+						10
+					]
+				}
+			],
+			"name" : "Debug",
+			"projects" : 
+			[
+				{
+					"directoryIndexes" : 
+					[
+						0
+					],
+					"name" : "compiler",
+					"targetIndexes" : 
+					[
+						0,
+						1,
+						2,
+						3,
+						4,
+						5,
+						6,
+						7,
+						8,
+						9,
+						10
+					]
+				}
+			],
+			"targets" : 
+			[
+				{
+					"directoryIndex" : 0,
+					"id" : "arraylist_tests::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-arraylist_tests-Debug-475f7ffe7dd4e5205641.json",
+					"name" : "arraylist_tests",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "compiler_tests::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-compiler_tests-Debug-16994bb82bda640e3e94.json",
+					"name" : "compiler_tests",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "evaluator_tests::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-evaluator_tests-Debug-44e7e29e00180423871e.json",
+					"name" : "evaluator_tests",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "hash_table_tests::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-hash_table_tests-Debug-719e5f87e80da7af043b.json",
+					"name" : "hash_table_tests",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "lexer_tests::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-lexer_tests-Debug-21629704323db170e39f.json",
+					"name" : "lexer_tests",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "linked_list_tests::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-linked_list_tests-Debug-6a264c548df3876c4ec4.json",
+					"name" : "linked_list_tests",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "object_tests::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-object_tests-Debug-e516c914179b17ab44ad.json",
+					"name" : "object_tests",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "opcode_tests::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-opcode_tests-Debug-33fc8ab9b6abde0c8236.json",
+					"name" : "opcode_tests",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "parser_tests::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-parser_tests-Debug-0053e7ed8fe5e4103dd3.json",
+					"name" : "parser_tests",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "symbol_table_tests::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-symbol_table_tests-Debug-b2808f0e75ee8f73e58d.json",
+					"name" : "symbol_table_tests",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "vm_tests::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-vm_tests-Debug-60e4b05b2c75b2a8815c.json",
+					"name" : "vm_tests",
+					"projectIndex" : 0
+				}
+			]
+		}
+	],
+	"kind" : "codemodel",
+	"paths" : 
+	{
+		"build" : "/home/dgood/Projects/C/compiler/test/build",
+		"source" : "/home/dgood/Projects/C/compiler/test"
+	},
+	"version" : 
+	{
+		"major" : 2,
+		"minor" : 7
+	}
+}

@@ -1,0 +1,3 @@
+/home/dgood/Projects/C/compiler/src/build/CMakeFiles/compiler.dir
+/home/dgood/Projects/C/compiler/src/build/CMakeFiles/edit_cache.dir
+/home/dgood/Projects/C/compiler/src/build/CMakeFiles/rebuild_cache.dir
