@@ -188,10 +188,21 @@ void hashtable_remove(hashtable *t, void *key) {
                 entry_list->tail = prev;  // Update tail if needed
             }
 
+            arraylist *used_slots = t->used_slots;
+            for (size_t i = 0; i < used_slots->size; i++) {
+                size_t *slot = used_slots->body[i];
+                if (*slot == index) {
+                    arraylist_remove(used_slots, i);
+                    free(slot);
+                    break;
+                }
+            }
+
             list_node *to_free = current;  // Save current for freeing
             current = current->next;      // Move to the next node
             free(to_free);                // Free the current node
             t->key_count--;
+            t->table[index]->size--;
             return;
         }
         prev = current;
