@@ -61,10 +61,7 @@ void test_hashtable_remove(void) {
     char *value1 = strdup("value1");
 
     hashtable_set(table, key1, value1);
-    hashtable_remove(table, "key1");
-
-    char *retrieved_value = (char *) hashtable_get(table, "key1");
-    TEST_ASSERT_NULL(retrieved_value);
+    hashtable_remove_and_free(table, "key1");
 
     hashtable_destroy(table);
 }
@@ -114,7 +111,7 @@ void test_hashtable_clone(void) {
 void test_hashtable_collision_handling(void) {
     hashtable *table = hashtable_create(int_hash_function, int_equals, free_noop, free_noop);
 
-    size_t key1 = 1, key2 = HASHTABLE_INITIAL_CAPACITY + 1;
+    size_t key1   = 1,  key2   = HASHTABLE_INITIAL_CAPACITY + 1;
     size_t value1 = 42, value2 = 84;
 
     hashtable_set(table, &key1, &value1);

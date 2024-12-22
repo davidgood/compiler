@@ -131,7 +131,7 @@ arraylist *hashtable_get_values(hashtable *hash_table) {
 /**
  * Remove a key from the table
  */
-void hashtable_remove(hashtable *t, void *key) {
+void hashtable_remove_and_free(hashtable *t, void *key) {
     const size_t index      = t->hash_func(key) % t->table_size;
     linked_list *entry_list = t->table[index];
 
@@ -171,7 +171,6 @@ void hashtable_remove(hashtable *t, void *key) {
                 size_t *slot = used_slots->body[i];
                 if (*slot == index) {
                     arraylist_remove_and_free(used_slots, i);
-                    free(slot);
                     break;
                 }
             }
