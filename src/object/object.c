@@ -470,6 +470,7 @@ static void free_array_object(object_array *array_obj) {
         object_free(array_obj->elements->body[i]);
     }
     arraylist_destroy(array_obj->elements);
+    array_obj->elements = NULL;
     free(array_obj);
 }
 

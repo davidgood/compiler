@@ -100,7 +100,7 @@ void test_literal_expression(ast_expression *exp, const char *value) {
     }
 }
 
-void test_infix_expression(ast_expression *exp, const char *operator, const char * left, const char *right) {
+void test_infix_expression(ast_expression *exp, const char *operator, const char *left, const char *right) {
     printf("\tTesting Infix Expression\n");
 
     TEST_ASSERT_EQUAL_INT(exp->expression_type, INFIX_EXPRESSION);
@@ -116,12 +116,12 @@ void test_infix_expression(ast_expression *exp, const char *operator, const char
 
 void test_parser_errors(void) {
     const char *input = "let x 5;\n"
-                        "let = 10;\n"
-                        "let 838383;\n";
+            "let = 10;\n"
+            "let 838383;\n";
     print_test_separator_line();
     printf("Testing parser errors\n");
-    lexer       *lexer   = lexer_init(input);
-    parser      *parser  = parser_init(lexer);
+    lexer *      lexer   = lexer_init(input);
+    parser *     parser  = parser_init(lexer);
     ast_program *program = parse_program(parser);
     TEST_ASSERT_NOT_NULL(program);
     TEST_ASSERT_NOT_NULL(parser->errors);
@@ -161,9 +161,9 @@ void _test_let_stmt(ast_statement *stmt, const char *expected_identifier) {
 }
 
 void test_let_stmt() {
-    lexer         *lexer;
-    parser        *parser;
-    ast_program   *program;
+    lexer *        lexer;
+    parser *       parser;
+    ast_program *  program;
     ast_statement *stmt;
 
     typedef struct {
@@ -203,8 +203,8 @@ void test_identifier_expression() {
     const char *input = "foobar;\n";
     print_test_separator_line();
     printf("Testing identifier expression\n");
-    lexer       *lexer   = lexer_init(input);
-    parser      *parser  = parser_init(lexer);
+    lexer *      lexer   = lexer_init(input);
+    parser *     parser  = parser_init(lexer);
     ast_program *program = parse_program(parser);
     check_parser_errors(parser);
 
@@ -262,8 +262,8 @@ void test_parse_infix_expression() {
     size_t ntests = sizeof(tests) / sizeof(tests[0]);
     for (size_t i = 0; i < ntests; i++) {
         test_input   test    = tests[i];
-        lexer       *lexer   = lexer_init(test.input);
-        parser      *parser  = parser_init(lexer);
+        lexer *      lexer   = lexer_init(test.input);
+        parser *     parser  = parser_init(lexer);
         ast_program *program = parse_program(parser);
         check_parser_errors(parser);
         TEST_ASSERT_EQUAL_INT(program->statement_count, 1);
@@ -321,7 +321,7 @@ void test_operator_precedence_parsing() {
         test_input test = tests[i];
         printf("Testing expression: %s\n", test.input);
 
-        lexer  *lexer  = lexer_init(test.input);
+        lexer * lexer  = lexer_init(test.input);
         parser *parser = parser_init(lexer);
 
         ast_program *program = parse_program(parser);
@@ -347,15 +347,15 @@ void test_parse_prefix_expression() {
         const char *value;
     } test_input;
 
-    test_input tests[] = {{"!5", "!", "5"},           {"-15", "-", "15"},     {"!foobar", "!", "foobar"},
+    test_input tests[] = {{"!5", "!", "5"}, {"-15", "-", "15"}, {"!foobar", "!", "foobar"},
                           {"-foobar", "-", "foobar"}, {"!true", "!", "true"}, {"!false", "!", "false"}};
 
     size_t ntests = sizeof(tests) / sizeof(tests[0]);
     for (size_t i = 0; i < ntests; i++) {
         test_input test = tests[i];
         printf("Testing prefix expression: %s\n", test.input);
-        lexer       *lexer   = lexer_init(test.input);
-        parser      *parser  = parser_init(lexer);
+        lexer *      lexer   = lexer_init(test.input);
+        parser *     parser  = parser_init(lexer);
         ast_program *program = parse_program(parser);
         check_parser_errors(parser);
         TEST_ASSERT_NOT_NULL(program);
@@ -382,9 +382,9 @@ void test_integer_literal_expression() {
     print_test_separator_line();
     printf("Testing Integer Literal Expression\n");
 
-    const char  *input   = "5;\n";
-    lexer       *lexer   = lexer_init(input);
-    parser      *parser  = parser_init(lexer);
+    const char * input   = "5;\n";
+    lexer *      lexer   = lexer_init(input);
+    parser *     parser  = parser_init(lexer);
     ast_program *program = parse_program(parser);
     check_parser_errors(parser);
     TEST_ASSERT_NOT_NULL(program);
@@ -416,8 +416,8 @@ void test_return_statement() {
     for (size_t i = 0; i < ntests; i++) {
         test_input test = tests[i];
         printf("Testing return statement: %s\n", test.input);
-        lexer       *lexer   = lexer_init(test.input);
-        parser      *parser  = parser_init(lexer);
+        lexer *      lexer   = lexer_init(test.input);
+        parser *     parser  = parser_init(lexer);
         ast_program *program = parse_program(parser);
         check_parser_errors(parser);
         TEST_ASSERT_NOT_NULL(program);
@@ -426,7 +426,7 @@ void test_return_statement() {
 
         ast_statement *stmt        = program->statements[0];
         ast_node       stmt_node   = stmt->node;
-        char          *tok_literal = stmt_node.token_literal(stmt);
+        char *         tok_literal = stmt_node.token_literal(stmt);
         TEST_ASSERT_EQUAL_STRING(tok_literal, "return");
         TEST_ASSERT_EQUAL_INT(stmt->statement_type, RETURN_STATEMENT);
 
@@ -442,9 +442,9 @@ void test_string() {
     print_test_separator_line();
     printf("Testing String\n");
 
-    const char  *input   = "let myvar = someVar;";
-    lexer       *lexer   = lexer_init(input);
-    parser      *parser  = parser_init(lexer);
+    const char * input   = "let myvar = someVar;";
+    lexer *      lexer   = lexer_init(input);
+    parser *     parser  = parser_init(lexer);
     ast_program *program = parse_program(parser);
     check_parser_errors(parser);
     char *program_string = program->node.string(program);
@@ -471,8 +471,8 @@ void test_boolean_expression() {
     for (size_t i = 0; i < ntests; i++) {
         test_input test = tests[i];
         printf("Parsing boolean expression: %s\n", test.input);
-        lexer       *lexer   = lexer_init(test.input);
-        parser      *parser  = parser_init(lexer);
+        lexer *      lexer   = lexer_init(test.input);
+        parser *     parser  = parser_init(lexer);
         ast_program *program = parse_program(parser);
         check_parser_errors(parser);
 
@@ -496,8 +496,8 @@ void test_ifelse_expression(void) {
 
     const char *input = "if (x < y) { x } else { y }";
 
-    lexer       *lexer   = lexer_init(input);
-    parser      *parser  = parser_init(lexer);
+    lexer *      lexer   = lexer_init(input);
+    parser *     parser  = parser_init(lexer);
     ast_program *program = parse_program(parser);
     TEST_ASSERT_NOT_NULL(program);
 
@@ -507,7 +507,7 @@ void test_ifelse_expression(void) {
     TEST_ASSERT_EQUAL_INT(program->statements[0]->statement_type, EXPRESSION_STATEMENT);
 
     ast_expression_statement *exp_stmt = (ast_expression_statement *) program->statements[0];
-    ast_expression           *exp      = exp_stmt->expression;
+    ast_expression *          exp      = exp_stmt->expression;
 
     TEST_ASSERT_EQUAL_INT(exp->expression_type, IF_EXPRESSION);
 
@@ -540,8 +540,8 @@ void test_if_expression(void) {
 
     const char *input = "if (x < y) { x }";
     printf("Testing if expression: %s\n", input);
-    lexer       *lexer   = lexer_init(input);
-    parser      *parser  = parser_init(lexer);
+    lexer *      lexer   = lexer_init(input);
+    parser *     parser  = parser_init(lexer);
     ast_program *program = parse_program(parser);
     TEST_ASSERT_NOT_NULL(program);
 
@@ -550,7 +550,7 @@ void test_if_expression(void) {
     TEST_ASSERT_EQUAL_INT(program->statements[0]->statement_type, EXPRESSION_STATEMENT);
 
     ast_expression_statement *exp_stmt = (ast_expression_statement *) program->statements[0];
-    ast_expression           *exp      = exp_stmt->expression;
+    ast_expression *          exp      = exp_stmt->expression;
 
     TEST_ASSERT_EQUAL_INT(exp->expression_type, IF_EXPRESSION);
 
@@ -574,8 +574,8 @@ void test_function_literal(void) {
     const char *input = "fn(x, y) { x + y; }";
     print_test_separator_line();
     printf("Testing Function Literal: %s\n", input);
-    lexer       *lexer   = lexer_init(input);
-    parser      *parser  = parser_init(lexer);
+    lexer *      lexer   = lexer_init(input);
+    parser *     parser  = parser_init(lexer);
     ast_program *program = parse_program(parser);
 
     TEST_ASSERT_NOT_NULL(program);
@@ -616,14 +616,14 @@ void test_function_parameter_parsing(void) {
     test_input tests[] = {{"fn () {};", 0, {NULL, NULL, NULL}},
                           {"fn (x) {};", 1, {"x", NULL, NULL}},
                           {"fn (x, y, z) {};", 3, {"x", "y", "z"}}};
-    size_t     ntests  = sizeof(tests) / sizeof(tests[0]);
+    size_t ntests = sizeof(tests) / sizeof(tests[0]);
     print_test_separator_line();
 
     for (size_t i = 0; i < ntests; i++) {
         test_input test = tests[i];
         printf("Testing function parameter parsing for: %s\n", test.input);
-        lexer       *lexer   = lexer_init(test.input);
-        parser      *parser  = parser_init(lexer);
+        lexer *      lexer   = lexer_init(test.input);
+        parser *     parser  = parser_init(lexer);
         ast_program *program = parse_program(parser);
 
         TEST_ASSERT_NOT_NULL(program);
@@ -631,7 +631,7 @@ void test_function_parameter_parsing(void) {
         check_parser_errors(parser);
 
         ast_expression_statement *exp_stmt = (ast_expression_statement *) program->statements[0];
-        ast_function_literal     *function = (ast_function_literal *) exp_stmt->expression;
+        ast_function_literal *    function = (ast_function_literal *) exp_stmt->expression;
         TEST_ASSERT_EQUAL_INT(function->parameters->size, test.nparams);
 
         list_node *list_node = function->parameters->head;
@@ -650,8 +650,8 @@ void test_call_expression_parsing(void) {
     const char *input = "add(1, 2 * 3, 4 + 5);";
     print_test_separator_line();
     printf("Testing call expression parsing\n");
-    lexer       *lexer   = lexer_init(input);
-    parser      *parser  = parser_init(lexer);
+    lexer *      lexer   = lexer_init(input);
+    parser *     parser  = parser_init(lexer);
     ast_program *program = parse_program(parser);
 
     TEST_ASSERT_NOT_NULL(program);
@@ -694,12 +694,12 @@ void test_call_expression_argument_parsing(void) {
     test_input tests[] = {{"add();", "add", 0, {NULL, NULL, NULL}},
                           {"add(1);", "add", 1, {"1", NULL, NULL}},
                           {"add(1, 2 * 3, 4 + 5);", "add", 3, {"1", "(2 * 3)", "(4 + 5)"}}};
-    size_t     ntests  = sizeof(tests) / sizeof(tests[0]);
+    size_t ntests = sizeof(tests) / sizeof(tests[0]);
 
     for (size_t i = 0; i < ntests; i++) {
         test_input   test    = tests[i];
-        lexer       *lexer   = lexer_init(test.input);
-        parser      *parser  = parser_init(lexer);
+        lexer *      lexer   = lexer_init(test.input);
+        parser *     parser  = parser_init(lexer);
         ast_program *program = parse_program(parser);
 
         TEST_ASSERT_NOT_NULL(program);
@@ -716,7 +716,7 @@ void test_call_expression_argument_parsing(void) {
         list_node *list_node = call_exp->arguments->head;
         for (size_t j = 0; j < test.nargs; j++) {
             ast_expression *arg        = (ast_expression *) list_node->data;
-            char           *arg_string = arg->node.string(arg);
+            char *          arg_string = arg->node.string(arg);
 
             TEST_ASSERT_EQUAL_STRING(arg_string, test.expected_args[j]);
 
@@ -732,28 +732,29 @@ static void test_function_call_one_argument(void) {
     const char *input = "let oneArg = fn(a) {a}; oneArg(24);";
     print_test_separator_line();
     printf("Testing Function Call Argument Parsing: %s\n", input);
-    lexer       *lexer   = lexer_init(input);
-    parser            *parser  = parser_init(lexer);
-    const ast_program *program = parse_program(parser);
+    lexer *      lexer   = lexer_init(input);
+    parser *     parser  = parser_init(lexer);
+    ast_program *program = parse_program(parser);
 
     TEST_ASSERT_NOT_NULL(program);
     TEST_ASSERT_EQUAL_INT(program->statement_count, 2);
     ast_statement *stmt = program->statements[0];
     TEST_ASSERT_EQUAL_INT(stmt->statement_type, LET_STATEMENT);
 
-    ast_call_expression *call_exp = (ast_call_expression *) ((ast_expression_statement *) program->statements[1])->expression;
-    ast_node *arg = (ast_node *) linked_list_get_at(call_exp->arguments, 0);
+    ast_call_expression *call_exp = (ast_call_expression *) ((ast_expression_statement *) program->statements[1])->
+            expression;
+    ast_node *arg = (ast_node *) ((list_node *) linked_list_get_at(call_exp->arguments, 0))->data;
     TEST_ASSERT_EQUAL(arg->type, INTEGER_EXPRESSION);
 
-    free(lexer);
-    free(parser);
-    free(program);
+    //lexer_free(lexer);
+    parser_free(parser);
+    program_free(program);
 }
 
 void test_string_literal(void) {
-    const char  *input   = "\"hello, world!\"";
-    lexer       *lexer   = lexer_init(input);
-    parser      *parser  = parser_init(lexer);
+    const char * input   = "\"hello, world!\"";
+    lexer *      lexer   = lexer_init(input);
+    parser *     parser  = parser_init(lexer);
     ast_program *program = parse_program(parser);
     print_test_separator_line();
     printf("Testing Integer Literal Expression: %s\n", input);
@@ -772,9 +773,9 @@ void test_string_literal(void) {
 }
 
 void test_parse_array_literal(void) {
-    const char  *input   = "[1, 2 * 2,  3 + 3]";
-    lexer       *lexer   = lexer_init(input);
-    parser      *parser  = parser_init(lexer);
+    const char * input   = "[1, 2 * 2,  3 + 3]";
+    lexer *      lexer   = lexer_init(input);
+    parser *     parser  = parser_init(lexer);
     ast_program *program = parse_program(parser);
     check_parser_errors(parser);
     print_test_separator_line();
@@ -801,8 +802,8 @@ void test_parse_index_expression(void) {
     const char *input = "my_array[1 + 1]";
     print_test_separator_line();
     printf("Testing index expression parsing: %s\n", input);
-    lexer       *lexer   = lexer_init(input);
-    parser      *parser  = parser_init(lexer);
+    lexer *      lexer   = lexer_init(input);
+    parser *     parser  = parser_init(lexer);
     ast_program *program = parse_program(parser);
 
     TEST_ASSERT_NOT_NULL(program);
@@ -824,7 +825,7 @@ void test_parse_index_expression(void) {
 
 void test_parse_hash_literals(void) {
     const char *input    = "{\"one\": 1, \"two\": 2, \"three\": 3}";
-    hashtable  *expected = hashtable_create(string_hash_function, string_equals, NULL, NULL);
+    hashtable * expected = hashtable_create(string_hash_function, string_equals, NULL, NULL);
     int         one      = 1;
     int         two      = 2;
     int         three    = 3;
@@ -835,8 +836,8 @@ void test_parse_hash_literals(void) {
 
     printf("Testing hash literal parsing: %s\n", input);
 
-    lexer       *lexer   = lexer_init(input);
-    parser      *parser  = parser_init(lexer);
+    lexer *      lexer   = lexer_init(input);
+    parser *     parser  = parser_init(lexer);
     ast_program *program = parse_program(parser);
 
     TEST_ASSERT_NOT_NULL(program);
@@ -851,15 +852,15 @@ void test_parse_hash_literals(void) {
     TEST_ASSERT_EQUAL_INT(hash_exp->pairs->key_count, 3);
 
     for (size_t i = 0; i < hash_exp->pairs->used_slots->size; i++) {
-        size_t      *index      = (size_t *) hash_exp->pairs->used_slots->body[i];
+        size_t *     index      = (size_t *) hash_exp->pairs->used_slots->body[i];
         linked_list *entry_list = hash_exp->pairs->table[*index];
         TEST_ASSERT_NOT_NULL(entry_list);
 
         list_node *node = entry_list->head;
         while (node != NULL) {
             hashtable_entry *entry          = (hashtable_entry *) node->data;
-            ast_expression  *key            = (ast_expression *) entry->key;
-            int             *expected_value = hashtable_get(expected, ((ast_string *) key)->value);
+            ast_expression * key            = (ast_expression *) entry->key;
+            int *            expected_value = hashtable_get(expected, ((ast_string *) key)->value);
             TEST_ASSERT_NOT_NULL(expected_value);
             ast_integer *actual_value = (ast_integer *) entry->value;
             test_integer_literal_value((ast_expression *) actual_value, *expected_value);
@@ -875,8 +876,8 @@ void test_parsing_empty_hash_literal(void) {
     const char *input = "{}";
     print_test_separator_line();
     printf("Testing parsing of empty hash literal\n");
-    lexer       *lexer   = lexer_init(input);
-    parser      *parser  = parser_init(lexer);
+    lexer *      lexer   = lexer_init(input);
+    parser *     parser  = parser_init(lexer);
     ast_program *program = parse_program(parser);
     check_parser_errors(parser);
     ast_expression_statement *exp_stmt = (ast_expression_statement *) program->statements[0];
@@ -895,8 +896,8 @@ void test_parsing_hash_literal_bool_keys(void) {
     print_test_separator_line();
     printf("Testing parsing of hash literals with boolean keys\n");
 
-    lexer       *lexer   = lexer_init(input);
-    parser      *parser  = parser_init(lexer);
+    lexer *      lexer   = lexer_init(input);
+    parser *     parser  = parser_init(lexer);
     ast_program *program = parse_program(parser);
 
     check_parser_errors(parser);
@@ -909,9 +910,9 @@ void test_parsing_hash_literal_bool_keys(void) {
     size_t visited_key_count = 0;
 
     for (size_t i = 0; i < hash_exp->pairs->used_slots->size; i++) {
-        size_t      *index  = (size_t *) hash_exp->pairs->used_slots->body[i];
+        size_t *     index  = (size_t *) hash_exp->pairs->used_slots->body[i];
         linked_list *bucket = hash_exp->pairs->table[*index];
-        list_node   *node   = bucket->head;
+        list_node *  node   = bucket->head;
 
         while (node) {
             hashtable_entry *entry = (hashtable_entry *) node->data;
@@ -923,7 +924,7 @@ void test_parsing_hash_literal_bool_keys(void) {
             TEST_ASSERT_EQUAL_INT(value_exp->expression_type, INTEGER_EXPRESSION);
 
             ast_boolean_expression *bool_key  = (ast_boolean_expression *) key_exp;
-            ast_integer            *int_value = (ast_integer *) value_exp;
+            ast_integer *           int_value = (ast_integer *) value_exp;
             if (bool_key->value) {
                 TEST_ASSERT_EQUAL_INT(int_value->value, 1);
             } else {
@@ -955,19 +956,19 @@ void test_parsing_hash_literal_with_expression_values(void) {
 
     const char *input = "{\"one\": 0 + 1, \"two\": 10 - 8, \"three\": 15 / 5}";
 
-    hashtable      *expected = hashtable_create(string_hash_function, string_equals, NULL, free_expected_value);
+    hashtable *     expected = hashtable_create(string_hash_function, string_equals, NULL, free_expected_value);
     expected_value *one      = malloc(sizeof(expected_value));
     expected_value *two      = malloc(sizeof(expected_value));
     expected_value *three    = malloc(sizeof(expected_value));
-    *one                     = (expected_value) {"+", "0", "1"};
-    *two                     = (expected_value) {"-", "10", "8"};
-    *three                   = (expected_value) {"/", "15", "5"};
+    *one                     = (expected_value){"+", "0", "1"};
+    *two                     = (expected_value){"-", "10", "8"};
+    *three                   = (expected_value){"/", "15", "5"};
     hashtable_set(expected, "one", one);
     hashtable_set(expected, "two", two);
     hashtable_set(expected, "three", three);
 
-    lexer       *lexer   = lexer_init(input);
-    parser      *parser  = parser_init(lexer);
+    lexer *      lexer   = lexer_init(input);
+    parser *     parser  = parser_init(lexer);
     ast_program *program = parse_program(parser);
 
     check_parser_errors(parser);
@@ -980,12 +981,12 @@ void test_parsing_hash_literal_with_expression_values(void) {
     TEST_ASSERT_EQUAL_INT(hash_exp->pairs->key_count, 3);
 
     for (size_t i = 0; i < hash_exp->pairs->used_slots->size; i++) {
-        size_t          *index = (size_t *) hash_exp->pairs->used_slots->body[i];
+        size_t *         index = (size_t *) hash_exp->pairs->used_slots->body[i];
         hashtable_entry *entry = (hashtable_entry *) hash_exp->pairs->table[*index]->head->data;
-        ast_expression  *key   = (ast_expression *) entry->key;
+        ast_expression * key   = (ast_expression *) entry->key;
         TEST_ASSERT_EQUAL_INT(key->expression_type, STRING_EXPRESSION);
 
-        ast_string     *string_exp = (ast_string *) key;
+        ast_string *    string_exp = (ast_string *) key;
         ast_expression *value_exp  = (ast_expression *) entry->value;
         expected_value *exp_value  = (expected_value *) hashtable_get(expected, string_exp->value);
 
@@ -1000,14 +1001,14 @@ void test_parsing_hash_literal_with_expression_values(void) {
 
 void test_parsing_hash_literal_with_integer_keys(void) {
     hashtable *expected = hashtable_create(string_hash_function, string_equals, NULL, NULL);
-    hashtable_set(expected, "1", ((long[]) {1}));
-    hashtable_set(expected, "2", ((long[]) {2}));
-    hashtable_set(expected, "3", ((long[]) {3}));
+    hashtable_set(expected, "1", ((long[]){1}));
+    hashtable_set(expected, "2", ((long[]){2}));
+    hashtable_set(expected, "3", ((long[]){3}));
     const char *input = "{1: 1, 2: 2, 3:3}";
     print_test_separator_line();
     printf("Testing hash literal parsing with integer keys\n");
-    lexer       *lexer   = lexer_init(input);
-    parser      *parser  = parser_init(lexer);
+    lexer *      lexer   = lexer_init(input);
+    parser *     parser  = parser_init(lexer);
     ast_program *program = parse_program(parser);
     check_parser_errors(parser);
     ast_expression_statement *exp_stmt = (ast_expression_statement *) program->statements[0];
@@ -1017,14 +1018,14 @@ void test_parsing_hash_literal_with_integer_keys(void) {
     TEST_ASSERT_EQUAL_INT(hash_exp->pairs->key_count, 3);
 
     for (size_t i = 0; i < hash_exp->pairs->used_slots->size; i++) {
-        size_t          *index = (size_t *) hash_exp->pairs->used_slots->body[i];
+        size_t *         index = (size_t *) hash_exp->pairs->used_slots->body[i];
         hashtable_entry *entry = (hashtable_entry *) hash_exp->pairs->table[*index]->head->data;
 
         TEST_ASSERT_NOT_NULL(entry);
 
         ast_expression *key_exp        = (ast_expression *) entry->key;
-        char           *string_key     = key_exp->node.string(key_exp);
-        long           *expected_value = hashtable_get(expected, string_key);
+        char *          string_key     = key_exp->node.string(key_exp);
+        long *          expected_value = hashtable_get(expected, string_key);
         test_integer_literal_value(key_exp, expected_value[0]);
         free(string_key);
     }
@@ -1038,8 +1039,8 @@ void test_function_literal_with_name(void) {
     print_test_separator_line();
     printf("Testing function literal with name: %s\n", input);
 
-    lexer       *lexer   = lexer_init(input);
-    parser      *parser  = parser_init(lexer);
+    lexer *      lexer   = lexer_init(input);
+    parser *     parser  = parser_init(lexer);
     ast_program *program = parse_program(parser);
 
     check_parser_errors(parser);
@@ -1059,13 +1060,13 @@ void test_function_literal_with_name(void) {
 
 void test_parsing_while_expression(void) {
     const char *input = "while (x > 2) {\n"
-                        "   let x = x - 1;\n"
-                        "   x;\n"
-                        "}";
+            "   let x = x - 1;\n"
+            "   x;\n"
+            "}";
     print_test_separator_line();
     printf("Testing while expression parsing for: %s\n", input);
-    lexer       *lexer   = lexer_init(input);
-    parser      *parser  = parser_init(lexer);
+    lexer *      lexer   = lexer_init(input);
+    parser *     parser  = parser_init(lexer);
     ast_program *program = parse_program(parser);
     check_parser_errors(parser);
 
@@ -1088,31 +1089,31 @@ void test_parsing_while_expression(void) {
 
 int main() {
     UNITY_BEGIN();
-    // RUN_TEST(test_let_stmt);
-    // RUN_TEST(test_return_statement);
-    // RUN_TEST(test_identifier_expression);
-    // RUN_TEST(test_integer_literal_expression);
-    // RUN_TEST(test_parse_prefix_expression);
-    // RUN_TEST(test_parse_infix_expression);
-    // RUN_TEST(test_operator_precedence_parsing);
-    // RUN_TEST(test_string);
-    // RUN_TEST(test_boolean_expression);
-    // RUN_TEST(test_if_expression);
-    // RUN_TEST(test_ifelse_expression);
-    // RUN_TEST(test_function_literal);
-    // RUN_TEST(test_function_parameter_parsing);
-    // RUN_TEST(test_call_expression_parsing);
-    // RUN_TEST(test_call_expression_argument_parsing);
+    RUN_TEST(test_let_stmt);
+    RUN_TEST(test_return_statement);
+    RUN_TEST(test_identifier_expression);
+    RUN_TEST(test_integer_literal_expression);
+    RUN_TEST(test_parse_prefix_expression);
+    RUN_TEST(test_parse_infix_expression);
+    RUN_TEST(test_operator_precedence_parsing);
+    RUN_TEST(test_string);
+    RUN_TEST(test_boolean_expression);
+    RUN_TEST(test_if_expression);
+    RUN_TEST(test_ifelse_expression);
+    RUN_TEST(test_function_literal);
+    RUN_TEST(test_function_parameter_parsing);
+    RUN_TEST(test_call_expression_parsing);
+    RUN_TEST(test_call_expression_argument_parsing);
     RUN_TEST(test_function_call_one_argument);
-    // RUN_TEST(test_string_literal);
-    // RUN_TEST(test_parse_array_literal);
-    // RUN_TEST(test_parse_index_expression);
-    // RUN_TEST(test_parse_hash_literals);
-    // RUN_TEST(test_parsing_empty_hash_literal);
-    // RUN_TEST(test_parsing_hash_literal_with_expression_values);
-    // RUN_TEST(test_parsing_hash_literal_with_integer_keys);
-    // RUN_TEST(test_parsing_hash_literal_bool_keys);
-    // RUN_TEST(test_parsing_while_expression);
-    // RUN_TEST(test_function_literal_with_name);
+    RUN_TEST(test_string_literal);
+    RUN_TEST(test_parse_array_literal);
+    RUN_TEST(test_parse_index_expression);
+    RUN_TEST(test_parse_hash_literals);
+    RUN_TEST(test_parsing_empty_hash_literal);
+    RUN_TEST(test_parsing_hash_literal_with_expression_values);
+    RUN_TEST(test_parsing_hash_literal_with_integer_keys);
+    RUN_TEST(test_parsing_hash_literal_bool_keys);
+    RUN_TEST(test_parsing_while_expression);
+    RUN_TEST(test_function_literal_with_name);
     return UNITY_END();
 }

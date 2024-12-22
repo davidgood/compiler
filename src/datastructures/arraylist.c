@@ -272,7 +272,7 @@ void arraylist_sort(const arraylist *l, int (*cmp_func)(const void *, const void
 }
 
 void var_destroy(const destory_args args) {
-    if (args.l == NULL) {
+    if (args.l == NULL || args.l->body == NULL) {
         return;
     }
     if (args.l->free_func != NULL) {
