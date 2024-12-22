@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.30)
 project(compiler_tests C)
 
-set(CMAKE_C_STANDARD 17)
+set(CMAKE_C_STANDARD 23)
 set(CMAKE_C_STANDARD_REQUIRED ON)
 set(CMAKE_BUILD_TYPE Debug)
 set(CMAKE_C_FLAGS_DEBUG "-g")
@@ -13,10 +13,10 @@ add_definitions(-DDEBUG)
 
 # Include all source headers and source files
 file(GLOB_RECURSE ALL_HEADERS "${CMAKE_SOURCE_DIR}/src/*.h")
-foreach(HEADER_FILE ${ALL_HEADERS})
+foreach (HEADER_FILE ${ALL_HEADERS})
     get_filename_component(HEADER_DIR ${HEADER_FILE} PATH)
     list(APPEND HEADER_DIRS ${HEADER_DIR})
-endforeach()
+endforeach ()
 list(REMOVE_DUPLICATES HEADER_DIRS)
 include_directories(${HEADER_DIRS})
 
@@ -40,9 +40,9 @@ set(TEST_SOURCES
         vm_tests.c
 )
 # Create individual test executables for each test file
-foreach(TEST_FILE ${TEST_SOURCES})
+foreach (TEST_FILE ${TEST_SOURCES})
     get_filename_component(TEST_NAME ${TEST_FILE} NAME_WE)
     add_executable(${TEST_NAME} ${TEST_FILE} ${SRC_FILES})
     target_link_libraries(${TEST_NAME} PRIVATE unity)
     add_test(NAME ${TEST_NAME} COMMAND ${TEST_NAME})
-endforeach()
+endforeach ()

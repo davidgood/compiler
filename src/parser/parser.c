@@ -1666,16 +1666,18 @@ static void parse_call_arguments(parser *parser, ast_call_expression *call_exp) 
 static ast_expression *copy_identifier_expression(ast_expression *exp) {
     ast_identifier *ident_exp = (ast_identifier *) exp;
     ast_identifier *copy      = malloc(sizeof(*copy));
-    if (copy == NULL)
+    if (copy == NULL) {
         err(EXIT_FAILURE, "malloc failed");
+    }
     copy->expression.node.string        = identifier_string;
     copy->expression.node.token_literal = ident_token_literal;
     copy->expression.node.type          = EXPRESSION;
     copy->expression.expression_type    = IDENTIFIER_EXPRESSION;
     copy->token                         = token_copy(ident_exp->token);
     copy->value                         = strdup(ident_exp->value);
-    if (copy->value == NULL)
+    if (copy->value == NULL) {
         err(EXIT_FAILURE, "malloc failed");
+    }
     return (ast_expression *) copy;
 }
 
@@ -1722,8 +1724,9 @@ static ast_expression *copy_infix_expression(ast_expression *exp) {
     copy->expression.expression_type    = INFIX_EXPRESSION;
     copy->token                         = token_copy(infix_exp->token);
     copy->operator                      = strdup(infix_exp->operator);
-    if (copy->operator == NULL)
+    if (copy->operator == NULL) {
         err(EXIT_FAILURE, "malloc failed");
+    }
     copy->left  = copy_expression(infix_exp->left);
     copy->right = copy_expression(infix_exp->right);
     return (ast_expression *) copy;
@@ -1732,8 +1735,9 @@ static ast_expression *copy_infix_expression(ast_expression *exp) {
 static ast_expression *copy_boolean_expression(ast_expression *exp) {
     ast_boolean_expression *bool_exp = (ast_boolean_expression *) exp;
     ast_boolean_expression *copy     = malloc(sizeof(*copy));
-    if (copy == NULL)
+    if (copy == NULL) {
         err(EXIT_FAILURE, "malloc failed");
+    }
     copy->expression.node.string        = bool_exp->expression.node.string;
     copy->expression.node.token_literal = bool_exp->expression.node.token_literal;
     copy->expression.node.type          = EXPRESSION;
