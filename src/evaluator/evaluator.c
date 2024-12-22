@@ -241,7 +241,7 @@ static object_object *eval_identifier_expression(ast_expression *exp, const envi
 
 static arraylist *eval_expressions_to_array_list(const arraylist *expression_list,
                                                  environment *    env) {
-    arraylist *values = arraylist_create(expression_list->size);
+    arraylist *values = arraylist_create(expression_list->size, NULL);
     for (size_t i = 0; i < expression_list->size; i++) {
         object_object *value = evaluator_eval((ast_node *) expression_list->body[i], env);
         if (is_error(value)) {

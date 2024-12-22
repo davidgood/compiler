@@ -4,6 +4,8 @@
 
 #include "virtual_machine.h"
 
+#include <assert.h>
+#include <conversions.h>
 #include <err.h>
 #include <stdarg.h>
 #include <stdlib.h>
@@ -26,11 +28,16 @@ static char *get_err_msg(const char *s, ...) {
     return msg;
 }
 
-// static frame *get_current_frame(virtual_machine *vm) {
-//     return vm->frames[vm->frame_index - 1];
-// }
+static frame *get_current_frame(const virtual_machine *vm) {
+    return vm->frames[vm->frame_index - 1];
+}
 
-#define get_current_frame(vm) vm->frames[vm->frame_index - 1]
+static instructions *get_frame_instructions(const frame *frame) {
+    return frame->cl->fn->instructions;
+}
+
+//#define get_current_frame(vm) vm->frames[vm->frame_index - 1]
+//#define get_frame_instructions(frame) frame->cl->fn->instructions
 
 static void push_frame(virtual_machine *vm, struct frame_t *frame) {
     vm->frames[vm->frame_index++] = frame;
@@ -60,9 +67,10 @@ virtual_machine *vm_init(const bytecode *bytecode) {
     vm->sp                           = 0;
     for (size_t i      = 0; i < GLOBALS_SIZE; i++)
         vm->globals[i] = NULL;
+
     object_free(main_closure);
     object_free(main_fn);
-    free(main_fn);
+
     return vm;
 }
 
@@ -134,8 +142,8 @@ static object_object *get_constant(virtual_machine *vm, size_t const_index) {
 }
 
 static vm_error execute_binary_int_op(virtual_machine *vm, Opcode op, long leftval, long rightval) {
-    long                result;
-    vm_error            error = {VM_ERROR_NONE, NULL};
+    long              result;
+    vm_error          error = {VM_ERROR_NONE, NULL};
     OpcodeDefinition *op_def;
     switch (op) {
         case OP_ADD:
@@ -167,8 +175,8 @@ static vm_error execute_binary_string_op(virtual_machine *vm, Opcode op, object_
     vm_error error  = {VM_ERROR_NONE, NULL};
     if (op != OP_ADD) {
         OpcodeDefinition *op_def = opcode_definition_lookup(op);
-        error.code = VM_UNSUPPORTED_OPERATOR;
-        error.msg  = get_err_msg("opcode %s not support for string operands", op_def->name);
+        error.code               = VM_UNSUPPORTED_OPERATOR;
+        error.msg                = get_err_msg("opcode %s not support for string operands", op_def->name);
         return error;
     }
     if ((asprintf(&result, "%s%s", leftval->value, rightval->value)) == -1)
@@ -190,10 +198,10 @@ static vm_error execute_binary_op(virtual_machine *vm, Opcode op) {
     } else if (left->type == OBJECT_STRING && right->type == OBJECT_STRING) {
         vm_err = execute_binary_string_op(vm, op, (object_string *) left, (object_string *) right);
     } else {
-        vm_err.code                = VM_UNSUPPORTED_OPERAND;
+        vm_err.code              = VM_UNSUPPORTED_OPERAND;
         OpcodeDefinition *op_def = opcode_definition_lookup(op);
-        vm_err.msg                 = get_err_msg("'%s' operation not supported with types %s and %s",
-                                                 op_def->name, get_type_name(left->type), get_type_name(right->type));
+        vm_err.msg               = get_err_msg("'%s' operation not supported with types %s and %s",
+                                               op_def->name, get_type_name(left->type), get_type_name(right->type));
     }
     object_free(left);
     object_free(right);
@@ -201,8 +209,8 @@ static vm_error execute_binary_op(virtual_machine *vm, Opcode op) {
 }
 
 static vm_error execute_integer_comparison(virtual_machine *vm, Opcode op, long left, long right) {
-    bool                result = false;
-    vm_error            error  = {VM_ERROR_NONE, NULL};
+    bool     result = false;
+    vm_error error  = {VM_ERROR_NONE, NULL};
     switch (op) {
         case OP_GREATER_THAN:
             if (left > right)
@@ -302,16 +310,16 @@ static vm_error execute_index_expression(virtual_machine *vm, object_object *lef
 }
 
 static vm_error execute_comparison_op(virtual_machine *vm, Opcode op) {
-    vm_error            error = {VM_ERROR_NONE, NULL};
-    object_object *     right = vm_pop(vm);
-    object_object *     left  = vm_pop(vm);
+    vm_error       error = {VM_ERROR_NONE, NULL};
+    object_object *right = vm_pop(vm);
+    object_object *left  = vm_pop(vm);
     if (left->type == OBJECT_INT && right->type == OBJECT_INT) {
         long leftval  = ((object_int *) left)->value;
         long rightval = ((object_int *) right)->value;
         error         = execute_integer_comparison(vm, op, leftval, rightval);
     } else if (left->type == OBJECT_BOOL && right->type == OBJECT_BOOL) {
         OpcodeDefinition *op_def;
-        _Bool result = false;
+        _Bool             result = false;
         switch (op) {
             case OP_GREATER_THAN:
                 vm_push(vm, (object_object *) object_create_bool(false));
@@ -363,20 +371,32 @@ static arraylist *build_array(virtual_machine *vm, size_t array_size) {
     return list;
 }
 
-static hashtable *build_hash(virtual_machine *vm, size_t size) {
+static hashtable *build_hash(const virtual_machine *vm, const size_t size) {
+    assert(vm != NULL);
+    assert(vm->stack != NULL);
+    assert(vm->sp >= size);
+
     hashtable *table = hashtable_create(object_get_hash,
                                         object_equals, NULL, NULL);
-    for (size_t i = vm->sp - size; i < vm->sp; i += 2) {
-        object_object *key   = (object_object *) vm->stack[i];
-        object_object *value = (object_object *) vm->stack[i + 1];
-        hashtable_set(table, (key), (value));
+    if (!table) {
+        fprintf(stderr, "Error: Failed to create hashtable\n");
+        exit(EXIT_FAILURE);
     }
-    vm->sp -= size;
+
+    for (size_t i = vm->sp - size; i < vm->sp; i += 2) {
+        assert(i + 1 < vm->sp); // Ensure no out-of-bounds access
+        object_object *key   = vm->stack[i];
+        object_object *value = vm->stack[i + 1];
+        assert(key != NULL);
+        assert(value != NULL);
+
+        hashtable_set(table, key, value);
+    }
     return table;
 }
 
 static vm_error call_builtin(virtual_machine *vm, object_builtin *callee, size_t num_args) {
-    vm_error              vm_err;
+    vm_error     vm_err;
     linked_list *args = linked_list_create();
     for (size_t i = vm->sp - num_args; i < vm->sp; i++) {
         object_object *top = vm->stack[i];
@@ -425,34 +445,41 @@ static vm_error execute_call(virtual_machine *vm, size_t num_args) {
     return vm_err;
 }
 
+uint16_t read_uint16(const uint8_t *bytes) {
+    return (uint16_t) (bytes[0] << 8) | bytes[1];
+}
+
 vm_error vm_run(virtual_machine *vm) {
-    size_t              const_index, jmp_pos, sym_index, array_size, hash_size;
-    vm_error            vm_err;
-    object_object *     top = NULL;
-    arraylist *         array_list;
-    hashtable *         table;
-    object_array *      array_obj;
-    object_hash *       hash_obj;
-    object_object *     index;
-    object_object *     left;
-    object_object *     return_value;
-    frame *             popped_frame = NULL;
-    size_t              num_args;
-    size_t              builtin_idx;
-    size_t              num_free_vars;
-    object_closure *    current_closure;
-    frame *             current_frame = get_current_frame(vm);
+    size_t          const_index, jmp_pos, sym_index, array_size, num_elements;
+    vm_error        vm_err;
+    object_object * top = NULL;
+    arraylist *     array_list;
+    hashtable *     table;
+    object_array *  array_obj;
+    object_hash *   hash_obj;
+    object_object * index;
+    object_object * left;
+    object_object * return_value;
+    frame *         popped_frame = NULL;
+    size_t          num_args;
+    size_t          builtin_idx;
+    size_t          num_free_vars;
+    object_closure *current_closure;
+    frame *         current_frame              = get_current_frame(vm);
+    size_t          ip                         = 0;
+    instructions *  current_frame_instructions = NULL;
+    Opcode          op                         = OP_INVALID;
     while (current_frame->ip < get_frame_instructions(current_frame)->length) {
-        const size_t        ip                         = current_frame->ip;
-        const instructions *current_frame_instructions = get_frame_instructions(current_frame);
-        const Opcode        op                         = current_frame_instructions->bytes[ip];
+        ip                         = current_frame->ip;
+        current_frame_instructions = get_frame_instructions(current_frame);
+        op                         = current_frame_instructions->bytes[ip];
         if (top != NULL) {
             object_free(top);
             top = NULL;
         }
         switch (op) {
             case OP_CONSTANT:
-                const_index = htobe16(current_frame_instructions->bytes[ip + 1]);
+                const_index = read_uint16(&current_frame_instructions->bytes[ip + 1]);
                 current_frame->ip += 2;
                 vm_push_copy(vm, get_constant(vm, const_index));
                 break;
@@ -494,65 +521,63 @@ vm_error vm_run(virtual_machine *vm) {
                     return vm_err;
                 break;
             case OP_JUMP:
-                jmp_pos = htobe16(current_frame_instructions->bytes[ip + 1]);
+                jmp_pos = read_uint16(&current_frame_instructions->bytes[ip + 1]);
                 current_frame->ip = jmp_pos - 1;
                 break;
             case OP_JUMP_NOT_TRUTHY:
-                jmp_pos = htobe16(current_frame_instructions->bytes[ip + 1]);
+                jmp_pos = read_uint16(&current_frame_instructions->bytes[ip + 1]);
                 current_frame->ip += 2;
                 top = vm_pop(vm);
                 if (!is_truthy(top))
                     current_frame->ip = jmp_pos - 1;
                 break;
             case OP_SET_GLOBAL:
-                sym_index = htobe16(current_frame_instructions->bytes[ip + 1]);
+                sym_index = read_uint16(&current_frame_instructions->bytes[ip + 1]);
                 current_frame->ip += 2;
                 top                    = vm_pop(vm);
                 vm->globals[sym_index] = object_copy_object(top);
                 break;
             case OP_SET_LOCAL:
-                sym_index = htobe16(current_frame_instructions->bytes[ip + 1]);
+                sym_index = read_uint16(&current_frame_instructions->bytes[ip + 1]);
                 current_frame->ip++;
                 top                                      = vm_pop(vm);
                 vm->stack[current_frame->bp + sym_index] = object_copy_object(top);
                 break;
             case OP_GET_GLOBAL:
-                sym_index = htobe16(current_frame_instructions->bytes[ip + 1]);
+                sym_index = read_uint16(&current_frame_instructions->bytes[ip + 1]);
                 current_frame->ip += 2;
                 vm_push_copy(vm, vm->globals[sym_index]);
             // if (vm_err.code != VM_ERROR_NONE)
             //     return vm_err;
                 break;
             case OP_GET_LOCAL:
-                sym_index = htobe16(current_frame_instructions->bytes[ip + 1]);
+                sym_index = read_uint16(&current_frame_instructions->bytes[ip + 1]);
                 current_frame->ip++;
                 vm_push_copy(vm, vm->stack[current_frame->bp + sym_index]);
-            // if (vm_err.code != VM_ERROR_NONE)
-            //     return vm_err;
                 break;
             case OP_GET_FREE:
-                sym_index = htobe16(current_frame_instructions->bytes[ip + 1]);
+                sym_index = read_uint16(&current_frame_instructions->bytes[ip + 1]);
                 current_frame->ip++;
                 current_closure = get_current_frame(vm)->cl;
                 vm_push_copy(vm, current_closure->free_variables[sym_index]);
                 break;
             case OP_ARRAY:
-                array_size = htobe16(current_frame_instructions->bytes[ip + 1]);
+                array_size = read_uint16(&current_frame_instructions->bytes[ip + 1]);
                 current_frame->ip += 2;
                 array_list = build_array(vm, array_size);
                 array_obj  = object_create_array(array_list);
                 vm_push(vm, (object_object *) array_obj);
-            // if (vm_err.code != VM_ERROR_NONE)
-            //     return vm_err;
                 break;
             case OP_HASH:
-                hash_size = htobe16(current_frame_instructions->bytes[ip + 1]);
+                num_elements = htobe16(current_frame_instructions->bytes[ip + 1]);
+            //num_elements = read_uint16(&current_frame_instructions->bytes[ip + 1]);
                 current_frame->ip += 2;
-                table    = build_hash(vm, hash_size);
+                fprintf(stdout, "Before build hash: %p", current_frame_instructions->bytes);
+                table = build_hash(vm, num_elements);
+                fprintf(stdout, "After build hash: %p", current_frame_instructions->bytes);
                 hash_obj = object_create_hash(table);
                 vm_push(vm, (object_object *) hash_obj);
-            // if (vm_err.code != VM_ERROR_NONE)
-            //     return vm_err;
+                vm->sp -= num_elements;
                 break;
             case OP_INDEX:
                 index = vm_pop(vm);
@@ -564,7 +589,7 @@ vm_error vm_run(virtual_machine *vm) {
                     return vm_err;
                 break;
             case OP_CALL:
-                num_args = htobe16(current_frame_instructions->bytes[ip + 1]);
+                num_args = current_frame_instructions->bytes[ip + 1];
                 current_frame->ip++;
                 vm_err = execute_call(vm, num_args);
                 if (vm_err.code != VM_ERROR_NONE)
@@ -582,26 +607,21 @@ vm_error vm_run(virtual_machine *vm) {
                 vm_push(vm, (object_object *) object_create_null());
                 break;
             case OP_GET_BUILTIN:
-                builtin_idx = htobe16(current_frame_instructions->bytes[ip + 1]);
+                builtin_idx = read_uint16(&current_frame_instructions->bytes[ip + 1]);
                 current_frame->ip++;
                 const char *    builtin_name = get_builtins_name(builtin_idx);
                 object_builtin *builtin      = get_builtins(builtin_name);
                 vm_push(vm, (object_object *) builtin);
                 break;
             case OP_CLOSURE:
-                const_index = (current_frame_instructions->bytes[ip + 1] << 8) | current_frame_instructions->bytes[
-                                  ip + 2];
+                const_index = read_uint16(&current_frame_instructions->bytes[ip + 1]);
                 num_free_vars = current_frame_instructions->bytes[ip + 3];
                 current_frame->ip += 3;
                 vm_push_closure(vm, const_index, num_free_vars);
-            // if (vm_err.code != VM_ERROR_NONE)
-            //     return vm_err;
                 break;
             case OP_CURRENT_CLOSURE:
                 current_closure = current_frame->cl;
                 vm_push_copy(vm, (object_object *) current_closure);
-            // if (vm_err.code != VM_ERROR_NONE)
-            //     return vm_err;
                 break;
             default:
                 OpcodeDefinition *op_def = opcode_definition_lookup(op);

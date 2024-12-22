@@ -16,6 +16,7 @@ typedef struct {
     unsigned int size;     // Count of items currently in list
     unsigned int capacity; // Allocated memory size, in items
     void **      body;
+
     void (*free_func)(void *); // Function to free memory of items
     // Pointer to allocated memory for items (of size capacity * sizeof(void*))
 } arraylist;
@@ -52,22 +53,8 @@ arraylist *var_clone(clone_args args);
 #define arraylist_clone(...) var_clone((clone_args){__VA_ARGS__});
 /******************************************************************************/
 
-/**
- * Safe Variadic function to copy an arraylist.
- */
-typedef struct {
-    size_t size;
 
-    void (*free_func)(void *);
-} create_args;
-
-void create_base(size_t size, ...);
-
-arraylist *var_create(create_args args);
-
-#define arraylist_create(...) var_create((create_args){__VA_ARGS__});
-/******************************************************************************/
-
+arraylist *arraylist_create(size_t capacity, void (*free_func)(void *));
 
 void arraylist_sort(const arraylist *l, int (*cmp_func)(const void *, const void *));
 

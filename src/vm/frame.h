@@ -16,5 +16,5 @@ frame *frame_init(object_closure *, size_t);
 
 void frame_free(frame *);
 
-#define get_frame_instructions(frame) frame->cl->fn->instructions
+
 #endif //FRAME_H

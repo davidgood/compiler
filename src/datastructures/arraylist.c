@@ -1,62 +1,36 @@
 /**
- * Arraylist implementation
- * (c) 2011 @marekweb
- *
- * Uses dynamic extensible arrays.
- */
-#include "arraylist.h"
-#include <assert.h>
-#include <err.h>
-#include <stdarg.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-/*
- * Interface section used for `makeheaders`.
- */
-#if INTERFACE
-
-struct arraylist {
-	unsigned int size; // Count of items currently in list
-	unsigned int capacity; // Allocated memory size, in items
-	void** body; // Pointer to allocated memory for items (of size capacity * sizeof(void*))
-};
-
-/**
- * Iterates over a list, using the provided `unsigned int index` and `void* item`
- * variables as containers.
- */
-#define arraylist_iterate(l, index, item) \
-	for (index = 0, item = l->body[0]; index < l->size; item = l->body[++index])
-
-#endif
-
-/**
  * Macro to shift a section of memory by an offset, used when inserting or removing items.
  */
 #define arraylist_memshift(s, offset, length) memmove((s) + (offset), (s), (length)* sizeof(s));
+#include <arraylist.h>
+#include <assert.h>
+#include <stdio.h>
+#include <string.h>
 
 /**
  * Create a new, empty arraylist.
  */
-arraylist *var_create(create_args args) {
+arraylist *arraylist_create(size_t capacity, void (*free_func)(void *)) {
     arraylist *new_list = malloc(sizeof(arraylist));
-    if (new_list == NULL) {
-        err(EXIT_FAILURE, "Failed to create arraylist");
+    if (!new_list) {
+        perror("Error: Failed to allocate memory for arraylist");
+        exit(EXIT_FAILURE);
     }
-    new_list->size      = 0;
 
-    // Allocate the array
-    new_list->body = malloc(sizeof(void *) * args.size);
-    if (new_list->body == NULL) {
+    new_list->size      = 0;
+    new_list->capacity  = capacity;
+    new_list->free_func = free_func;
+
+    new_list->body = malloc(sizeof(void *) * capacity);
+    if (!new_list->body) {
         free(new_list);
-        err(EXIT_FAILURE, "Failed to allocate memory for arraylist");
+        perror("Error: Failed to allocate memory for arraylist body");
+        exit(EXIT_FAILURE);
     }
-    new_list->capacity = args.size;
-    new_list->free_func = args.free_func;
 
     return new_list;
 }
+
 
 /**
  * Allocate sufficient array capacity for at least `size` elements.
@@ -74,10 +48,11 @@ void arraylist_allocate(arraylist *l, const unsigned int size) {
 
         void **new_body = realloc(l->body, sizeof(void *) * new_capacity);
         if (!new_body) {
-            err(EXIT_FAILURE, "Failed to allocate memory for arraylist");
+            perror("Failed to allocate memory for arraylist");
+            exit(EXIT_FAILURE);
         }
 
-        l->body = new_body;
+        l->body     = new_body;
         l->capacity = new_capacity;
     }
 }
@@ -161,7 +136,7 @@ void *arraylist_remove(arraylist *l, const unsigned int index) {
  * Clear list of all items.
  */
 void arraylist_clear(arraylist *l) {
-    for (size_t i=0; i < l->size; i++) {
+    for (size_t i = 0; i < l->size; i++) {
         if (l->free_func != NULL) {
             l->free_func(l->body[i]);
         }
@@ -175,7 +150,7 @@ void arraylist_clear(arraylist *l) {
 arraylist *arraylist_slice(const arraylist *  l, const unsigned int index,
                            const unsigned int length) {
     assert(index + length <= l->size);
-    arraylist *new_list = arraylist_create(ARRAYLIST_INITIAL_CAPACITY);
+    arraylist *new_list = arraylist_create(ARRAYLIST_INITIAL_CAPACITY, NULL);
     arraylist_allocate(new_list, length);
     memmove(new_list->body, l->body + index, length * sizeof(void *));
     new_list->size = length;

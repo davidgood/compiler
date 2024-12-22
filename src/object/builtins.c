@@ -52,9 +52,9 @@ static char *builtin_inspect(object_object *object) {
 static object_object *_puts(linked_list *arguments) {
     const list_node *node = arguments->tail;
     while (node != NULL) {
-        object_object * arg = (object_object *) node->data;
-        node     = node->next;
-        char *s  = arg->inspect(arg);
+        object_object *arg = (object_object *) node->data;
+        node               = node->next;
+        char *s            = arg->inspect(arg);
         printf("%s\n", s);
         free(s);
     }
@@ -163,7 +163,7 @@ static object_object *rest(linked_list *arguments) {
         return (object_object *) object_create_null();
     }
 
-    arraylist *rest_elements = arraylist_create(array->elements->size - 1);
+    arraylist *rest_elements = arraylist_create(array->elements->size - 1, NULL);
     for (size_t i = 1; i < array->elements->size; i++) {
         object_object *obj = object_copy_object(array->elements->body[i]);
         arraylist_add(rest_elements, obj);
@@ -189,7 +189,7 @@ static object_object *push(linked_list *arguments) {
     }
 
     const object_array *array             = (object_array *) arg;
-    arraylist *         new_list_elements = arraylist_create(arguments->size + 1);
+    arraylist *         new_list_elements = arraylist_create(arguments->size + 1, NULL);
     for (size_t i = 0; i < array->elements->size; i++) {
         obj = object_copy_object(array->elements->body[i]);
         arraylist_add(new_list_elements, obj);

@@ -36,7 +36,7 @@ instructions *opcode_make_instruction(Opcode op, size_t *operands) {
     }
 
     // Allocate memory for the instruction
-    instructions *instruction = malloc(sizeof(instructions *));
+    instructions *instruction = malloc(sizeof(instructions));
     if (!instruction) {
         err(EXIT_FAILURE, "Could not allocate memory for instruction");
         return NULL;
@@ -68,80 +68,80 @@ instructions *opcode_make_instruction(Opcode op, size_t *operands) {
 
     return instruction;
 }
-// Generate an instruction
-instructions *opcode_make_instructionss(Opcode op, const va_list ap) {
-    size_t operand;
-    instructions    *ins = malloc(sizeof(*ins));
-    if (ins == NULL) {
-        err(EXIT_FAILURE, "malloc failed");
-    }
-    switch (op) {
-    case OP_CONSTANT:
-    case OP_JUMP_NOT_TRUTHY:
-    case OP_JUMP:
-    case OP_SET_GLOBAL:
-    case OP_GET_GLOBAL:
-    case OP_ARRAY:
-    case OP_HASH:
-        // these opcodes need only one operand 2 bytes wide
-        operand = va_arg(ap, size_t);
-        uint8_t *operand_be = size_t_to_uint8_be(operand, 2);
-        ins->bytes = create_uint8_array(3, op, operand_be[0], operand_be[1]);
-        ins->length = 3;
-        ins->size = 3;
-        free(operand_be);
-        return ins;
-    case OP_SET_LOCAL:
-    case OP_GET_LOCAL:
-    case OP_CALL:
-    case OP_GET_BUILTIN:
-    case OP_GET_FREE:
-        operand = va_arg(ap, size_t);
-        operand_be = size_t_to_uint8_be(operand, 1);
-        ins->bytes = create_uint8_array(2, op, operand_be[0]);
-        ins->length = 2;
-        ins->size = 2;
-        free(operand_be);
-        return ins;
-    case OP_CLOSURE:
-        operand = va_arg(ap, size_t);
-        operand_be = size_t_to_uint8_be(operand, 2);
-        ins->bytes = create_uint8_array(4, op, operand_be[0], operand_be[1], 0);
-        free(operand_be);
-        operand = va_arg(ap, size_t);
-        operand_be = size_t_to_uint8_be(operand, 1);
-        ins->bytes[3] = operand_be[0];
-        ins->size = 4;
-        ins->length = 4;
-        free(operand_be);
-        return ins;
-    case OP_ADD:
-    case OP_SUB:
-    case OP_MUL:
-    case OP_DIV:
-    case OP_POP:
-    case OP_TRUE:
-    case OP_FALSE:
-    case OP_GREATER_THAN:
-    case OP_EQUAL:
-    case OP_NOT_EQUAL:
-    case OP_MINUS:
-    case OP_BANG:
-    case OP_NULL:
-    case OP_INDEX:
-    case OP_RETURN_VALUE:
-    case OP_RETURN:
-    case OP_CURRENT_CLOSURE:
-        ins->bytes = create_uint8_array(1, op);
-        ins->length = 1;
-        ins->size = 1;
-        return ins;
-    default:
-        const OpcodeDefinition *op_def = opcode_definition_lookup(op);
-        err(EXIT_FAILURE, "Unsupported opcode %s", op_def->name);
-    }
-    return ins;
-}
+//// Generate an instruction
+//instructions *opcode_make_instructionss(Opcode op, const va_list ap) {
+//    size_t operand;
+//    instructions    *ins = malloc(sizeof(*ins));
+//    if (ins == NULL) {
+//        err(EXIT_FAILURE, "malloc failed");
+//    }
+//    switch (op) {
+//    case OP_CONSTANT:
+//    case OP_JUMP_NOT_TRUTHY:
+//    case OP_JUMP:
+//    case OP_SET_GLOBAL:
+//    case OP_GET_GLOBAL:
+//    case OP_ARRAY:
+//    case OP_HASH:
+//        // these opcodes need only one operand 2 bytes wide
+//        operand = va_arg(ap, size_t);
+//        uint8_t *operand_be = size_t_to_uint8_be(operand, 2);
+//        ins->bytes = create_uint8_array(3, op, operand_be[0], operand_be[1]);
+//        ins->length = 3;
+//        ins->size = 3;
+//        free(operand_be);
+//        return ins;
+//    case OP_SET_LOCAL:
+//    case OP_GET_LOCAL:
+//    case OP_CALL:
+//    case OP_GET_BUILTIN:
+//    case OP_GET_FREE:
+//        operand = va_arg(ap, size_t);
+//        operand_be = size_t_to_uint8_be(operand, 1);
+//        ins->bytes = create_uint8_array(2, op, operand_be[0]);
+//        ins->length = 2;
+//        ins->size = 2;
+//        free(operand_be);
+//        return ins;
+//    case OP_CLOSURE:
+//        operand = va_arg(ap, size_t);
+//        operand_be = size_t_to_uint8_be(operand, 2);
+//        ins->bytes = create_uint8_array(4, op, operand_be[0], operand_be[1], 0);
+//        free(operand_be);
+//        operand = va_arg(ap, size_t);
+//        operand_be = size_t_to_uint8_be(operand, 1);
+//        ins->bytes[3] = operand_be[0];
+//        ins->size = 4;
+//        ins->length = 4;
+//        free(operand_be);
+//        return ins;
+//    case OP_ADD:
+//    case OP_SUB:
+//    case OP_MUL:
+//    case OP_DIV:
+//    case OP_POP:
+//    case OP_TRUE:
+//    case OP_FALSE:
+//    case OP_GREATER_THAN:
+//    case OP_EQUAL:
+//    case OP_NOT_EQUAL:
+//    case OP_MINUS:
+//    case OP_BANG:
+//    case OP_NULL:
+//    case OP_INDEX:
+//    case OP_RETURN_VALUE:
+//    case OP_RETURN:
+//    case OP_CURRENT_CLOSURE:
+//        ins->bytes = create_uint8_array(1, op);
+//        ins->length = 1;
+//        ins->size = 1;
+//        return ins;
+//    default:
+//        const OpcodeDefinition *op_def = opcode_definition_lookup(op);
+//        err(EXIT_FAILURE, "Unsupported opcode %s", op_def->name);
+//    }
+//    return ins;
+//}
 
 // instructions * instruction_init(Opcode op, int *operands, size_t operand_count) {
 //     va_list ap;
@@ -355,21 +355,34 @@ void instructions_free(instructions *ins) {
     free(ins);
 }
 
-instructions * opcode_copy_instructions(instructions *ins) {
+instructions *opcode_copy_instructions(instructions *ins) {
+    if (!ins || !ins->bytes || ins->length == 0) {
+        err(EXIT_FAILURE, "Invalid input instructions");
+    }
+
     instructions *ret = malloc(sizeof(*ret));
-    if (ret == NULL) {
-        err(EXIT_FAILURE, "malloc failed");
+    if (!ret) {
+        err(EXIT_FAILURE, "Failed to allocate memory for instructions");
     }
+
     ret->bytes = malloc(ins->length);
-    if (ret->bytes == NULL) {
-        err(EXIT_FAILURE, "malloc failed");
+    if (!ret->bytes) {
+        free(ret);
+        err(EXIT_FAILURE, "Failed to allocate memory for instruction bytes");
     }
-    memcpy(ret->bytes, ins->bytes, ins->length);
+
+    // Copy the data, ensuring length is valid
+    if (ins->bytes && ins->length > 0) {
+        memcpy(ret->bytes, ins->bytes, ins->length);
+    }
 
     ret->length = ins->length;
     ret->size = ins->size;
+
     return ret;
 }
+
+
 
 
 

@@ -19,7 +19,7 @@ symbol_table *symbol_table_init(void) {
     table->store        = hashtable_create(string_hash_function, string_equals,
                                     free, symbol_free);
     table->outer        = NULL;
-    table->free_symbols = arraylist_create(ARRAYLIST_INITIAL_CAPACITY);
+    table->free_symbols = arraylist_create(ARRAYLIST_INITIAL_CAPACITY, NULL);
     return table;
 }
 
@@ -31,8 +31,8 @@ symbol_table *enclosed_symbol_table_init(symbol_table *outer) {
 
 symbol *symbol_define(symbol_table *table, const char *name) {
     const symbol_scope scope = table->outer == NULL ? GLOBAL : LOCAL;
-    symbol *             s     = symbol_init(name, scope, table->symbol_count++);
-    char *               n     = strdup(name);
+    symbol *           s     = symbol_init(name, scope, table->symbol_count++);
+    char *             n     = strdup(name);
     if (n == NULL)
         err(EXIT_FAILURE, "malloc failed");
     hashtable_set(table->store, n, s);
