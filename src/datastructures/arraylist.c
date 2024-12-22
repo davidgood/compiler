@@ -42,7 +42,7 @@ struct arraylist {
 arraylist *var_create(create_args args) {
     arraylist *new_list = malloc(sizeof(arraylist));
     if (new_list == NULL) {
-        errx(EXIT_FAILURE, "Failed to create arraylist");
+        err(EXIT_FAILURE, "Failed to create arraylist");
     }
     new_list->size      = 0;
 
@@ -50,7 +50,7 @@ arraylist *var_create(create_args args) {
     new_list->body = malloc(sizeof(void *) * args.size);
     if (new_list->body == NULL) {
         free(new_list);
-        errx(EXIT_FAILURE, "Failed to allocate memory for arraylist");
+        err(EXIT_FAILURE, "Failed to allocate memory for arraylist");
     }
     new_list->capacity = args.size;
     new_list->free_func = args.free_func;

@@ -10,7 +10,7 @@ int main(const int argc, char **argv) {
         return repl();
     if (argc == 2)
         return execute_file(argv[1]);
-    errx(EXIT_FAILURE, "Unsupported number of arguments %d", argc);
+    err(EXIT_FAILURE, "Unsupported number of arguments %d", argc);
 
     return 0;
 }

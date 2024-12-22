@@ -12,7 +12,7 @@
 #include "../src/compiler/scope.h"
 #include "../src/datastructures/arraylist.h"
 #include "../src/object/object.h"
-#include "../src/object/opcode.h"
+#include "../src/opcode/opcode.h"
 #include "../src/parser/parser.h"
 #include "object_test_utils.h"
 #include "test_utils.h"
@@ -46,15 +46,11 @@ void tearDown(void) {
     }
 }
 
-static instructions *instruction_init_and_track(const Opcode op, ...) {
-    va_list args;
+static instructions *opcode_make_instruction_and_track(const Opcode op, size_t *operands) {
 
-    va_start(args, op);
-
-    instructions *ins = instruction_init(op, va_arg(args, int));
+    instructions *ins = opcode_make_instruction(op, operands);
     arraylist_add(tracked_instructions, ins);
 
-    va_end(args);
     return ins;
 }
 
@@ -108,10 +104,10 @@ static void test_compiler_scopes(void) {
     compiler         *compiler            = compiler_init();
     symbol_table     *global_symbol_table = compiler->symbol_table;
     TEST_ASSERT_EQUAL_INT(compiler->scope_index, 0);
-    emit(compiler, OP_MUL);
+    emit(compiler, OP_MUL, 0);
     compiler_enter_scope(compiler);
     TEST_ASSERT_EQUAL_INT(compiler->scope_index, 1);
-    emit(compiler, OP_SUB);
+    emit(compiler, OP_SUB, 0);
     const compilation_scope *scope = get_top_scope(compiler);
     TEST_ASSERT_NOT_NULL(scope);
     TEST_ASSERT_EQUAL_INT(scope->instructions->length, 1);
@@ -122,7 +118,7 @@ static void test_compiler_scopes(void) {
     TEST_ASSERT_EQUAL_PTR(compiler->symbol_table, global_symbol_table);
     TEST_ASSERT_NULL(compiler->symbol_table->outer);
     instructions_free(ins);
-    emit(compiler, OP_ADD);
+    emit(compiler, OP_ADD, 0);
     scope = get_top_scope(compiler);
     TEST_ASSERT_EQUAL_INT(scope->instructions->length, 2);
     TEST_ASSERT_EQUAL_INT(scope->last_instruction.opcode, OP_ADD);
@@ -138,10 +134,10 @@ void test_addition(void) {
     compiler_test test;
     test.input = "1 + 2";
     test.instructions_count = 4;
-    test.expected_instructions[0] = instruction_init_and_track(OP_CONSTANT, 0);
-    test.expected_instructions[1] = instruction_init_and_track(OP_CONSTANT, 1);
-    test.expected_instructions[2] = instruction_init_and_track(OP_ADD);
-    test.expected_instructions[3] = instruction_init_and_track(OP_POP);
+    test.expected_instructions[0] = opcode_make_instruction(OP_CONSTANT, (size_t[]){0});
+    test.expected_instructions[1] = opcode_make_instruction_and_track(OP_CONSTANT, (size_t[]){1});
+    test.expected_instructions[2] = opcode_make_instruction_and_track(OP_ADD, 0);
+    test.expected_instructions[3] = opcode_make_instruction_and_track(OP_POP, 0);
 
     arraylist *constants = arraylist_create(2, object_free);
     arraylist_add(constants, object_create_int(1));
@@ -157,10 +153,10 @@ static void test_multiple_expressions(void) {
     compiler_test test;
     test.input = "1; 2",
     test.instructions_count = 4;
-    test.expected_instructions[0] = instruction_init_and_track(OP_CONSTANT, 0);
-    test.expected_instructions[1] = instruction_init_and_track(OP_POP);
-    test.expected_instructions[2] = instruction_init_and_track(OP_CONSTANT, 1);
-    test.expected_instructions[3] = instruction_init_and_track(OP_POP);
+    test.expected_instructions[0] = opcode_make_instruction_and_track(OP_CONSTANT, (size_t[]){0});
+    test.expected_instructions[1] = opcode_make_instruction_and_track(OP_POP, 0);
+    test.expected_instructions[2] = opcode_make_instruction_and_track(OP_CONSTANT, (size_t[]){1});
+    test.expected_instructions[3] = opcode_make_instruction_and_track(OP_POP, 0);
     test.expected_constants = create_constant_pool(2, object_create_int(1), object_create_int(2));
 
     printf("Testing multiple expressions\n");
@@ -171,10 +167,10 @@ static void test_subtraction(void) {
     compiler_test test;
     test.input= "1 - 2";
     test.instructions_count = 4;
-    test.expected_instructions[0] = instruction_init_and_track(OP_CONSTANT, 0);
-    test.expected_instructions[1] = instruction_init_and_track(OP_CONSTANT, 1);
-    test.expected_instructions[2] = instruction_init_and_track(OP_SUB);
-    test.expected_instructions[3] = instruction_init_and_track(OP_POP);
+    test.expected_instructions[0] = opcode_make_instruction_and_track(OP_CONSTANT, (size_t[]){0});
+    test.expected_instructions[1] = opcode_make_instruction_and_track(OP_CONSTANT, (size_t[]){1});
+    test.expected_instructions[2] = opcode_make_instruction_and_track(OP_SUB, 0);
+    test.expected_instructions[3] = opcode_make_instruction_and_track(OP_POP, 0);
     test.expected_constants = create_constant_pool(2, object_create_int(1), object_create_int(2));
 
     printf("Testing subtraction\n");
@@ -185,10 +181,10 @@ static void test_multiplication(void) {
     compiler_test test;
     test.input = "1 * 2";
     test.instructions_count = 4;
-    test.expected_instructions[0] = instruction_init_and_track(OP_CONSTANT, 0);
-    test.expected_instructions[1] = instruction_init_and_track(OP_CONSTANT, 1);
-    test.expected_instructions[2] = instruction_init_and_track(OP_MUL);
-    test.expected_instructions[3] = instruction_init_and_track(OP_POP);
+    test.expected_instructions[0] = opcode_make_instruction_and_track(OP_CONSTANT, (size_t[]){0});
+    test.expected_instructions[1] = opcode_make_instruction_and_track(OP_CONSTANT, (size_t[]){1});
+    test.expected_instructions[2] = opcode_make_instruction_and_track(OP_MUL, 0);
+    test.expected_instructions[3] = opcode_make_instruction_and_track(OP_POP, 0);
     test.expected_constants = create_constant_pool(2, object_create_int(1), object_create_int(2));
 
     printf("Testing multiplication\n");
@@ -199,10 +195,10 @@ static void test_division(void) {
     compiler_test test;
     test.input = "2 / 1";
     test.instructions_count = 4;
-    test.expected_instructions[0] = instruction_init_and_track(OP_CONSTANT, 0);
-    test.expected_instructions[1] = instruction_init_and_track(OP_CONSTANT, 1);
-    test.expected_instructions[2] = instruction_init_and_track(OP_DIV);
-    test.expected_instructions[3] = instruction_init_and_track(OP_POP);
+    test.expected_instructions[0] = opcode_make_instruction_and_track(OP_CONSTANT, (size_t[]){0});
+    test.expected_instructions[1] = opcode_make_instruction_and_track(OP_CONSTANT, (size_t[]){1});
+    test.expected_instructions[2] = opcode_make_instruction_and_track(OP_DIV, 0);
+    test.expected_instructions[3] = opcode_make_instruction_and_track(OP_POP,0);
     test.expected_constants = create_constant_pool(2, object_create_int(2), object_create_int(1));
 
     printf("Testing division\n");
@@ -213,9 +209,9 @@ static void test_negation(void) {
     compiler_test test;
     test.input = "-1";
     test.instructions_count = 3;
-    test.expected_instructions[0] = instruction_init_and_track(OP_CONSTANT, 0);
-    test.expected_instructions[1] = instruction_init_and_track(OP_MINUS);
-    test.expected_instructions[2] = instruction_init_and_track(OP_POP);
+    test.expected_instructions[0] = opcode_make_instruction_and_track(OP_CONSTANT, (size_t[]){0});
+    test.expected_instructions[1] = opcode_make_instruction_and_track(OP_MINUS, 0);
+    test.expected_instructions[2] = opcode_make_instruction_and_track(OP_POP, 0);
     test.expected_constants = create_constant_pool(1, object_create_int(1));
 
     printf("Testing negation\n");
@@ -229,14 +225,14 @@ static void test_if_true_then_block(void) {
     compiler_test test = {
         "if (true) {10}; 3333;",
         8,
-        {instruction_init_and_track(OP_TRUE),
-         instruction_init_and_track(OP_JUMP_NOT_TRUTHY, 10),
-         instruction_init_and_track(OP_CONSTANT, 0),
-         instruction_init_and_track(OP_JUMP, 11),
-         instruction_init_and_track(OP_NULL),
-         instruction_init_and_track(OP_POP),
-         instruction_init_and_track(OP_CONSTANT, 1),
-         instruction_init_and_track(OP_POP)},
+        {opcode_make_instruction_and_track(OP_TRUE, 0),
+         opcode_make_instruction_and_track(OP_JUMP_NOT_TRUTHY, (size_t[]){10}),
+         opcode_make_instruction_and_track(OP_CONSTANT, (size_t[]){0}),
+         opcode_make_instruction_and_track(OP_JUMP, (size_t[]){11}),
+         opcode_make_instruction_and_track(OP_NULL, 0),
+         opcode_make_instruction_and_track(OP_POP, 0),
+         opcode_make_instruction_and_track(OP_CONSTANT, (size_t[]){1}),
+         opcode_make_instruction_and_track(OP_POP, 0)},
         create_constant_pool(2,
                              (object_object *) object_create_int(10),
                              (object_object *) object_create_int(3333))
@@ -251,14 +247,14 @@ static void test_if_true_else_block(void) {
     compiler_test test = {
         "if (true) {10} else {20}; 3333;",
         8,
-        {instruction_init_and_track(OP_TRUE),
-         instruction_init_and_track(OP_JUMP_NOT_TRUTHY, 10),
-         instruction_init_and_track(OP_CONSTANT, 0),
-         instruction_init_and_track(OP_JUMP, 13),
-         instruction_init_and_track(OP_CONSTANT, 1),
-         instruction_init_and_track(OP_POP),
-         instruction_init_and_track(OP_CONSTANT, 2),
-         instruction_init_and_track(OP_POP)},
+        {opcode_make_instruction_and_track(OP_TRUE, 0),
+         opcode_make_instruction_and_track(OP_JUMP_NOT_TRUTHY, (size_t[]){10}),
+         opcode_make_instruction_and_track(OP_CONSTANT, (size_t[]){0}),
+         opcode_make_instruction_and_track(OP_JUMP, (size_t[]){13}),
+         opcode_make_instruction_and_track(OP_CONSTANT, (size_t[]){1}),
+         opcode_make_instruction_and_track(OP_POP, 0),
+         opcode_make_instruction_and_track(OP_CONSTANT, (size_t[]){2}),
+         opcode_make_instruction_and_track(OP_POP, 0)},
         create_constant_pool(3,
                              (object_object *) object_create_int(10),
                              (object_object *) object_create_int(20),
@@ -277,7 +273,8 @@ static void test_boolean_true(void) {
     compiler_test test = {
         "true",
         2,
-        {instruction_init_and_track(OP_TRUE), instruction_init_and_track(OP_POP)},
+        {opcode_make_instruction_and_track(OP_TRUE, 0),
+            opcode_make_instruction_and_track(OP_POP, 0)},
         NULL
     };
 
@@ -289,7 +286,8 @@ static void test_boolean_false(void) {
     compiler_test test = {
         "false",
         2,
-        {instruction_init_and_track(OP_FALSE), instruction_init_and_track(OP_POP)},
+        {opcode_make_instruction_and_track(OP_FALSE, 0),
+            opcode_make_instruction_and_track(OP_POP, 0)},
         NULL
     };
 
@@ -301,7 +299,10 @@ static void test_greater_than_expression(void) {
     compiler_test test = {
         "1 > 2",
         4,
-        {instruction_init_and_track(OP_CONSTANT, 0), instruction_init_and_track(OP_CONSTANT, 1), instruction_init_and_track(OP_GREATER_THAN), instruction_init_and_track(OP_POP)},
+        {opcode_make_instruction_and_track(OP_CONSTANT, (size_t[]){0}),
+            opcode_make_instruction_and_track(OP_CONSTANT, (size_t[]){1}),
+            opcode_make_instruction_and_track(OP_GREATER_THAN, 0),
+            opcode_make_instruction_and_track(OP_POP, 0)},
         create_constant_pool(2, object_create_int(1), object_create_int(2))
     };
 
@@ -313,7 +314,10 @@ static void test_less_than_expression(void) {
     compiler_test test = {
         "1 < 2",
         4,
-        {instruction_init_and_track(OP_CONSTANT, 0), instruction_init_and_track(OP_CONSTANT, 1), instruction_init_and_track(OP_GREATER_THAN), instruction_init_and_track(OP_POP)},
+        {opcode_make_instruction_and_track(OP_CONSTANT, (size_t[]){0}),
+            opcode_make_instruction_and_track(OP_CONSTANT, (size_t[]){1}),
+            opcode_make_instruction_and_track(OP_GREATER_THAN, 0),
+            opcode_make_instruction_and_track(OP_POP, 0)},
         create_constant_pool(2, object_create_int(2), object_create_int(1))
     };
 
@@ -325,7 +329,10 @@ static void test_equal_expression(void) {
     compiler_test test = {
         "1 == 2",
         4,
-        {instruction_init_and_track(OP_CONSTANT, 0), instruction_init_and_track(OP_CONSTANT, 1), instruction_init_and_track(OP_EQUAL), instruction_init_and_track(OP_POP)},
+        {opcode_make_instruction_and_track(OP_CONSTANT, (size_t[]){0}),
+            opcode_make_instruction_and_track(OP_CONSTANT, (size_t[]){1}),
+            opcode_make_instruction_and_track(OP_EQUAL, 0),
+            opcode_make_instruction_and_track(OP_POP, 0)},
         create_constant_pool(2, object_create_int(1), object_create_int(2))
     };
 
@@ -337,7 +344,10 @@ static void test_not_equal_expression(void) {
     compiler_test test = {
         "1 != 2",
         4,
-        {instruction_init_and_track(OP_CONSTANT, 0), instruction_init_and_track(OP_CONSTANT, 1), instruction_init_and_track(OP_NOT_EQUAL), instruction_init_and_track(OP_POP)},
+        {opcode_make_instruction_and_track(OP_CONSTANT, (size_t[]){0}),
+            opcode_make_instruction_and_track(OP_CONSTANT, (size_t[]){1}),
+            opcode_make_instruction_and_track(OP_NOT_EQUAL, 0),
+            opcode_make_instruction_and_track(OP_POP, 0)},
         create_constant_pool(2, object_create_int(1), object_create_int(2))
     };
 
@@ -349,7 +359,10 @@ static void test_true_equals_true(void) {
     compiler_test test = {
         "true == true",
         4,
-        {instruction_init_and_track(OP_TRUE), instruction_init_and_track(OP_TRUE), instruction_init_and_track(OP_EQUAL), instruction_init_and_track(OP_POP)},
+        {opcode_make_instruction_and_track(OP_TRUE, 0),
+            opcode_make_instruction_and_track(OP_TRUE, 0),
+            opcode_make_instruction_and_track(OP_EQUAL, 0),
+            opcode_make_instruction_and_track(OP_POP, 0)},
         NULL
     };
 
@@ -361,7 +374,10 @@ static void test_true_not_equal_false(void) {
     compiler_test test = {
         "true != false",
         4,
-        {instruction_init_and_track(OP_TRUE), instruction_init_and_track(OP_FALSE), instruction_init_and_track(OP_NOT_EQUAL), instruction_init_and_track(OP_POP)},
+        {opcode_make_instruction_and_track(OP_TRUE, 0),
+            opcode_make_instruction_and_track(OP_FALSE, 0),
+            opcode_make_instruction_and_track(OP_NOT_EQUAL, 0),
+            opcode_make_instruction_and_track(OP_POP, 0)},
         NULL
     };
 
@@ -373,7 +389,9 @@ static void test_bang_operator(void) {
     compiler_test test = {
         "!true",
         3,
-        {instruction_init_and_track(OP_TRUE), instruction_init_and_track(OP_BANG), instruction_init_and_track(OP_POP)},
+        {opcode_make_instruction_and_track(OP_TRUE, 0),
+            opcode_make_instruction_and_track(OP_BANG, 0),
+            opcode_make_instruction_and_track(OP_POP, 0)},
         NULL
     };
 
@@ -389,8 +407,10 @@ static void test_multiple_global_let_statements(void) {
     compiler_test test = {
         "let one = 1; let two = 2;",
         4,
-        {instruction_init_and_track(OP_CONSTANT, 0), instruction_init_and_track(OP_SET_GLOBAL, 0),
-         instruction_init_and_track(OP_CONSTANT, 1), instruction_init_and_track(OP_SET_GLOBAL, 1)},
+        {opcode_make_instruction_and_track(OP_CONSTANT, (size_t[]){0}),
+            opcode_make_instruction_and_track(OP_SET_GLOBAL, (size_t[]){0}),
+         opcode_make_instruction_and_track(OP_CONSTANT, (size_t[]){1}),
+            opcode_make_instruction_and_track(OP_SET_GLOBAL, (size_t[]){1})},
         create_constant_pool(2, object_create_int(1), object_create_int(2))
     };
 
@@ -402,8 +422,10 @@ static void test_global_let_and_usage(void) {
     compiler_test test = {
         "let one = 1; one;",
         4,
-        {instruction_init_and_track(OP_CONSTANT, 0), instruction_init_and_track(OP_SET_GLOBAL, 0),
-         instruction_init_and_track(OP_GET_GLOBAL, 0), instruction_init_and_track(OP_POP)},
+        {opcode_make_instruction_and_track(OP_CONSTANT, (size_t[]){0}),
+            opcode_make_instruction_and_track(OP_SET_GLOBAL, (size_t[]){0}),
+         opcode_make_instruction_and_track(OP_GET_GLOBAL, (size_t[]){0}),
+            opcode_make_instruction_and_track(OP_POP, 0)},
         create_constant_pool(1, object_create_int(1))
     };
 
@@ -419,8 +441,9 @@ static void test_single_string_expression(void) {
     compiler_test test = {
         "\"Lorem Ipsum\"",
         2,
-        {instruction_init_and_track(OP_CONSTANT, 0), instruction_init_and_track(OP_POP)},
-        create_constant_pool(1, object_create_string("Lorem Ipsum", 6))
+        {opcode_make_instruction_and_track(OP_CONSTANT, (size_t[]){0}),
+            opcode_make_instruction_and_track(OP_POP, 0)},
+        create_constant_pool(1, object_create_string("Lorem Ipsum", 11))
     };
 
     printf("Testing string expression: \"Lorem Ipsum\"\n");
@@ -431,9 +454,12 @@ static void test_string_concatenation_expression(void) {
     compiler_test test = {
         "\"Lorem\" + \" Ipsum\"",
         4,
-        {instruction_init_and_track(OP_CONSTANT, 0), instruction_init_and_track(OP_CONSTANT, 1),
-         instruction_init_and_track(OP_ADD), instruction_init_and_track(OP_POP)},
-        create_constant_pool(2, object_create_string("Lorem", 5), object_create_string(" Ipsum", 6))
+        {opcode_make_instruction_and_track(OP_CONSTANT, (size_t[]){0}),
+            opcode_make_instruction_and_track(OP_CONSTANT, (size_t[]){1}),
+         opcode_make_instruction_and_track(OP_ADD, 0),
+            opcode_make_instruction_and_track(OP_POP, 0)},
+        create_constant_pool(2, object_create_string("Lorem", 5),
+            object_create_string(" Ipsum", 6))
     };
 
     printf("Testing string expression: \"Lorem\" + \" Ipsum\"\n");
@@ -448,7 +474,8 @@ static void test_empty_hash_literal(void) {
     compiler_test test = {
         "{}",
         2,
-        {instruction_init_and_track(OP_HASH, 0), instruction_init_and_track(OP_POP)},
+        {opcode_make_instruction_and_track(OP_HASH, (size_t[]){0}),
+            opcode_make_instruction_and_track(OP_POP, 0)},
         NULL
     };
 
@@ -460,12 +487,21 @@ static void test_hash_literal_with_constants(void) {
     compiler_test test = {
         "{1: 2, 3: 4, 5: 6}",
         8,
-        {instruction_init_and_track(OP_CONSTANT, 0), instruction_init_and_track(OP_CONSTANT, 1), instruction_init_and_track(OP_CONSTANT, 2),
-         instruction_init_and_track(OP_CONSTANT, 3), instruction_init_and_track(OP_CONSTANT, 4), instruction_init_and_track(OP_CONSTANT, 5),
-         instruction_init_and_track(OP_HASH, 6), instruction_init_and_track(OP_POP)},
-        create_constant_pool(6, (object_object *) object_create_int(1), (object_object *) object_create_int(2),
-                             (object_object *) object_create_int(3), (object_object *) object_create_int(4),
-                             (object_object *) object_create_int(5), (object_object *) object_create_int(6))
+        {opcode_make_instruction_and_track(OP_CONSTANT, (size_t[]){0}),
+            opcode_make_instruction_and_track(OP_CONSTANT, (size_t[]){1}),
+            opcode_make_instruction_and_track(OP_CONSTANT, (size_t[]){2}),
+         opcode_make_instruction_and_track(OP_CONSTANT, (size_t[]){3}),
+            opcode_make_instruction_and_track(OP_CONSTANT, (size_t[]){4}),
+            opcode_make_instruction_and_track(OP_CONSTANT, (size_t[]){5}),
+         opcode_make_instruction_and_track(OP_HASH, (size_t[]){6}),
+            opcode_make_instruction_and_track(OP_POP, 0)},
+        create_constant_pool(6,
+                            (object_object *) object_create_int(1),
+                            (object_object *) object_create_int(2),
+                             (object_object *) object_create_int(3),
+                             (object_object *) object_create_int(4),
+                             (object_object *) object_create_int(5),
+                             (object_object *) object_create_int(6))
     };
 
     printf("Testing hash literal with constants: {1: 2, 3: 4, 5: 6}\n");
@@ -476,10 +512,16 @@ static void test_hash_literal_with_expressions(void) {
     compiler_test test = {
         "{1: 2 + 3, 4: 5 * 6}",
         10,
-        {instruction_init_and_track(OP_CONSTANT, 0), instruction_init_and_track(OP_CONSTANT, 1), instruction_init_and_track(OP_CONSTANT, 2),
-         instruction_init_and_track(OP_ADD), instruction_init_and_track(OP_CONSTANT, 3), instruction_init_and_track(OP_CONSTANT, 4),
-         instruction_init_and_track(OP_CONSTANT, 5), instruction_init_and_track(OP_MUL), instruction_init_and_track(OP_HASH, 4),
-         instruction_init_and_track(OP_POP)},
+        {opcode_make_instruction_and_track(OP_CONSTANT, (size_t[]){0}),
+            opcode_make_instruction_and_track(OP_CONSTANT, (size_t[]){1}),
+            opcode_make_instruction_and_track(OP_CONSTANT, (size_t[]){2}),
+            opcode_make_instruction_and_track(OP_ADD, 0),
+            opcode_make_instruction_and_track(OP_CONSTANT, (size_t[]){3}),
+            opcode_make_instruction_and_track(OP_CONSTANT, (size_t[]){4}),
+            opcode_make_instruction_and_track(OP_CONSTANT, (size_t[]){5}),
+            opcode_make_instruction_and_track(OP_MUL, 0),
+            opcode_make_instruction_and_track(OP_HASH, (size_t[]){4}),
+         opcode_make_instruction_and_track(OP_POP, 0)},
         create_constant_pool(6, (object_object *) object_create_int(1), (object_object *) object_create_int(2),
                              (object_object *) object_create_int(3), (object_object *) object_create_int(4),
                              (object_object *) object_create_int(5), (object_object *) object_create_int(6))
@@ -497,7 +539,8 @@ static void test_empty_array_literal(void) {
     compiler_test test = {
         "[]",
         2,
-        {instruction_init_and_track(OP_ARRAY, 0), instruction_init_and_track(OP_POP)},
+        {opcode_make_instruction_and_track(OP_ARRAY, (size_t[]){0}),
+            opcode_make_instruction_and_track(OP_POP, 0)},
         NULL
     };
 
@@ -508,8 +551,11 @@ static void test_array_literal_with_constants(void) {
     compiler_test test = {
         "[1, 2, 3]",
         5,
-        {instruction_init_and_track(OP_CONSTANT, 0), instruction_init_and_track(OP_CONSTANT, 1), instruction_init_and_track(OP_CONSTANT, 2),
-         instruction_init_and_track(OP_ARRAY, 3), instruction_init_and_track(OP_POP)},
+        {opcode_make_instruction_and_track(OP_CONSTANT, (size_t[]){0}),
+            opcode_make_instruction_and_track(OP_CONSTANT, (size_t[]){1}),
+            opcode_make_instruction_and_track(OP_CONSTANT, (size_t[]){2}),
+         opcode_make_instruction_and_track(OP_ARRAY, (size_t[]){3}),
+            opcode_make_instruction_and_track(OP_POP, 0)},
         create_constant_pool(3, (object_object *) object_create_int(1), (object_object *) object_create_int(2),
                              (object_object *) object_create_int(3))
     };
@@ -521,10 +567,17 @@ static void test_array_literal_with_expressions(void) {
     compiler_test test = {
         "[1 + 2, 3 - 4, 5 * 6]",
         11,
-        {instruction_init_and_track(OP_CONSTANT, 0), instruction_init_and_track(OP_CONSTANT, 1), instruction_init_and_track(OP_ADD),
-         instruction_init_and_track(OP_CONSTANT, 2), instruction_init_and_track(OP_CONSTANT, 3), instruction_init_and_track(OP_SUB),
-         instruction_init_and_track(OP_CONSTANT, 4), instruction_init_and_track(OP_CONSTANT, 5), instruction_init_and_track(OP_MUL),
-         instruction_init_and_track(OP_ARRAY, 3), instruction_init_and_track(OP_POP)},
+        {opcode_make_instruction_and_track(OP_CONSTANT, (size_t[]){0}),
+            opcode_make_instruction_and_track(OP_CONSTANT, (size_t[]){1}),
+            opcode_make_instruction_and_track(OP_ADD, 0),
+            opcode_make_instruction_and_track(OP_CONSTANT, (size_t[]){2}),
+            opcode_make_instruction_and_track(OP_CONSTANT, (size_t[]){3}),
+            opcode_make_instruction_and_track(OP_SUB, 0),
+            opcode_make_instruction_and_track(OP_CONSTANT, (size_t[]){4}),
+            opcode_make_instruction_and_track(OP_CONSTANT, (size_t[]){5}),
+            opcode_make_instruction_and_track(OP_MUL, 0),
+            opcode_make_instruction_and_track(OP_ARRAY, (size_t[]){3}),
+            opcode_make_instruction_and_track(OP_POP, 0)},
         create_constant_pool(6, (object_object *) object_create_int(1), (object_object *) object_create_int(2),
                              (object_object *) object_create_int(3), (object_object *) object_create_int(4),
                              (object_object *) object_create_int(5), (object_object *) object_create_int(6))
@@ -542,9 +595,15 @@ static void test_array_index_expression(void) {
     compiler_test test = {
         "[1, 2, 3][1 + 2]",
         9,
-        {instruction_init_and_track(OP_CONSTANT, 0), instruction_init_and_track(OP_CONSTANT, 1), instruction_init_and_track(OP_CONSTANT, 2),
-         instruction_init_and_track(OP_ARRAY, 3), instruction_init_and_track(OP_CONSTANT, 3), instruction_init_and_track(OP_CONSTANT, 4),
-         instruction_init_and_track(OP_ADD), instruction_init_and_track(OP_INDEX), instruction_init_and_track(OP_POP)},
+        {opcode_make_instruction_and_track(OP_CONSTANT, (size_t[]){0}),
+            opcode_make_instruction_and_track(OP_CONSTANT, (size_t[]){1}),
+            opcode_make_instruction_and_track(OP_CONSTANT, (size_t[]){2}),
+            opcode_make_instruction_and_track(OP_ARRAY, (size_t[]){3}),
+            opcode_make_instruction_and_track(OP_CONSTANT, (size_t[]){3}),
+            opcode_make_instruction_and_track(OP_CONSTANT, (size_t[]){4}),
+            opcode_make_instruction_and_track(OP_ADD, 0),
+            opcode_make_instruction_and_track(OP_INDEX, 0),
+            opcode_make_instruction_and_track(OP_POP, 0)},
         create_constant_pool(5, (object_object *) object_create_int(1), (object_object *) object_create_int(2),
                              (object_object *) object_create_int(3), (object_object *) object_create_int(1),
                              (object_object *) object_create_int(2))
@@ -558,9 +617,14 @@ static void test_hash_index_expression(void) {
     compiler_test test = {
         "{1: 2}[2 - 1]",
         8,
-        {instruction_init_and_track(OP_CONSTANT, 0), instruction_init_and_track(OP_CONSTANT, 1), instruction_init_and_track(OP_HASH, 2),
-         instruction_init_and_track(OP_CONSTANT, 2), instruction_init_and_track(OP_CONSTANT, 3), instruction_init_and_track(OP_SUB),
-         instruction_init_and_track(OP_INDEX), instruction_init_and_track(OP_POP)},
+        {opcode_make_instruction_and_track(OP_CONSTANT, (size_t[]){0}),
+            opcode_make_instruction_and_track(OP_CONSTANT, (size_t[]){1}),
+            opcode_make_instruction_and_track(OP_HASH, (size_t[]){2}),
+         opcode_make_instruction_and_track(OP_CONSTANT, (size_t[]){2}),
+            opcode_make_instruction_and_track(OP_CONSTANT, (size_t[]){3}),
+            opcode_make_instruction_and_track(OP_SUB, 0),
+         opcode_make_instruction_and_track(OP_INDEX, 0),
+            opcode_make_instruction_and_track(OP_POP, 0)},
         create_constant_pool(4, (object_object *) object_create_int(1), (object_object *) object_create_int(2),
                              (object_object *) object_create_int(2), (object_object *) object_create_int(1))
     };
@@ -594,22 +658,24 @@ static void test_simple_recursive_function(void) {
     compiler_test test;
     test.input = "let countDown = fn(x) { countDown(x - 1); }; countDown(1)";
     test.instructions_count = 6;
-    test.expected_instructions[0] = instruction_init_and_track(OP_CLOSURE, 1, 0);
-    test.expected_instructions[1] = instruction_init_and_track(OP_SET_GLOBAL, 0);
-    test.expected_instructions[2] = instruction_init_and_track(OP_GET_GLOBAL, 0);
-    test.expected_instructions[3] = instruction_init_and_track(OP_CONSTANT, 2);
-    test.expected_instructions[4] = instruction_init_and_track(OP_CALL, 1);
-    test.expected_instructions[5] = instruction_init_and_track(OP_POP);
-    test.expected_constants = create_constant_pool(3, object_create_int(1),
+    test.expected_instructions[0] = opcode_make_instruction_and_track(OP_CLOSURE, (size_t[]){1, 0});
+    test.expected_instructions[1] = opcode_make_instruction_and_track(OP_SET_GLOBAL, (size_t[]){0});
+    test.expected_instructions[2] = opcode_make_instruction_and_track(OP_GET_GLOBAL, (size_t[]){0});
+    test.expected_instructions[3] = opcode_make_instruction_and_track(OP_CONSTANT, (size_t[]){2});
+    test.expected_instructions[4] = opcode_make_instruction_and_track(OP_CALL, (size_t[]){1});
+    test.expected_instructions[5] = opcode_make_instruction_and_track(OP_POP, (size_t[]){0});
+    test.expected_constants = create_constant_pool(
+                                                    3,
+                                                    object_create_int(1),
                                                   (object_object *) object_create_compiled_fn(
                                                       create_compiled_fn_instructions(
                                                           6,
-                                                          instruction_init(OP_CURRENT_CLOSURE),
-                                                          instruction_init(OP_GET_LOCAL, 0),
-                                                          instruction_init(OP_CONSTANT, 0),
-                                                          instruction_init(OP_SUB),
-                                                          instruction_init(OP_CALL, 1),
-                                                          instruction_init(OP_RETURN_VALUE)),
+                                                          opcode_make_instruction(OP_CURRENT_CLOSURE, (size_t[]){0}),
+                                                          opcode_make_instruction(OP_GET_LOCAL, (size_t[]){0}),
+                                                          opcode_make_instruction(OP_CONSTANT, (size_t[]){0}),
+                                                          opcode_make_instruction(OP_SUB, 0),
+                                                          opcode_make_instruction(OP_CALL, (size_t[]){1}),
+                                                          opcode_make_instruction(OP_RETURN_VALUE, 0)),
                                                           0, 1),
                                                   object_create_int(1));
 
@@ -627,23 +693,34 @@ static void test_nested_recursive_function_wrapper(void) {
         "   }\n"
         "wrapper();",
         5,
-        {instruction_init_and_track(OP_CLOSURE, 3, 0), instruction_init_and_track(OP_SET_GLOBAL, 0),
-         instruction_init_and_track(OP_GET_GLOBAL, 0), instruction_init_and_track(OP_CALL, 0), instruction_init_and_track(OP_POP)},
+        {opcode_make_instruction_and_track(OP_CLOSURE, (size_t[]){3, 0}),
+            opcode_make_instruction_and_track(OP_SET_GLOBAL, (size_t[]){0}),
+         opcode_make_instruction_and_track(OP_GET_GLOBAL, (size_t[]){0}),
+            opcode_make_instruction_and_track(OP_CALL, (size_t[]){0}),
+            opcode_make_instruction_and_track(OP_POP, 0)},
         create_constant_pool(
             4,
             object_create_int(1),
             (object_object *) object_create_compiled_fn(
                 create_compiled_fn_instructions(
-                    6, instruction_init_and_track(OP_CURRENT_CLOSURE), instruction_init_and_track(OP_GET_LOCAL, 0),
-                    instruction_init_and_track(OP_CONSTANT, 0), instruction_init_and_track(OP_SUB),
-                    instruction_init_and_track(OP_CALL, 1), instruction_init_and_track(OP_RETURN_VALUE)),
+                    6,
+                    opcode_make_instruction(OP_CURRENT_CLOSURE, 0),
+                    opcode_make_instruction(OP_GET_LOCAL, (size_t[]){0}),
+                    opcode_make_instruction(OP_CONSTANT, (size_t[]){0}),
+                    opcode_make_instruction(OP_SUB, 0),
+                    opcode_make_instruction(OP_CALL, (size_t[]){1}),
+                    opcode_make_instruction(OP_RETURN_VALUE, 0)),
                 0, 1),
             object_create_int(1),
             (object_object *) object_create_compiled_fn(
                 create_compiled_fn_instructions(
-                    6, instruction_init_and_track(OP_CLOSURE, 1, 0), instruction_init_and_track(OP_SET_LOCAL, 0),
-                    instruction_init_and_track(OP_GET_LOCAL, 0), instruction_init_and_track(OP_CONSTANT, 2),
-                    instruction_init_and_track(OP_CALL, 1), instruction_init_and_track(OP_RETURN_VALUE)),
+                    6,
+                    opcode_make_instruction(OP_CLOSURE, (size_t[]){1, 0}),
+                    opcode_make_instruction(OP_SET_LOCAL, (size_t[]){0}),
+                    opcode_make_instruction(OP_GET_LOCAL, (size_t[]){0}),
+                    opcode_make_instruction(OP_CONSTANT, (size_t[]){2}),
+                    opcode_make_instruction(OP_CALL, (size_t[]){1}),
+                    opcode_make_instruction(OP_RETURN_VALUE, 0)),
                 1, 0))
     };
 
@@ -659,12 +736,16 @@ static void test_function_call_no_arguments(void) {
     compiler_test test = {
         "fn() {24}();",
         3,
-        {instruction_init_and_track(OP_CLOSURE, 1, 0), instruction_init_and_track(OP_CALL, 0), instruction_init_and_track(OP_POP)},
+        {
+            opcode_make_instruction_and_track(OP_CLOSURE, (size_t[]){1, 0}),
+            opcode_make_instruction_and_track(OP_CALL, (size_t[]){0}),
+            opcode_make_instruction_and_track(OP_POP, 0)},
         create_constant_pool(2,
                              (object_object *) object_create_int(24),
                              (object_object *) object_create_compiled_fn(
-                                 create_compiled_fn_instructions(2, instruction_init_and_track(OP_CONSTANT, 0),
-                                                                 instruction_init_and_track(OP_RETURN_VALUE)),
+                                 create_compiled_fn_instructions(2,
+                                     opcode_make_instruction(OP_CONSTANT, (size_t[]){0}),
+                                     opcode_make_instruction(OP_RETURN_VALUE, 0)),
                                  0, 0))
     };
     print_test_separator_line();
@@ -677,13 +758,18 @@ static void test_function_call_with_noarg_variable(void) {
         "let noArg = fn() {24};"
         "noArg();",
         5,
-        {instruction_init_and_track(OP_CLOSURE, 1, 0), instruction_init_and_track(OP_SET_GLOBAL, 0),
-         instruction_init_and_track(OP_GET_GLOBAL, 0), instruction_init_and_track(OP_CALL, 0), instruction_init_and_track(OP_POP)},
+        {
+            opcode_make_instruction_and_track(OP_CLOSURE, (size_t[]){1, 0}),
+            opcode_make_instruction_and_track(OP_SET_GLOBAL, (size_t[]){0}),
+            opcode_make_instruction_and_track(OP_GET_GLOBAL, (size_t[]){0}),
+            opcode_make_instruction_and_track(OP_CALL, (size_t[]){0}),
+            opcode_make_instruction_and_track(OP_POP, 0)},
         create_constant_pool(2,
                              (object_object *) object_create_int(24),
                              (object_object *) object_create_compiled_fn(
-                                 create_compiled_fn_instructions(2, instruction_init_and_track(OP_CONSTANT, 0),
-                                                                 instruction_init_and_track(OP_RETURN_VALUE)),
+                                 create_compiled_fn_instructions(2,
+                                     opcode_make_instruction(OP_CONSTANT, (size_t[]){0}),
+                                     opcode_make_instruction(OP_RETURN_VALUE, 0)),
                                  0, 0))
     };
     print_test_separator_line();
@@ -692,18 +778,23 @@ static void test_function_call_with_noarg_variable(void) {
 }
 
 static void test_function_call_one_argument(void) {
-    compiler_test test = {
-        "let oneArg = fn(a) {a}; oneArg(24);",
-        5,
-        {instruction_init_and_track(OP_CLOSURE, 0, 0), instruction_init_and_track(OP_SET_GLOBAL, 0),
-         instruction_init_and_track(OP_GET_GLOBAL, 0), instruction_init_and_track(OP_CALL, 1), instruction_init_and_track(OP_POP)},
-        create_constant_pool(2,
-                             (object_object *) object_create_compiled_fn(
-                                 create_compiled_fn_instructions(2, instruction_init_and_track(OP_GET_LOCAL, 0),
-                                                                 instruction_init_and_track(OP_RETURN_VALUE)),
-                                 0, 1),
-                             (object_object *) object_create_int(24))
-    };
+    compiler_test test;
+    test.input = "let oneArg = fn(a) {a}; oneArg(24);";
+    test.instructions_count = 6;
+    test.expected_instructions[0] = opcode_make_instruction_and_track(OP_CLOSURE, (size_t[]){0, 0});
+    test.expected_instructions[1] = opcode_make_instruction_and_track(OP_SET_GLOBAL, (size_t[]){0});
+    test.expected_instructions[2] = opcode_make_instruction_and_track(OP_GET_GLOBAL, (size_t[]){0});
+    test.expected_instructions[3] = opcode_make_instruction_and_track(OP_CONSTANT, (size_t[]){1});
+    test.expected_instructions[4] = opcode_make_instruction_and_track(OP_CALL, (size_t[]){1});
+    test.expected_instructions[5] = opcode_make_instruction_and_track(OP_POP, 0);
+    test.expected_constants = create_constant_pool(2,
+                                                (object_object *) object_create_compiled_fn(
+                                                      create_compiled_fn_instructions(
+                                                          2,
+                                                          opcode_make_instruction(OP_GET_LOCAL, (size_t[]){0}),
+                                                          opcode_make_instruction(OP_RETURN_VALUE, 0)),
+                                                      0, 1),
+                                                      object_create_int(24));
     print_test_separator_line();
     printf("Testing function call with one argument\n");
     run_compiler_tests(&test);
@@ -713,15 +804,25 @@ static void test_function_call_many_arguments(void) {
     compiler_test test = {
         "let manyArg = fn(a, b, c) {a; b; c;}; manyArg(24, 25, 26);",
         8,
-        {instruction_init_and_track(OP_CLOSURE, 0, 0), instruction_init_and_track(OP_SET_GLOBAL, 0),
-         instruction_init_and_track(OP_GET_GLOBAL, 0), instruction_init_and_track(OP_CONSTANT, 1), instruction_init_and_track(OP_CONSTANT, 2),
-         instruction_init_and_track(OP_CONSTANT, 3), instruction_init_and_track(OP_CALL, 3), instruction_init_and_track(OP_POP)},
+        {
+            opcode_make_instruction_and_track(OP_CLOSURE, (size_t[]){0, 0}),
+            opcode_make_instruction_and_track(OP_SET_GLOBAL, (size_t[]){0}),
+            opcode_make_instruction_and_track(OP_GET_GLOBAL, (size_t[]){0}),
+            opcode_make_instruction_and_track(OP_CONSTANT, (size_t[]){1}),
+            opcode_make_instruction_and_track(OP_CONSTANT, (size_t[]){2}),
+            opcode_make_instruction_and_track(OP_CONSTANT, (size_t[]){3}),
+            opcode_make_instruction_and_track(OP_CALL, (size_t[]){3}),
+            opcode_make_instruction_and_track(OP_POP, 0)},
         create_constant_pool(4,
                              (object_object *) object_create_compiled_fn(
                                  create_compiled_fn_instructions(
-                                     6, instruction_init_and_track(OP_GET_LOCAL, 0), instruction_init_and_track(OP_POP),
-                                     instruction_init_and_track(OP_GET_LOCAL, 1), instruction_init_and_track(OP_POP),
-                                     instruction_init_and_track(OP_GET_LOCAL, 2), instruction_init_and_track(OP_RETURN_VALUE)),
+                                     6,
+                                     opcode_make_instruction(OP_GET_LOCAL, (size_t[]){0}),
+                                     opcode_make_instruction(OP_POP, 0),
+                                     opcode_make_instruction(OP_GET_LOCAL, (size_t[]){1}),
+                                     opcode_make_instruction(OP_POP, (size_t[]){0}),
+                                     opcode_make_instruction(OP_GET_LOCAL, (size_t[]){2}),
+                                     opcode_make_instruction(OP_RETURN_VALUE, 0)),
                                  0, 3),
                              (object_object *) object_create_int(24),
                              (object_object *) object_create_int(25),
@@ -738,27 +839,30 @@ static void test_function_call_many_arguments(void) {
  ***************************************************************/
 static void test_closure_with_two_nested_functions(void) {
     compiler_test test = {
-        "fn(a) {\n"
+        "\nfn(a) {\n"
         "  fn(b) {\n"
         "    a + b\n"
         "  }\n"
         "};\n",
         2,
-        {instruction_init_and_track(OP_CLOSURE, 1, 0), instruction_init_and_track(OP_POP)},
+        {opcode_make_instruction_and_track(OP_CLOSURE, (size_t[]){1, 0}),
+            opcode_make_instruction_and_track(OP_POP, 0)},
         create_constant_pool(
             2,
             (object_object *) object_create_compiled_fn(
                 create_compiled_fn_instructions(
-                    4, instruction_init_and_track(OP_GET_FREE, 0),
-                    instruction_init_and_track(OP_GET_LOCAL, 0),
-                    instruction_init_and_track(OP_ADD),
-                    instruction_init_and_track(OP_RETURN_VALUE)),
+                    4,
+                    opcode_make_instruction(OP_GET_FREE, (size_t[]){0}),
+                    opcode_make_instruction(OP_GET_LOCAL, (size_t[]){0}),
+                    opcode_make_instruction(OP_ADD, 0),
+                    opcode_make_instruction(OP_RETURN_VALUE, 0)),
                 0, 1),
             (object_object *) object_create_compiled_fn(
                 create_compiled_fn_instructions(
-                    3, instruction_init_and_track(OP_GET_LOCAL, 0),
-                    instruction_init_and_track(OP_CLOSURE, 0, 1),
-                    instruction_init_and_track(OP_RETURN_VALUE)),
+                    3,
+                    opcode_make_instruction(OP_GET_LOCAL, (size_t[]){0}),
+                    opcode_make_instruction(OP_CLOSURE, (size_t[]){0, 1}),
+                    opcode_make_instruction(OP_RETURN_VALUE, 0)),
                 0, 1))
     };
 
@@ -767,41 +871,45 @@ static void test_closure_with_two_nested_functions(void) {
 }
 
 static void test_closure_with_three_nested_functions(void) {
-    compiler_test test = {
-        "fn(a) {\n"
+    compiler_test test;
+    test.input =
+        "\nfn(a) {\n"
         "   fn(b) {\n"
         "       fn(c) {\n"
         "           a + b + c\n"
         "       }\n"
         "   }\n"
-        "}",
-        2,
-        {instruction_init_and_track(OP_CLOSURE, 2, 0), instruction_init_and_track(OP_POP)},
-        create_constant_pool(
+        "}";
+    test.instructions_count = 2;
+    test.expected_instructions[0] = opcode_make_instruction_and_track(OP_CLOSURE, (size_t[]){2, 0});
+    test.expected_instructions[1] = opcode_make_instruction_and_track(OP_POP, 0);
+    test.expected_constants = create_constant_pool(
             3,
             (object_object *) object_create_compiled_fn(
                 create_compiled_fn_instructions(
-                    6, instruction_init_and_track(OP_GET_FREE, 0),
-                    instruction_init_and_track(OP_GET_FREE, 1),
-                    instruction_init_and_track(OP_ADD),
-                    instruction_init_and_track(OP_GET_LOCAL, 0),
-                    instruction_init_and_track(OP_ADD),
-                    instruction_init_and_track(OP_RETURN_VALUE)),
+                    6,
+                    opcode_make_instruction(OP_GET_FREE, (size_t[]){0}),
+                    opcode_make_instruction(OP_GET_FREE, (size_t[]){1}),
+                    opcode_make_instruction(OP_ADD, 0),
+                    opcode_make_instruction(OP_GET_LOCAL, (size_t[]){0}),
+                    opcode_make_instruction(OP_ADD, 0),
+                    opcode_make_instruction(OP_RETURN_VALUE, 0)),
                 0, 1),
             (object_object *) object_create_compiled_fn(
                 create_compiled_fn_instructions(
-                    4, instruction_init_and_track(OP_GET_FREE, 0),
-                    instruction_init_and_track(OP_GET_LOCAL, 0),
-                    instruction_init_and_track(OP_CLOSURE, 0, 2),
-                    instruction_init_and_track(OP_RETURN_VALUE)),
+                    4,
+                    opcode_make_instruction(OP_GET_FREE, (size_t[]){0}),
+                    opcode_make_instruction(OP_GET_LOCAL, (size_t[]){0}),
+                    opcode_make_instruction(OP_CLOSURE, (size_t[]){0, 2}),
+                    opcode_make_instruction(OP_RETURN_VALUE, 0)),
                 0, 1),
             (object_object *) object_create_compiled_fn(
                 create_compiled_fn_instructions(
-                    3, instruction_init_and_track(OP_GET_LOCAL, 0),
-                    instruction_init_and_track(OP_CLOSURE, 1, 1),
-                    instruction_init_and_track(OP_RETURN_VALUE)),
-                0, 1))
-    };
+                    3,
+                    opcode_make_instruction(OP_GET_LOCAL, (size_t[]){0}),
+                    opcode_make_instruction(OP_CLOSURE, (size_t[]){1, 1}),
+                    opcode_make_instruction(OP_RETURN_VALUE, 0)),
+                0, 1));
 
     printf("Testing closure with three nested functions\n");
     run_compiler_tests(&test);
@@ -821,8 +929,11 @@ static void test_closures_with_global_variables(void) {
         "   }\n"
         "}",
         4,
-        {instruction_init_and_track(OP_CONSTANT, 0), instruction_init_and_track(OP_SET_GLOBAL, 0), instruction_init_and_track(OP_CLOSURE, 6, 0),
-         instruction_init_and_track(OP_POP)},
+        {
+            opcode_make_instruction_and_track(OP_CONSTANT, (size_t[]){0}),
+            opcode_make_instruction_and_track(OP_SET_GLOBAL, (size_t[]){0}),
+            opcode_make_instruction_and_track(OP_CLOSURE, (size_t[]){6, 0}),
+            opcode_make_instruction_and_track(OP_POP, 0)},
         create_constant_pool(
             7,
             (object_object *) object_create_int(55),
@@ -831,33 +942,36 @@ static void test_closures_with_global_variables(void) {
             (object_object *) object_create_int(88),
             (object_object *) object_create_compiled_fn(
                 create_compiled_fn_instructions(
-                    10, instruction_init_and_track(OP_CONSTANT, 3),
-                    instruction_init_and_track(OP_SET_LOCAL, 0),
-                    instruction_init_and_track(OP_GET_GLOBAL, 0),
-                    instruction_init_and_track(OP_GET_FREE, 0),
-                    instruction_init_and_track(OP_ADD),
-                    instruction_init_and_track(OP_GET_FREE, 1),
-                    instruction_init_and_track(OP_ADD),
-                    instruction_init_and_track(OP_GET_LOCAL, 0),
-                    instruction_init_and_track(OP_ADD),
-                    instruction_init_and_track(OP_RETURN_VALUE)),
+                    10,
+                    opcode_make_instruction(OP_CONSTANT, (size_t[]){3}),
+                    opcode_make_instruction(OP_SET_LOCAL, (size_t[]){0}),
+                    opcode_make_instruction(OP_GET_GLOBAL, (size_t[]){0}),
+                    opcode_make_instruction(OP_GET_FREE, (size_t[]){0}),
+                    opcode_make_instruction(OP_ADD, 0),
+                    opcode_make_instruction(OP_GET_FREE, (size_t[]){1}),
+                    opcode_make_instruction(OP_ADD, 0),
+                    opcode_make_instruction(OP_GET_LOCAL, (size_t[]){0}),
+                    opcode_make_instruction(OP_ADD, 0),
+                    opcode_make_instruction(OP_RETURN_VALUE, 0)),
                 1, 0),
             (object_object *) object_create_compiled_fn(
                 create_compiled_fn_instructions(
-                    6, instruction_init_and_track(OP_CONSTANT, 2),
-                    instruction_init_and_track(OP_SET_LOCAL, 0),
-                    instruction_init_and_track(OP_GET_FREE, 0),
-                    instruction_init_and_track(OP_GET_LOCAL, 0),
-                    instruction_init_and_track(OP_CLOSURE, 4, 2),
-                    instruction_init_and_track(OP_RETURN_VALUE)),
+                    6,
+                    opcode_make_instruction(OP_CONSTANT, (size_t[]){2}),
+                    opcode_make_instruction(OP_SET_LOCAL, (size_t[]){0}),
+                    opcode_make_instruction(OP_GET_FREE, (size_t[]){0}),
+                    opcode_make_instruction(OP_GET_LOCAL, (size_t[]){0}),
+                    opcode_make_instruction(OP_CLOSURE, (size_t[]){4, 2}),
+                    opcode_make_instruction(OP_RETURN_VALUE, 0)),
                 1, 0),
             (object_object *) object_create_compiled_fn(
                 create_compiled_fn_instructions(
-                    5, instruction_init_and_track(OP_CONSTANT, 1),
-                    instruction_init_and_track(OP_SET_LOCAL, 0),
-                    instruction_init_and_track(OP_GET_LOCAL, 0),
-                    instruction_init_and_track(OP_CLOSURE, 5, 1),
-                    instruction_init_and_track(OP_RETURN_VALUE)),
+                    5,
+                    opcode_make_instruction(OP_CONSTANT, (size_t[]){1}),
+                    opcode_make_instruction(OP_SET_LOCAL, (size_t[]){0}),
+                    opcode_make_instruction(OP_GET_LOCAL, (size_t[]){0}),
+                    opcode_make_instruction(OP_CLOSURE, (size_t[]){5, 1}),
+                    opcode_make_instruction(OP_RETURN_VALUE, 0)),
                 1, 0))
     };
 
@@ -872,17 +986,20 @@ static void test_function_with_return(void) {
     compiler_test test = {
         "fn() {return 5 + 10}",
         2,
-        {instruction_init_and_track(OP_CLOSURE, 2, 0), instruction_init_and_track(OP_POP)},
+        {
+            opcode_make_instruction_and_track(OP_CLOSURE, (size_t[]){2, 0}),
+            opcode_make_instruction_and_track(OP_POP, 0)},
         create_constant_pool(
             3,
             (object_object *) object_create_int(5),
             (object_object *) object_create_int(10),
             (object_object *) object_create_compiled_fn(
                 create_compiled_fn_instructions(
-                    4, instruction_init_and_track(OP_CONSTANT, 0),
-                    instruction_init_and_track(OP_CONSTANT, 1),
-                    instruction_init_and_track(OP_ADD),
-                    instruction_init_and_track(OP_RETURN_VALUE)),
+                    4,
+                    opcode_make_instruction(OP_CONSTANT, (size_t[]){0}),
+                    opcode_make_instruction(OP_CONSTANT, (size_t[]){1}),
+                    opcode_make_instruction(OP_ADD, 0),
+                    opcode_make_instruction(OP_RETURN_VALUE, 0)),
                 0, 0))
     };
 
@@ -894,17 +1011,20 @@ static void test_function_with_implicit_return(void) {
     compiler_test test = {
         "fn() {5 + 10}",
         2,
-        {instruction_init_and_track(OP_CLOSURE, 2, 0), instruction_init_and_track(OP_POP)},
+        {
+            opcode_make_instruction_and_track(OP_CLOSURE, (size_t[]){2, 0}),
+            opcode_make_instruction_and_track(OP_POP, 0)},
         create_constant_pool(
             3,
             (object_object *) object_create_int(5),
             (object_object *) object_create_int(10),
             (object_object *) object_create_compiled_fn(
                 create_compiled_fn_instructions(
-                    4, instruction_init_and_track(OP_CONSTANT, 0),
-                    instruction_init_and_track(OP_CONSTANT, 1),
-                    instruction_init_and_track(OP_ADD),
-                    instruction_init_and_track(OP_RETURN_VALUE)),
+                    4,
+                    opcode_make_instruction(OP_CONSTANT, (size_t[]){0}),
+                    opcode_make_instruction(OP_CONSTANT, (size_t[]){1}),
+                    opcode_make_instruction(OP_ADD, 0),
+                    opcode_make_instruction(OP_RETURN_VALUE, 0)),
                 0, 0))
     };
 
@@ -915,17 +1035,20 @@ static void test_function_with_multiple_statements(void) {
     compiler_test test = {
         "fn() {1; 2;}",
         2,
-        {instruction_init_and_track(OP_CLOSURE, 2, 0), instruction_init_and_track(OP_POP)},
+        {
+            opcode_make_instruction_and_track(OP_CLOSURE, (size_t[]){2, 0}),
+            opcode_make_instruction_and_track(OP_POP, 0)},
         create_constant_pool(
             3,
             (object_object *) object_create_int(1),
             (object_object *) object_create_int(2),
             (object_object *) object_create_compiled_fn(
                 create_compiled_fn_instructions(
-                    4, instruction_init_and_track(OP_CONSTANT, 0),
-                    instruction_init_and_track(OP_POP),
-                    instruction_init_and_track(OP_CONSTANT, 1),
-                    instruction_init_and_track(OP_RETURN_VALUE)),
+                    4,
+                    opcode_make_instruction(OP_CONSTANT, (size_t[]){0}),
+                    opcode_make_instruction(OP_POP, 0),
+                    opcode_make_instruction(OP_CONSTANT, (size_t[]){1}),
+                    opcode_make_instruction(OP_RETURN_VALUE, 0)),
                 0, 0))
     };
 
@@ -937,11 +1060,14 @@ static void test_empty_function(void) {
     compiler_test test = {
         "fn() {}",
         2,
-        {instruction_init_and_track(OP_CLOSURE, 0, 0), instruction_init_and_track(OP_POP)},
+        {
+            opcode_make_instruction_and_track(OP_CLOSURE, (size_t[]){0, 0}),
+            opcode_make_instruction_and_track(OP_POP, 0)},
         create_constant_pool(
             1,
             object_create_compiled_fn(
-                create_compiled_fn_instructions(1, instruction_init_and_track(OP_RETURN)),
+                create_compiled_fn_instructions(1,
+                    opcode_make_instruction(OP_RETURN, 0)),
                 0, 0))
     };
 
@@ -957,13 +1083,18 @@ static void test_global_let_statement(void) {
         "let num = 55;\n"
         "fn() { num };",
         4,
-        {instruction_init_and_track(OP_CONSTANT, 0), instruction_init_and_track(OP_SET_GLOBAL, 0), instruction_init_and_track(OP_CLOSURE, 1, 0),
-         instruction_init_and_track(OP_POP)},
+        {
+            opcode_make_instruction_and_track(OP_CONSTANT, (size_t[]){0}),
+            opcode_make_instruction_and_track(OP_SET_GLOBAL, (size_t[]){0}),
+            opcode_make_instruction_and_track(OP_CLOSURE, (size_t[]){1, 0}),
+            opcode_make_instruction_and_track(OP_POP, 0)},
         create_constant_pool(
             2,
             (object_object *) object_create_int(55),
             (object_object *) object_create_compiled_fn(
-                create_compiled_fn_instructions(2, instruction_init_and_track(OP_GET_GLOBAL, 0), instruction_init_and_track(OP_RETURN_VALUE)),
+                create_compiled_fn_instructions(2,
+                    opcode_make_instruction(OP_GET_GLOBAL, (size_t[]){0}),
+                    opcode_make_instruction(OP_RETURN_VALUE, 0)),
                 0, 0))
     };
 
@@ -978,16 +1109,19 @@ static void test_local_let_statement(void) {
         "  num;\n"
         "}",
         2,
-        {instruction_init_and_track(OP_CLOSURE, 1, 0), instruction_init_and_track(OP_POP)},
+        {
+            opcode_make_instruction_and_track(OP_CLOSURE, (size_t[]){1, 0}),
+            opcode_make_instruction_and_track(OP_POP, 0)},
         create_constant_pool(
             2,
             (object_object *) object_create_int(55),
             (object_object *) object_create_compiled_fn(
                 create_compiled_fn_instructions(
-                    4, instruction_init_and_track(OP_CONSTANT, 0),
-                    instruction_init_and_track(OP_SET_LOCAL, 0),
-                    instruction_init_and_track(OP_GET_LOCAL, 0),
-                    instruction_init_and_track(OP_RETURN_VALUE)),
+                    4,
+                    opcode_make_instruction(OP_CONSTANT, (size_t[]){0}),
+                    opcode_make_instruction(OP_SET_LOCAL, (size_t[]){0}),
+                    opcode_make_instruction(OP_GET_LOCAL, (size_t[]){0}),
+                    opcode_make_instruction(OP_RETURN_VALUE, 0)),
                 1, 0))
     };
 
@@ -1002,21 +1136,24 @@ static void test_multiple_local_let_statements(void) {
         "  a + b;\n"
         "}",
         2,
-        {instruction_init_and_track(OP_CLOSURE, 2, 0), instruction_init_and_track(OP_POP)},
+        {
+            opcode_make_instruction_and_track(OP_CLOSURE, (size_t[]){2, 0}),
+            opcode_make_instruction_and_track(OP_POP, 0)},
         create_constant_pool(
             3,
             (object_object *) object_create_int(55),
             (object_object *) object_create_int(77),
             (object_object *) object_create_compiled_fn(
                 create_compiled_fn_instructions(
-                    8, instruction_init_and_track(OP_CONSTANT, 0),
-                    instruction_init_and_track(OP_SET_LOCAL, 0),
-                    instruction_init_and_track(OP_CONSTANT, 1),
-                    instruction_init_and_track(OP_SET_LOCAL, 1),
-                    instruction_init_and_track(OP_GET_LOCAL, 0),
-                    instruction_init_and_track(OP_GET_LOCAL, 1),
-                    instruction_init_and_track(OP_ADD),
-                    instruction_init_and_track(OP_RETURN_VALUE)),
+                    8,
+                    opcode_make_instruction(OP_CONSTANT, (size_t[]){0}),
+                    opcode_make_instruction(OP_SET_LOCAL, (size_t[]){0}),
+                    opcode_make_instruction(OP_CONSTANT, (size_t[]){1}),
+                    opcode_make_instruction(OP_SET_LOCAL, (size_t[]){1}),
+                    opcode_make_instruction(OP_GET_LOCAL, (size_t[]){0}),
+                    opcode_make_instruction(OP_GET_LOCAL, (size_t[]){1}),
+                    opcode_make_instruction(OP_ADD, 0),
+                    opcode_make_instruction(OP_RETURN_VALUE, 0)),
                 2, 0))
     };
 
@@ -1032,9 +1169,16 @@ static void test_builtin_function_calls(void) {
         "len([]);\n"
         "push([], 1);",
         9,
-        {instruction_init_and_track(OP_GET_BUILTIN, 0), instruction_init_and_track(OP_ARRAY, 0), instruction_init_and_track(OP_CALL, 1),
-         instruction_init_and_track(OP_POP), instruction_init_and_track(OP_GET_BUILTIN, 5), instruction_init_and_track(OP_ARRAY, 0),
-         instruction_init_and_track(OP_CONSTANT, 0), instruction_init_and_track(OP_CALL, 2), instruction_init_and_track(OP_POP)},
+        {
+            opcode_make_instruction_and_track(OP_GET_BUILTIN, (size_t[]){0}),
+            opcode_make_instruction_and_track(OP_ARRAY, (size_t[]){0}),
+            opcode_make_instruction_and_track(OP_CALL, (size_t[]){1}),
+            opcode_make_instruction_and_track(OP_POP, 0),
+            opcode_make_instruction_and_track(OP_GET_BUILTIN, (size_t[]){5}),
+            opcode_make_instruction_and_track(OP_ARRAY, (size_t[]){0}),
+            opcode_make_instruction_and_track(OP_CONSTANT, (size_t[]){0}),
+            opcode_make_instruction_and_track(OP_CALL, (size_t[]){2}),
+            opcode_make_instruction_and_track(OP_POP, 0)},
         create_constant_pool(1, (object_object *) object_create_int(1))
     };
 
@@ -1046,12 +1190,16 @@ static void test_builtin_function_in_closure(void) {
     compiler_test test = {
         "fn() {len([]);};",
         2,
-        {instruction_init_and_track(OP_CLOSURE, 0, 0), instruction_init_and_track(OP_POP)},
-        create_constant_pool(1, (object_object *) object_create_compiled_fn(
-                                         create_compiled_fn_instructions(4, instruction_init_and_track(OP_GET_BUILTIN, 0),
-                                                                         instruction_init_and_track(OP_ARRAY, 0),
-                                                                         instruction_init_and_track(OP_CALL, 1),
-                                                                         instruction_init_and_track(OP_RETURN_VALUE)),
+        {
+            opcode_make_instruction_and_track(OP_CLOSURE, (size_t[]){0, 0}),
+            opcode_make_instruction_and_track(OP_POP, 0)},
+        create_constant_pool(1,
+            (object_object *) object_create_compiled_fn(
+                                         create_compiled_fn_instructions(4,
+                                             opcode_make_instruction(OP_GET_BUILTIN, (size_t[]){0}),
+                                             opcode_make_instruction(OP_ARRAY, (size_t[]){0}),
+                                             opcode_make_instruction(OP_CALL, (size_t[]){1}),
+                                             opcode_make_instruction(OP_RETURN_VALUE, 0)),
                                          0, 0))
     };
 
@@ -1073,7 +1221,7 @@ static void run_compiler_tests(compiler_test *test) {
     ast_debug_print(program);
 #endif
     if (e.error_code != COMPILER_ERROR_NONE) {
-        errx(EXIT_FAILURE, "Compilation failed for input %s with error %s\n", test->input, e.msg);
+        err(EXIT_FAILURE, "Compilation failed for input %s with error %s\n", test->input, e.msg);
     }
 
     bytecode     *bytecode = get_bytecode(compiler);

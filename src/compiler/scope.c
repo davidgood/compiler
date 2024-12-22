@@ -4,6 +4,7 @@
 
 #include "scope.h"
 #include "compiler_utils.h"
+#include "../opcode/opcode.h"
 #include <err.h>
 
 compilation_scope *scope_init() {

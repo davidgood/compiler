@@ -6,8 +6,11 @@
 #include "../src/datastructures/conversions.h"
 #include "../src/object/object.h"
 #include "object_test_utils.h"
-#include "test_utils.h"
+
+#include <instructions.h>
+
 #include "../Unity/src/unity.h"
+#include "test_utils.h"
 
 void test_boolean_object(object_object *object, _Bool expected_value) {
     TEST_ASSERT_TRUE(object->type);
@@ -34,6 +37,18 @@ void test_string_object(object_object *obj, char *expected_value, size_t expecte
     TEST_ASSERT_EQUAL_STRING_LEN(str_obj->value, expected_value, expected_length);
 }
 
+void test_compiled_function_object(object_object *obj, object_object *expected) {
+    instructions *expected_ins = ((object_compiled_fn *) expected)->instructions;
+    instructions *actual_ins = ((object_compiled_fn *) obj)->instructions;
+    char *expected_ins_string = instructions_to_string(expected_ins);
+    char *actual_ins_string = instructions_to_string(actual_ins);
+    printf("Testing Compiled Function Object: %s\n", expected_ins_string);
+    TEST_ASSERT_EQUAL_size_t(expected_ins->length, actual_ins->length);
+    TEST_ASSERT_EQUAL_MEMORY(expected_ins->bytes, actual_ins->bytes, expected_ins->length);
+    free(expected_ins_string);
+    free(actual_ins_string);
+}
+
 void test_object_object(object_object *obj, object_object *expected) {
     TEST_ASSERT_EQUAL_INT(obj->type, expected->type);
     if (expected->type == OBJECT_INT)
@@ -54,14 +69,7 @@ void test_object_object(object_object *obj, object_object *expected) {
         object_error *expected_err = (object_error *) expected;
         TEST_ASSERT_EQUAL_STRING(actual_err->message, expected_err->message);
     } else if (expected->type == OBJECT_COMPILED_FUNCTION) {
-        instructions *expected_ins = ((object_compiled_fn *) expected)->instructions;
-        instructions *actual_ins = ((object_compiled_fn *) obj)->instructions;
-        char *expected_ins_string = instructions_to_string(expected_ins);
-        char *actual_ins_string = instructions_to_string(actual_ins);
-        TEST_ASSERT_EQUAL_size_t(expected_ins->length, actual_ins->length);
-        TEST_ASSERT_EQUAL_MEMORY(expected_ins->bytes, actual_ins->bytes, expected_ins->length);
-        free(expected_ins_string);
-        free(actual_ins_string);
+        test_compiled_function_object(obj, expected);
     }
 }
 

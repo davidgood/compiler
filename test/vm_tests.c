@@ -500,7 +500,7 @@ test_calling_functions_with_wrong_arguments(void)
         compiler *compiler = compiler_init();
         compiler_error error = compile(compiler, (ast_node *) program);
         if (error.error_code != COMPILER_ERROR_NONE)
-            errx(EXIT_FAILURE, "compilation failed for input %s with error %s\n",
+            err(EXIT_FAILURE, "compilation failed for input %s with error %s\n",
                 t.input, error.msg);
         bytecode *bytecode = get_bytecode(compiler);
         // dump_bytecode(bytecode);
@@ -728,14 +728,14 @@ static void run_vm_tests(size_t test_count, vm_testcase test_cases[test_count]) 
         compiler *compiler = compiler_init();
         compiler_error error = compile(compiler, (ast_node *) program);
         if (error.error_code != COMPILER_ERROR_NONE) {
-            errx(EXIT_FAILURE, "compilation failed for input %s with error %s\n",
+            err(EXIT_FAILURE, "compilation failed for input %s with error %s\n",
                 t.input, error.msg);
         }
         bytecode *bytecode = get_bytecode(compiler);
         virtual_machine *vm = vm_init(bytecode);
         vm_error vm_error = vm_run(vm);
         if (vm_error.code != VM_ERROR_NONE)
-            errx(EXIT_FAILURE, "vm error: %s\n", vm_error.msg);
+            err(EXIT_FAILURE, "vm error: %s\n", vm_error.msg);
         object_object *top = vm_last_popped_stack_elem(vm);
         test_object_object(top, t.expected);
         object_free(top);

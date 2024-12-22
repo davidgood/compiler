@@ -10,7 +10,7 @@
 #include "../compiler/compiler_core.h"
 #include "../object/builtins.h"
 #include "../object/object.h"
-#include "../object/opcode.h"
+#include "../opcode/opcode.h"
 #include "frame.h"
 
 #include <endian.h>

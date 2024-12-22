@@ -9,7 +9,7 @@
 #include "../compiler/compiler_core.h"
 #include "../datastructures/arraylist.h"
 #include "../object/object.h"
-#include "../object/opcode.h"
+#include "../opcode/opcode.h"
 #include "frame.h"
 
 #define STACKSIZE 2048

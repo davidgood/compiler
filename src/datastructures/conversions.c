@@ -41,17 +41,18 @@ uint8_t *create_uint8_array(const size_t count, ...) {
 
 static size_t power_ceil(size_t x) {
     size_t power = 1;
-    while (x >>= 1)
+    while (x >>= 1) {
         power++;
+    }
     return power;
 }
 
 uint8_t *size_t_to_uint8_be(size_t value, size_t width) {
     uint8_t *array = malloc(sizeof(*array) * width);
     if (array == NULL) {
-        errx(EXIT_FAILURE, "malloc failed");
+        err(EXIT_FAILURE, "malloc failed");
     }
-    uint64_t newval = htobe64(value); // to make sure we work on both BE and LE archs
+    uint64_t newval = htobe16(value); // to make sure we work on both BE and LE archs
     uint8_t *x = (uint8_t *) &newval;
     int j = width - 1;
     int i = sizeof(value) - 1;

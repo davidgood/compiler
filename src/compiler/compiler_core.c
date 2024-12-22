@@ -3,7 +3,7 @@
 #include <stdarg.h>
 #include <stdlib.h>
 #include "../object/object.h"
-#include "../object/opcode.h"
+#include "../opcode/opcode.h"
 #include "../object/builtins.h"
 #include "node_compiler.h"
 #include "compiler_core.h"

@@ -31,7 +31,7 @@ char *get_err_msg(const char *s, ...) {
     const int retval = vasprintf(&msg, s, ap);
     va_end(ap);
     if (retval == -1) {
-        errx(EXIT_FAILURE, "malloc failed");
+        err(EXIT_FAILURE, "malloc failed");
     }
     return msg;
 }
@@ -43,7 +43,7 @@ int compare_object_hash_keys(const void *v1, const void *v2) {
 
     // Check if function pointers are valid
     if (n1 == NULL || n2 == NULL || n1->string == NULL || n2->string == NULL) {
-        errx(EXIT_FAILURE, "Null pointer encountered in comparator");
+        err(EXIT_FAILURE, "Null pointer encountered in comparator");
     }
 
     // Get the strings from the nodes

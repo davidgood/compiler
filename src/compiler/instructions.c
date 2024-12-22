@@ -3,7 +3,7 @@
 //
 #include "instructions.h"
 #include <stdarg.h>
-
+#include "../opcode/opcode.h"
 #include "scope.h"
 
 
@@ -50,7 +50,7 @@ void replace_instruction(const compiler *compiler, const size_t position, const 
 void change_operand(const compiler *compiler, const size_t op_pos, const size_t operand) {
     const compilation_scope *scope   = get_top_scope(compiler);
     const Opcode op = scope->instructions->bytes[op_pos];
-    instructions *new_ins = instruction_init(op, operand);
+    instructions *new_ins = opcode_make_instruction(op, (size_t[]){operand});
     replace_instruction(compiler, op_pos, new_ins);
     instructions_free(new_ins);
 }
@@ -58,7 +58,7 @@ void change_operand(const compiler *compiler, const size_t op_pos, const size_t 
 void replace_last_pop_with_return(const compiler *compiler) {
     compilation_scope *top_scope = get_top_scope(compiler);
     const size_t lastpos = top_scope->last_instruction.position;
-    instructions *new_ins = instruction_init(OP_RETURN_VALUE);
+    instructions *new_ins = opcode_make_instruction(OP_RETURN_VALUE, 0);
     replace_instruction(compiler, lastpos, new_ins);
     instructions_free(new_ins);
     top_scope->last_instruction.opcode = OP_RETURN_VALUE;
@@ -67,19 +67,19 @@ void replace_last_pop_with_return(const compiler *compiler) {
 void load_symbol(const compiler * compiler, const symbol *symbol) {
     switch (symbol->scope) {
         case GLOBAL:
-            emit(compiler, OP_GET_GLOBAL, symbol->index);
+            emit(compiler, OP_GET_GLOBAL, (size_t[]){symbol->index});
         break;
         case LOCAL:
-            emit(compiler, OP_GET_LOCAL, symbol->index);
+            emit(compiler, OP_GET_LOCAL, (size_t[]){symbol->index});
         break;
         case BUILTIN:
-            emit(compiler, OP_GET_BUILTIN, symbol->index);
+            emit(compiler, OP_GET_BUILTIN, (size_t[]){symbol->index});
         break;
         case FREE:
-            emit(compiler, OP_GET_FREE, symbol->index);
+            emit(compiler, OP_GET_FREE, (size_t[]){symbol->index});
         break;
         case FUNCTION_SCOPE:
-            emit(compiler, OP_CURRENT_CLOSURE, symbol->index);
+            emit(compiler, OP_CURRENT_CLOSURE, (size_t[]){symbol->index});
         break;
     }
 }
@@ -103,12 +103,9 @@ void bytecode_free(bytecode *bytecode) {
     free(bytecode);
 }
 
-size_t emit(const compiler *compiler, const Opcode op, ...) {
-    va_list ap;
-    va_start(ap, op);
-    instructions *ins         = opcode_make_instruction(op, ap);
+size_t emit(const compiler *compiler, const Opcode op, size_t *operands) {
+    instructions *ins         = opcode_make_instruction(op, operands);
     const size_t new_ins_pos = add_instructions(compiler, ins);
-    va_end(ap);
     set_last_instruction(compiler, op, new_ins_pos);
     return new_ins_pos;
 }

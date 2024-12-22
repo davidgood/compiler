@@ -71,7 +71,7 @@ int execute_file(const char *filename) {
             case EBADF:
                 err(EXIT_FAILURE, "Failed to open file %s", filename);
             default:
-                errx(EXIT_FAILURE, "Failed to open file %s", filename);
+                err(EXIT_FAILURE, "Failed to open file %s", filename);
         }
     }
     size_t       line_size      = 0;
@@ -108,14 +108,14 @@ int execute_file(const char *filename) {
     compiler *           comp  = compiler_init_with_state(sym_table);
     const compiler_error error = compile(comp, (ast_node *) program);
     if (error.error_code != COMPILER_ERROR_NONE) {
-        errx(EXIT_FAILURE, "Failed to compile program");
+        err(EXIT_FAILURE, "Failed to compile program");
     }
     bytecode *       bytecode = get_bytecode(comp);
     const arraylist *consts   = bytecode->constants_pool;
     virtual_machine *machine  = vm_init_with_state(bytecode, arraylist_to_array(consts));
     const vm_error   vmerror  = vm_run(machine);
     if (vmerror.code != VM_ERROR_NONE) {
-        errx(EXIT_FAILURE, "Failed to run program");
+        err(EXIT_FAILURE, "Failed to run program");
     }
     object_object *object = vm_last_popped_stack_elem(machine);
     printf("%s\n", object->inspect(object));

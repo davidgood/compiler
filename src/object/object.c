@@ -32,7 +32,7 @@ static char *function_inspect(object_object *obj) {
     free(params_str);
     free(body_str);
     if (ret == -1) {
-        errx(EXIT_FAILURE, "malloc failed");
+        err(EXIT_FAILURE, "malloc failed");
     }
     return str;
 }
@@ -52,7 +52,7 @@ static char *join_expressions_list(arraylist *list) {
         }
         free(elem_string);
         if (ret == -1) {
-            errx(EXIT_FAILURE, "malloc failed");
+            err(EXIT_FAILURE, "malloc failed");
         }
         string = temp;
         temp   = NULL;
@@ -84,7 +84,7 @@ static char *join_expressions_table(hashtable *table) {
             free(key_string);
             free(value_string);
             if (ret == -1) {
-                errx(EXIT_FAILURE, "malloc failed");
+                err(EXIT_FAILURE, "malloc failed");
             }
             string = temp;
             temp   = NULL;
@@ -93,7 +93,7 @@ static char *join_expressions_table(hashtable *table) {
     ret = asprintf(&temp, "{%s}", string);
     free(string);
     if (ret == -1) {
-        errx(EXIT_FAILURE, "malloc failed");
+        err(EXIT_FAILURE, "malloc failed");
     }
     return temp;
 }
@@ -142,7 +142,7 @@ char *inspect(object_object *obj) {
                 free(elements_string);
             }
             if (ret == -1) {
-                errx(EXIT_FAILURE, "malloc failed");
+                err(EXIT_FAILURE, "malloc failed");
             }
             return string;
         case OBJECT_HASH:
@@ -373,7 +373,7 @@ object_compiled_fn *object_create_compiled_fn(instructions *ins,
 object_return_value *object_create_return_value(object_object *value) {
     object_return_value *ret = malloc(sizeof(*ret));
     if (ret == NULL) {
-        errx(EXIT_FAILURE, "malloc failed");
+        err(EXIT_FAILURE, "malloc failed");
     }
     ret->value        = value;
     ret->obj.type     = OBJECT_RETURN_VALUE;
@@ -388,7 +388,7 @@ object_error *object_create_error(const char *fmt, ...) {
     char *        message = NULL;
     object_error *error   = malloc(sizeof(*error));
     if (error == NULL) {
-        errx(EXIT_FAILURE, "malloc failed");
+        err(EXIT_FAILURE, "malloc failed");
     }
     error->object.type    = OBJECT_ERROR;
     error->object.inspect = inspect;
@@ -620,7 +620,7 @@ object_function *object_create_function(linked_list *parameters,
                                         environment *         env) {
     object_function *function = malloc(sizeof(*function));
     if (function == NULL)
-        errx(EXIT_FAILURE, "malloc failed");
+        err(EXIT_FAILURE, "malloc failed");
     function->parameters      = copy_parameters(parameters);
     function->body            = (ast_block_statement *) copy_statement((ast_statement *) body);
     function->env             = env;
@@ -661,7 +661,7 @@ object_string *object_create_string(const char *value, const size_t length) {
 object_builtin *object_create_builtin(builtin_fn function) {
     object_builtin *builtin = malloc(sizeof(*builtin));
     if (builtin == NULL) {
-        errx(EXIT_FAILURE, "malloc failed");
+        err(EXIT_FAILURE, "malloc failed");
     }
     builtin->object.type     = OBJECT_BUILTIN;
     builtin->object.inspect  = inspect;
@@ -674,7 +674,7 @@ object_builtin *object_create_builtin(builtin_fn function) {
 object_array *object_create_array(arraylist *elements) {
     object_array *array = malloc(sizeof(*array));
     if (array == NULL) {
-        errx(EXIT_FAILURE, "malloc failed");
+        err(EXIT_FAILURE, "malloc failed");
     }
     array->object.type     = OBJECT_ARRAY;
     array->object.inspect  = inspect;
@@ -688,7 +688,7 @@ object_array *object_create_array(arraylist *elements) {
 object_hash *object_create_hash(hashtable *pairs) {
     object_hash *hash_obj = malloc(sizeof(*hash_obj));
     if (hash_obj == NULL) {
-        errx(EXIT_FAILURE, "malloc failed");
+        err(EXIT_FAILURE, "malloc failed");
     }
     hash_obj->object.type     = OBJECT_HASH;
     hash_obj->object.inspect  = inspect;

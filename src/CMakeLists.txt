@@ -20,8 +20,8 @@ add_executable(compiler main.c
         object/environment.h
         object/object.c
         object/object.h
-        object/opcode.c
-        object/opcode.h
+        opcode/opcode.c
+        opcode/opcode.h
         parser/parser.c
         parser/parser.h
         parser/parser_tracing.c

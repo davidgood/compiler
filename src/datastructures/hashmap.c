@@ -35,7 +35,7 @@ struct hashtable {
  */
 void *hashtable_get(const hashtable *table, void *key) {
     if (table->hash_func == NULL || table->key_equals == NULL) {
-        errx(EXIT_FAILURE, "hash_func and key_equals must be set. key=%s\n", (char *) key);
+        err(EXIT_FAILURE, "hash_func and key_equals must be set. key=%s\n", (char *) key);
     }
     const size_t                index      = table->hash_func(key) % table->table_size;
     const linked_list *entry_list = table->table[index];
@@ -79,7 +79,7 @@ void hashtable_set(hashtable *hash_table, void *key, void *value) {
 
         size_t *used_slot = malloc(sizeof(*used_slot));
         if (used_slot == NULL) {
-            errx(EXIT_FAILURE, "malloc failed");
+            err(EXIT_FAILURE, "malloc failed");
         }
         *used_slot = index;
         arraylist_add(hash_table->used_slots, used_slot);
@@ -91,7 +91,7 @@ void hashtable_set(hashtable *hash_table, void *key, void *value) {
     if (entry == NULL) {
         entry = malloc(sizeof(*entry));
         if (entry == NULL) {
-            errx(EXIT_FAILURE, "malloc failed");
+            err(EXIT_FAILURE, "malloc failed");
         }
         entry->key = key;
         entry->value = value;
@@ -235,7 +235,7 @@ hashtable *hashtable_clone(const hashtable *src, void * (*key_copy)(void *), voi
     table->table_size = HASHTABLE_INITIAL_CAPACITY;
     table->table      = calloc(table->table_size, sizeof(*table->table));
     if (table->table == NULL) {
-        errx(EXIT_FAILURE, "Could not allocate memory for hashtable");
+        err(EXIT_FAILURE, "Could not allocate memory for hashtable");
     }
     table->used_slots = arraylist_create(table->table_size, free);
     table->key_count = 0;
