@@ -14,21 +14,18 @@
 #include "../datastructures/linked_list.h"
 #include "../parser/parser.h"
 #include "environment.h"
-#include "opcode.h"
+#include "../opcode/opcode.h"
 
-const object_bool TRUE_OBJ = {
-        {OBJECT_BOOL, inspect, object_get_hash, object_equals, 1}, true};
-const object_bool FALSE_OBJ = {
-        {OBJECT_BOOL, inspect, object_get_hash, object_equals, 1}, false};
-const object_null NULL_OBJ = {
-        {OBJECT_NULL, inspect, NULL, NULL, 1}};
+const object_bool TRUE_OBJ  = {{OBJECT_BOOL, inspect, object_get_hash, object_equals, 1}, true};
+const object_bool FALSE_OBJ = {{OBJECT_BOOL, inspect, object_get_hash, object_equals, 1}, false};
+const object_null NULL_OBJ  = {{OBJECT_NULL, inspect, NULL, NULL, 1}};
 
 static char *function_inspect(object_object *obj) {
-    object_function * function   = (object_function *) obj;
-    char *     str        = NULL;
-    char *     params_str = join_parameters_list(function->parameters);
-    char *     body_str   = function->body->statement.node.string(function->body);
-    const int  ret        = asprintf(&str, "fn(%s) {\n%s\n}", params_str, body_str);
+    object_function *function   = (object_function *) obj;
+    char *           str        = NULL;
+    char *           params_str = join_parameters_list(function->parameters);
+    char *           body_str   = function->body->statement.node.string(function->body);
+    const int        ret        = asprintf(&str, "fn(%s) {\n%s\n}", params_str, body_str);
     free(params_str);
     free(body_str);
     if (ret == -1) {
@@ -42,8 +39,8 @@ static char *join_expressions_list(arraylist *list) {
     char *temp   = NULL;
     int   ret;
     for (size_t i = 0; i < list->size; i++) {
-        object_object * elem        = (object_object *) list->body[i];
-        char *     elem_string = elem->inspect(elem);
+        object_object *elem        = (object_object *) list->body[i];
+        char *         elem_string = elem->inspect(elem);
         if (string == NULL) {
             ret = asprintf(&temp, "%s", elem_string);
         } else {
@@ -65,9 +62,9 @@ static char *join_expressions_table(hashtable *table) {
     char *temp   = NULL;
     int   ret;
     for (size_t i = 0; i < table->table_size; i++) {
-        size_t *            index      = (size_t *) table->used_slots->body[i];
+        size_t *     index      = (size_t *) table->used_slots->body[i];
         linked_list *entry_list = table->table[*index];
-        list_node *           entry_node = entry_list->head;
+        list_node *  entry_node = entry_list->head;
         while (entry_node != NULL) {
             hashtable_entry *entry      = (hashtable_entry *) entry_node->data;
             entry_node                  = entry_node->next;
@@ -182,8 +179,8 @@ static bool hash_equals(object_hash *hash1, object_hash *hash2) {
         return false;
     }
     for (size_t i = 0; i < hash1->pairs->key_count; i++) {
-        size_t * index1 = (size_t *) hash1->pairs->used_slots->body[i];
-        size_t * index2 = (size_t *) hash2->pairs->used_slots->body[i];
+        size_t *index1 = (size_t *) hash1->pairs->used_slots->body[i];
+        size_t *index2 = (size_t *) hash2->pairs->used_slots->body[i];
         if (*index1 != *index2) {
             /** since we are using same hash functions, and both tables
              *  are supposed to have equal length, they must have same
@@ -195,8 +192,7 @@ static bool hash_equals(object_hash *hash1, object_hash *hash2) {
     return true;
 }
 
-static bool instructions_equals(const instructions *ins1,
-                                const instructions *ins2) {
+static bool instructions_equals(const instructions *ins1, const instructions *ins2) {
     if (ins1->length != ins2->length) {
         return false;
     }
@@ -208,8 +204,8 @@ static bool instructions_equals(const instructions *ins1,
 }
 
 bool object_equals(void *o1, void *o2) {
-    object_object * obj1 = o1;
-    object_object * obj2 = o2;
+    object_object *obj1 = o1;
+    object_object *obj2 = o2;
     if (obj1->type != obj2->type) {
         return false;
     }
@@ -252,7 +248,7 @@ bool object_equals(void *o1, void *o2) {
         case OBJECT_FUNCTION:
             function1 = (object_function *) obj1;
             function2 = (object_function *) obj2;
-            return function1 == function2; //should we bother about this?
+            return function1 == function2; // should we bother about this?
         case OBJECT_HASH:
             hash1 = (object_hash *) obj1;
             hash2 = (object_hash *) obj2;
@@ -285,8 +281,7 @@ bool object_equals(void *o1, void *o2) {
                 return false;
             }
             for (size_t i = 0; i < closure1->free_variables_count; i++) {
-                if (!object_equals(closure1->free_variables[i],
-                                   closure2->free_variables[i]))
+                if (!object_equals(closure1->free_variables[i], closure2->free_variables[i]))
                     return false;
             }
             return true;
@@ -295,7 +290,7 @@ bool object_equals(void *o1, void *o2) {
 
 
 size_t object_get_hash(void *object) {
-    object_object *    obj = object;
+    object_object *obj = object;
     object_string *str_obj;
     object_int *   int_obj;
     object_bool *  bool_obj;
@@ -314,8 +309,7 @@ size_t object_get_hash(void *object) {
     }
 }
 
-object_closure *object_create_closure(object_compiled_fn *fn,
-                                      const arraylist *   free_variables) {
+object_closure *object_create_closure(object_compiled_fn *fn, const arraylist *free_variables) {
     object_closure *closure = malloc(sizeof(*closure));
     if (closure == NULL) {
         err(EXIT_FAILURE, "malloc failed");
@@ -351,9 +345,7 @@ object_int *object_create_int(const long value) {
     return int_obj;
 }
 
-object_compiled_fn *object_create_compiled_fn(instructions *ins,
-                                              const size_t  num_locals,
-                                              const size_t  num_args) {
+object_compiled_fn *object_create_compiled_fn(instructions *ins, const size_t num_locals, const size_t num_args) {
     object_compiled_fn *compiled_fn = malloc(sizeof(*compiled_fn));
     if (compiled_fn == NULL) {
         err(EXIT_FAILURE, "malloc failed");
@@ -408,11 +400,8 @@ object_error *object_create_error(const char *fmt, ...) {
 }
 
 static void free_int_object(object_int *int_obj) {
-    if (int_obj == NULL) {
-        return;
-    }
-    int_obj->object.equals = NULL;
-    int_obj->object.hash   = NULL;
+    int_obj->object.equals  = NULL;
+    int_obj->object.hash    = NULL;
     int_obj->object.inspect = NULL;
     int_obj->object.refcount == 0;
     free(int_obj);
@@ -445,18 +434,6 @@ static void free_return_object(object_return_value *ret_obj) {
     free(ret_obj);
 }
 
-static void free_builtin_object(object_builtin *builtin_obj) {
-    if (builtin_obj == NULL) {
-        return;
-    }
-    builtin_obj->object.equals = NULL;
-    builtin_obj->object.hash   = NULL;
-    builtin_obj->object.inspect = NULL;
-    builtin_obj->object.refcount == 0;
-    free(builtin_obj);
-    builtin_obj = NULL;
-}
-
 static void free_string_object(object_string *str_obj) {
     free(str_obj->value);
     free(str_obj);
@@ -474,8 +451,8 @@ static void free_hash_object(object_hash *hash_obj) {
     arraylist *keys = hashtable_get_keys(hash_obj->pairs);
     if (keys != NULL) {
         for (size_t i = 0; i < keys->size; i++) {
-            object_object * k = keys->body[i];
-            object_object * val = hashtable_get(hash_obj->pairs, k);
+            object_object *k   = keys->body[i];
+            object_object *val = hashtable_get(hash_obj->pairs, k);
             object_free(k);
             object_free(val);
         }
@@ -498,77 +475,58 @@ static void free_closure_object(object_closure *closure) {
 
 void object_free(void *v) {
     if (!v) {
+        fprintf(stderr, "object_free: null pointer passed\n");
         return;
     }
+
     object_object *object = v;
+
+    // No action required for these types
+    if (object->type == OBJECT_BUILTIN || object->type == OBJECT_BOOL || object->type == OBJECT_NULL) {
+        return;
+    }
+
+    // Decrement reference count and check if the object can be freed
+    if (object->refcount > 0) {
+        object->refcount--;
+        if (object->refcount > 0) {
+            return;
+        }
+    }
+
+    // Free object based on its type
     switch (object->type) {
-        case OBJECT_BUILTIN:
-            object->refcount--;
-            if (object->refcount == 0) {
-                free_builtin_object((object_builtin *) object);
-            }
-            break;
         case OBJECT_INT:
-            object->refcount--;
-            if (object->refcount == 0) {
-                free_int_object((object_int *) object);
-            }
+            free_int_object((object_int *) object);
             break;
         case OBJECT_ERROR:
-            object->refcount--;
-            if (object->refcount == 0) {
-                free_error_object((object_error *)object);
-            }
+            free_error_object((object_error *) object);
             break;
         case OBJECT_FUNCTION:
-            object->refcount--;
-            if (object->refcount == 0) {
-                free_function_object((object_function *) object);
-            }
-        break;
+            free_function_object((object_function *) object);
+            break;
         case OBJECT_RETURN_VALUE:
-            object->refcount--;
-            if (object->refcount == 0) {
-                free_return_object((object_return_value *) object);
-            }
+            free_return_object((object_return_value *) object);
             break;
         case OBJECT_STRING:
-            object->refcount--;
-            if (object->refcount == 0) {
-                free_string_object((object_string *) object);
-            }
+            free_string_object((object_string *) object);
             break;
         case OBJECT_ARRAY:
-            object->refcount--;
-            if (object->refcount == 0) {
-                free_array_object((object_array *) object);
-            }
+            free_array_object((object_array *) object);
             break;
         case OBJECT_HASH:
-            object->refcount--;
-            if (object->refcount == 0) {
-                free_hash_object((object_hash *) object);
-            }
+            free_hash_object((object_hash *) object);
             break;
         case OBJECT_COMPILED_FUNCTION:
-            object->refcount--;
-            if (object->refcount == 0) {
-                free_compiled_function_object((object_compiled_fn *) object);
-            }
+            free_compiled_function_object((object_compiled_fn *) object);
             break;
         case OBJECT_CLOSURE:
-            object->refcount--;
-            if (object->refcount == 0) {
-                free_closure_object((object_closure *) object);
-            }
+            free_closure_object((object_closure *) object);
             break;
         default:
+            fprintf(stderr, "object_free: unknown object type %d\n", object->type);
             break;
     }
-}
-
-static void *_copy_object(void *v) {
-    return object_copy_object(v);
 }
 
 object_object *object_copy_object(object_object *object) {
@@ -576,13 +534,16 @@ object_object *object_copy_object(object_object *object) {
         return (object_object *) object_create_null();
     }
 
-    if (object->type == OBJECT_BOOL ||
-        object->type == OBJECT_NULL ||
-        object->type == OBJECT_BUILTIN) {
+    if (object->type == OBJECT_BOOL || object->type == OBJECT_NULL || object->type == OBJECT_BUILTIN) {
         return object;
     }
-
     object->refcount++;
+
+    if (object->type == OBJECT_INT) {
+        object_int *int_obj = (object_int *) object;
+        return (object_object *) object_create_int(int_obj->value);
+    }
+
     if (object->type == OBJECT_ARRAY) {
         object_array *array_obj = (object_array *) object;
         for (size_t i = 0; i < array_obj->elements->size; i++) {
@@ -615,9 +576,7 @@ object_object *object_copy_object(object_object *object) {
 }
 
 
-object_function *object_create_function(linked_list *parameters,
-                                        ast_block_statement * body,
-                                        environment *         env) {
+object_function *object_create_function(linked_list *parameters, ast_block_statement *body, environment *env) {
     object_function *function = malloc(sizeof(*function));
     if (function == NULL)
         err(EXIT_FAILURE, "malloc failed");

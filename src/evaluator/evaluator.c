@@ -256,9 +256,9 @@ static arraylist *eval_expressions_to_array_list(const arraylist *expression_lis
 }
 
 static linked_list *eval_expressions_to_linked_list(const linked_list *expression_list,
-                                                             environment *               env) {
-    linked_list *values   = linked_list_create();
-    const list_node *     exp_node = expression_list->head;
+                                                    environment *      env) {
+    linked_list *    values   = linked_list_create();
+    const list_node *exp_node = expression_list->head;
     while (exp_node != NULL) {
         object_object *value = evaluator_eval((ast_node *) exp_node->data, env);
         if (is_error(value)) {
@@ -427,7 +427,7 @@ static object_object *eval_expression(ast_expression *exp, environment *env) {
     object_object *         function_value;
     object_object *         call_exp_value;
     object_object *         index_exp_value;
-    linked_list *  arguments_value;
+    linked_list *           arguments_value;
     ast_function_literal *  function_exp;
     ast_call_expression *   call_exp;
     ast_string *            string_exp;
@@ -578,7 +578,7 @@ static object_object *eval_statement(ast_statement *statement, environment *env)
     ast_expression_statement *exp_stmt;
     ast_block_statement *     block_stmt;
     ast_return_statement *    ret_stmt;
-    ast_let_statement *        let_stmt;
+    ast_let_statement *       let_stmt;
     object_object *           evaluated;
     switch (statement->statement_type) {
         case EXPRESSION_STATEMENT:
