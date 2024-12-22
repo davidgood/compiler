@@ -15,12 +15,6 @@ OpcodeDefinition * opcode_definition_lookup(const Opcode op) {
     return &opcode_definitions[op-1];
 }
 
-// Function to set 16-bit value in Big Endian
-void put_uint16_big_endian(uint8_t *buffer, uint16_t value) {
-    buffer[0] = (value >> 8) & 0xFF;
-    buffer[1] = value & 0xFF;
-}
-
 // Function to create instruction
 instructions *opcode_make_instruction(Opcode op, size_t *operands) {
     OpcodeDefinition *def = opcode_definition_lookup(op);
@@ -57,99 +51,17 @@ instructions *opcode_make_instruction(Opcode op, size_t *operands) {
     for (int i = 0; i < def->operand_count; i++) {
         int width = def->operand_widths[i];
         if (width == 2) {
-            put_uint16_big_endian(&instruction->bytes[offset], (uint16_t)operands[i]);
+            put_uint16_big_endian(&instruction->bytes[offset], 2, (uint16_t)operands[i]);
         } else if (width == 1) {
             instruction->bytes[offset] = (uint8_t)operands[i];
         }
         offset += width;
     }
 
-    instruction->length = instruction->size = instruction_len;
+    instruction->length = instruction->capacity = instruction_len;
 
     return instruction;
 }
-//// Generate an instruction
-//instructions *opcode_make_instructionss(Opcode op, const va_list ap) {
-//    size_t operand;
-//    instructions    *ins = malloc(sizeof(*ins));
-//    if (ins == NULL) {
-//        err(EXIT_FAILURE, "malloc failed");
-//    }
-//    switch (op) {
-//    case OP_CONSTANT:
-//    case OP_JUMP_NOT_TRUTHY:
-//    case OP_JUMP:
-//    case OP_SET_GLOBAL:
-//    case OP_GET_GLOBAL:
-//    case OP_ARRAY:
-//    case OP_HASH:
-//        // these opcodes need only one operand 2 bytes wide
-//        operand = va_arg(ap, size_t);
-//        uint8_t *operand_be = size_t_to_uint8_be(operand, 2);
-//        ins->bytes = create_uint8_array(3, op, operand_be[0], operand_be[1]);
-//        ins->length = 3;
-//        ins->size = 3;
-//        free(operand_be);
-//        return ins;
-//    case OP_SET_LOCAL:
-//    case OP_GET_LOCAL:
-//    case OP_CALL:
-//    case OP_GET_BUILTIN:
-//    case OP_GET_FREE:
-//        operand = va_arg(ap, size_t);
-//        operand_be = size_t_to_uint8_be(operand, 1);
-//        ins->bytes = create_uint8_array(2, op, operand_be[0]);
-//        ins->length = 2;
-//        ins->size = 2;
-//        free(operand_be);
-//        return ins;
-//    case OP_CLOSURE:
-//        operand = va_arg(ap, size_t);
-//        operand_be = size_t_to_uint8_be(operand, 2);
-//        ins->bytes = create_uint8_array(4, op, operand_be[0], operand_be[1], 0);
-//        free(operand_be);
-//        operand = va_arg(ap, size_t);
-//        operand_be = size_t_to_uint8_be(operand, 1);
-//        ins->bytes[3] = operand_be[0];
-//        ins->size = 4;
-//        ins->length = 4;
-//        free(operand_be);
-//        return ins;
-//    case OP_ADD:
-//    case OP_SUB:
-//    case OP_MUL:
-//    case OP_DIV:
-//    case OP_POP:
-//    case OP_TRUE:
-//    case OP_FALSE:
-//    case OP_GREATER_THAN:
-//    case OP_EQUAL:
-//    case OP_NOT_EQUAL:
-//    case OP_MINUS:
-//    case OP_BANG:
-//    case OP_NULL:
-//    case OP_INDEX:
-//    case OP_RETURN_VALUE:
-//    case OP_RETURN:
-//    case OP_CURRENT_CLOSURE:
-//        ins->bytes = create_uint8_array(1, op);
-//        ins->length = 1;
-//        ins->size = 1;
-//        return ins;
-//    default:
-//        const OpcodeDefinition *op_def = opcode_definition_lookup(op);
-//        err(EXIT_FAILURE, "Unsupported opcode %s", op_def->name);
-//    }
-//    return ins;
-//}
-
-// instructions * instruction_init(Opcode op, int *operands, size_t operand_count) {
-//     va_list ap;
-//     va_start(ap, op);
-//     instructions *ins = opcode_make_instruction(op, operands, operand_count);
-//     va_end(ap);
-//     return ins;
-// }
 
 // Read operands from instruction
 void read_operands(const OpcodeDefinition *def, const uint8_t *ins, size_t *operands, size_t *bytes_read) {
@@ -171,15 +83,27 @@ void read_operands(const OpcodeDefinition *def, const uint8_t *ins, size_t *oper
     }
 }
 
-void concat_instructions(instructions *dst, const instructions *src) {
-    if (dst->size == 0 || dst->size - dst->length < src->length) {
-        dst->size = dst->size * 2 + src->length;
-        dst->bytes = reallocarray(dst->bytes, dst->size, sizeof(*dst->bytes));
-        if (dst->bytes == NULL)
+void concat_instructions(instructions *dst, instructions *src) {
+    // Ensure there is enough space in `dst->bytes` to accommodate `src->bytes`
+    if (dst->capacity == 0 || dst->capacity - dst->length < src->length) {
+        if (dst->capacity == 0) {
+            dst->capacity = src->length * 2;
+        } else {
+            dst->capacity = dst->capacity * 2 + src->length;
+        }
+
+        // Safely handle memory reallocation
+        void *new_bytes = reallocarray(dst->bytes, dst->capacity, sizeof(*dst->bytes));
+        if (new_bytes == NULL) {
+            free(dst->bytes); // Prevent memory leak
             err(EXIT_FAILURE, "Could not allocate memory for instructions");
+        }
+        dst->bytes = new_bytes;
     }
-    for (size_t i = 0; i < src->length; i++)
-        dst->bytes[dst->length++] = src->bytes[i];
+
+    // Use memcpy to append `src->bytes` to `dst->bytes`
+    memcpy(dst->bytes + dst->length, src->bytes, src->length);
+    dst->length += src->length; // Update the length of `dst`
 }
 
 instructions *opcode_flatten_instructions(size_t n, instructions *ins_array[n]) {
@@ -211,7 +135,7 @@ instructions *opcode_flatten_instructions(size_t n, instructions *ins_array[n]) 
 
     flat_ins->bytes = bytes;
     flat_ins->length = bytes_len;
-    flat_ins->size = bytes_len;
+    flat_ins->capacity = bytes_len;
     return flat_ins;
 }
 
@@ -352,38 +276,44 @@ void instructions_free(instructions *ins) {
         free(ins->bytes);
         ins->bytes = NULL;
     }
+    ins->capacity = ins->length = 0;
     free(ins);
 }
+
+
 
 instructions *opcode_copy_instructions(instructions *ins) {
     if (!ins || !ins->bytes || ins->length == 0) {
         err(EXIT_FAILURE, "Invalid input instructions");
     }
 
+    // Validate that capacity is consistent with length
+    if (ins->capacity < ins->length) {
+        err(EXIT_FAILURE, "Instruction capacity is smaller than its length");
+    }
+
+    // Allocate memory for the new instructions structure
     instructions *ret = malloc(sizeof(*ret));
     if (!ret) {
         err(EXIT_FAILURE, "Failed to allocate memory for instructions");
     }
 
+    // Allocate memory for the instruction bytes
     ret->bytes = malloc(ins->length);
     if (!ret->bytes) {
-        free(ret);
+        free(ret); // Prevent memory leak
         err(EXIT_FAILURE, "Failed to allocate memory for instruction bytes");
     }
 
-    // Copy the data, ensuring length is valid
-    if (ins->bytes && ins->length > 0) {
-        memcpy(ret->bytes, ins->bytes, ins->length);
-    }
+    // Copy the instruction bytes
+    memcpy(ret->bytes, ins->bytes, ins->length);
 
+    // Copy the length and capacity
     ret->length = ins->length;
-    ret->size = ins->size;
+    ret->capacity = ins->capacity;
 
     return ret;
 }
-
-
-
 
 
 Opcode vm_instruction_decode(const uint8_t *bytes, size_t *operands) {

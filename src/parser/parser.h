@@ -9,9 +9,9 @@
 #include "../token/token.h"
 
 typedef struct parser_t {
-    lexer *               lexer;
-    token *               cur_tok;
-    token *               peek_tok;
+    lexer *      lexer;
+    token *      cur_tok;
+    token *      peek_tok;
     linked_list *errors;
 } parser;
 
@@ -45,7 +45,7 @@ void program_free(ast_program *);
 
 void parser_free(parser *);
 
-void *create_statement(const parser *, ast_statement_type);
+void *create_statement(parser *, ast_statement_type);
 
 void free_statement(ast_statement *);
 

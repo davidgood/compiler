@@ -46,12 +46,13 @@ static void print_parse_errors(const parser *parser) {
         list_node = list_node->next;
     }
 }
+
 /*
 static void free_lines(arraylist *lines) {
-    for (size_t i = 0; i < lines->size; i++) {
+    for (size_t i = 0; i < lines->capacity; i++) {
         free(lines->body[i]);
     }
-    lines->size = 0;
+    lines->capacity = 0;
 }
 
 int execute_file(const char *filename) {

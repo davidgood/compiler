@@ -170,7 +170,7 @@ void hashtable_remove(hashtable *t, void *key) {
             for (size_t i = 0; i < used_slots->size; i++) {
                 size_t *slot = used_slots->body[i];
                 if (*slot == index) {
-                    arraylist_remove(used_slots, i);
+                    arraylist_remove_and_free(used_slots, i);
                     free(slot);
                     break;
                 }

@@ -1,7 +1,8 @@
 /**
  * Macro to shift a section of memory by an offset, used when inserting or removing items.
  */
-#define arraylist_memshift(s, offset, length) memmove((s) + (offset), (s), (length)* sizeof(s));
+#define arraylist_memshift(s, offset, length) memmove((s) + (offset), (s), (length) * sizeof(*(s)))
+
 #include <arraylist.h>
 #include <assert.h>
 #include <stdio.h>
@@ -125,12 +126,29 @@ void arraylist_insert(arraylist *l, const unsigned int index, void *value) {
 /**
  * Remove the item at index, shifting the following items back by one spot.
  */
-void *arraylist_remove(arraylist *l, const unsigned int index) {
+void arraylist_remove_and_free(arraylist *l, const unsigned int index) {
+    // Check bounds
+    if (index >= l->size) {
+        fprintf(stderr, "Error: Index out of bounds\n");
+        return;
+    }
+
+    // Store the value to return
     void *value = l->body[index];
-    arraylist_memshift(l->body + index + 1, -1, l->size - index);
+
+    if (l->free_func != NULL) {
+        l->free_func(value);
+    }
+
+    // Shift elements left to fill the gap
+    if (index < l->size - 1) {
+        arraylist_memshift(l->body + index + 1, -1, l->size - index - 1);
+    }
+
+    // Decrement size
     l->size--;
-    return value;
 }
+
 
 /**
  * Clear list of all items.
@@ -168,7 +186,7 @@ arraylist *arraylist_slice_end(const arraylist *l, const unsigned int index) {
  *  Clone the arraylist.
  */
 arraylist *var_clone(const clone_args args) {
-    arraylist *new_list = arraylist_create(ARRAYLIST_INITIAL_CAPACITY, args.l->free_func);
+    arraylist *new_list = arraylist_create(ARRAYLIST_INITIAL_CAPACITY, args.free_func);
     if (args.l->size == 0) {
         return new_list;
     }

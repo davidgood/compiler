@@ -47,7 +47,7 @@ void test_vm_instruction_init(void) {
     instructions *ins = opcode_make_instruction(OP_CONSTANT, operands);
 
     TEST_ASSERT_NOT_NULL(ins);
-    TEST_ASSERT_EQUAL(3, ins->size);
+    TEST_ASSERT_EQUAL(3, ins->capacity);
     TEST_ASSERT_EQUAL(3, ins->length);
     TEST_ASSERT_EQUAL_UINT8(OP_CONSTANT, ins->bytes[0]);
     TEST_ASSERT_EQUAL_UINT8(0xff, ins->bytes[1]);

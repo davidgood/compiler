@@ -70,7 +70,7 @@ symbol *symbol_define_builtin(const symbol_table *table, const size_t index,
 
 symbol *symbol_init(const char *   name, const symbol_scope scope,
                     const uint16_t index) {
-    symbol *s = malloc(sizeof(*s));
+    symbol *s = malloc(sizeof(symbol));
     if (s == NULL) {
         err(EXIT_FAILURE, "malloc failed");
     }
@@ -99,9 +99,8 @@ symbol *symbol_resolve(symbol_table *table, const char *name) {
 }
 
 void symbol_free(void *o) {
-    symbol *s = o;
-    free(s->name);
-    free(s);
+    free(((symbol *) o)->name);
+    free(o);
 }
 
 void symbol_table_free(symbol_table *table) {

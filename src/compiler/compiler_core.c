@@ -21,7 +21,7 @@ compiler *compiler_init(void) {
         err(EXIT_FAILURE, "Could not allocate memory for compiler");
     }
     compiler->constants_pool = NULL;
-    compiler->symbol_table = symbol_table_init();
+    compiler->symbol_table   = symbol_table_init();
     for (size_t i = 0; i < get_builtins_count(); i++) {
         const char *builtin_name = (char *) get_builtins_name(i);
         if (builtin_name == NULL) {
@@ -29,8 +29,8 @@ compiler *compiler_init(void) {
         }
         symbol_define_builtin(compiler->symbol_table, i, builtin_name);
     }
-    compiler->scope_index = 0;
-    compiler->scopes = arraylist_create(16, _scope_free);
+    compiler->scope_index         = 0;
+    compiler->scopes              = arraylist_create(16, _scope_free);
     compilation_scope *main_scope = scope_init();
     arraylist_add(compiler->scopes, main_scope);
 
@@ -40,7 +40,7 @@ compiler *compiler_init(void) {
 compiler *compiler_init_with_state(const symbol_table *symbol_table, arraylist *constants) {
     compiler *compiler = compiler_init();
     symbol_table_free(compiler->symbol_table);
-    compiler->symbol_table = symbol_table_copy(symbol_table);
+    compiler->symbol_table   = symbol_table_copy(symbol_table);
     compiler->constants_pool = arraylist_clone(constants, _copy_object);
     return compiler;
 }
@@ -60,38 +60,38 @@ compiler_error compile(compiler *compiler, ast_node *node) {
     compiler_error error;
     compiler_error none_error = {COMPILER_ERROR_NONE, NULL};
     switch (node->type) {
-    case PROGRAM:
-        ast_program *program = (ast_program *) node;
-        for (size_t i = 0; i < program->statement_count; i++) {
-            error = compile(compiler, (ast_node *) program->statements[i]);
+        case PROGRAM:
+            ast_program *program = (ast_program *) node;
+            for (size_t i = 0; i < program->statement_count; i++) {
+                error = compile(compiler, (ast_node *) program->statements[i]);
+                if (error.error_code != COMPILER_ERROR_NONE)
+                    return error;
+            }
+            break;
+        case STATEMENT:
+            ast_statement *statement_node = (ast_statement *) node;
+            error = compile_statement_node(compiler, statement_node);
             if (error.error_code != COMPILER_ERROR_NONE)
                 return error;
-        }
-        break;
-    case STATEMENT:
-        ast_statement *statement_node = (ast_statement *) node;
-        error = compile_statement_node(compiler, statement_node);
-        if (error.error_code != COMPILER_ERROR_NONE)
-            return error;
-        break;
-    case EXPRESSION:
-        ast_expression *expression_node = (ast_expression *) node;
-        error = compile_expression_node(compiler, expression_node);
-        if (error.error_code != COMPILER_ERROR_NONE)
-            return error;
-        break;
-    default:
-        return none_error;
+            break;
+        case EXPRESSION:
+            ast_expression *expression_node = (ast_expression *) node;
+            error = compile_expression_node(compiler, expression_node);
+            if (error.error_code != COMPILER_ERROR_NONE)
+                return error;
+            break;
+        default:
+            return none_error;
     }
     return none_error;
 }
 
 instructions *compiler_leave_scope(compiler *compiler) {
     const compilation_scope *scope = get_top_scope(compiler);
-    instructions *ins = opcode_copy_instructions(scope->instructions);
-    arraylist_remove(compiler->scopes, compiler->scope_index);
+    instructions *           ins   = opcode_copy_instructions(scope->instructions);
+    arraylist_remove_and_free(compiler->scopes, compiler->scope_index);
     compiler->scope_index--;
-    symbol_table *table = compiler->symbol_table;
+    symbol_table *table    = compiler->symbol_table;
     compiler->symbol_table = compiler->symbol_table->outer;
     symbol_table_free(table);
     return ins;

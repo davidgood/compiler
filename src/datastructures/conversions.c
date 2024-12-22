@@ -53,15 +53,27 @@ uint8_t *size_t_to_uint8_be(size_t value, size_t width) {
         err(EXIT_FAILURE, "malloc failed");
     }
     uint64_t newval = htobe16(value); // to make sure we work on both BE and LE archs
-    uint8_t *x = (uint8_t *) &newval;
-    int j = width - 1;
-    int i = sizeof(value) - 1;
+    uint8_t *x      = (uint8_t *) &newval;
+    int      j      = width - 1;
+    int      i      = sizeof(value) - 1;
     while (j >= 0) {
         array[j--] = x[i--];
     }
     return array;
 }
 
+
+void put_uint16_big_endian(uint8_t *b, const size_t b_len, const uint16_t v) {
+    // Early bounds check
+    if (b_len < 2) {
+        fprintf(stderr, "Error: Insufficient buffer length\n");
+        exit(EXIT_FAILURE); // Handle error appropriately
+    }
+
+    // Write the high byte first, then the low byte
+    b[0] = (v >> 8) & 0xFF; // Extract high byte
+    b[1] = v & 0xFF;        // Extract low byte
+}
 
 size_t be_to_size_t(const uint8_t *bytes) {
     if (bytes[0] == 0) {

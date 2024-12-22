@@ -350,21 +350,21 @@ object_compiled_fn *object_create_compiled_fn(instructions *ins, const size_t nu
         err(EXIT_FAILURE, "Invalid instructions input");
     }
 
-    object_compiled_fn *compiled_fn = malloc(sizeof(*compiled_fn));
+    object_compiled_fn *compiled_fn = malloc(sizeof(object_compiled_fn));
     if (!compiled_fn) {
         err(EXIT_FAILURE, "Failed to allocate memory for compiled function");
     }
 
     // Allocate the instructions structure
-    compiled_fn->instructions = malloc(sizeof(*compiled_fn->instructions));
+    compiled_fn->instructions = malloc(sizeof(instructions));
     if (!compiled_fn->instructions) {
         free(compiled_fn);
         err(EXIT_FAILURE, "Failed to allocate memory for instructions");
     }
 
     // Copy metadata
-    compiled_fn->instructions->length = ins->length;
-    compiled_fn->instructions->size   = ins->size;
+    compiled_fn->instructions->length   = ins->length;
+    compiled_fn->instructions->capacity = ins->capacity;
 
     // Allocate and copy the bytes
     compiled_fn->instructions->bytes = malloc(ins->length);
@@ -374,6 +374,9 @@ object_compiled_fn *object_create_compiled_fn(instructions *ins, const size_t nu
         err(EXIT_FAILURE, "Failed to allocate memory for instruction bytes");
     }
     memcpy(compiled_fn->instructions->bytes, ins->bytes, ins->length);
+
+    // release the original instructions
+    instructions_free(ins);
 
     // Initialize other fields
     compiled_fn->num_locals      = num_locals;

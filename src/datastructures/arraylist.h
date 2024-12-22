@@ -44,6 +44,8 @@ typedef struct {
     arraylist *l;
 
     void * (*copy_func)(void *);
+
+    void (*free_func)(void *);
 } clone_args;
 
 void clone_base(arraylist *l, ...);
@@ -70,7 +72,7 @@ arraylist *arraylist_slice(const arraylist *l, unsigned int index,
 
 void arraylist_clear(arraylist *l);
 
-void *arraylist_remove(arraylist *l, unsigned int index);
+void arraylist_remove_and_free(arraylist *l, unsigned int index);
 
 void arraylist_insert(arraylist *l, unsigned int index, void *value);
 

@@ -8,9 +8,9 @@
 #define MAX_OPERANDS 16
 
 typedef struct {
-    uint8_t *bytes; // Pointer to the instruction byte array
-    size_t size;    // Current size of the byte array
-    size_t length;  // Number of bytes currently used
+    uint8_t *bytes;    // Pointer to the instruction byte array
+    size_t   capacity; // Current size of the byte array
+    size_t   length;   // Number of bytes currently used
 } instructions;
 
 // Opcode enumeration, 1 byte
@@ -52,8 +52,8 @@ typedef enum : char {
 typedef struct {
     const char *name;
     const char *desc;
-    int operand_widths[MAX_OPERANDS]; // Maximum of two operands
-    int operand_count;
+    int         operand_widths[MAX_OPERANDS]; // Maximum of two operands
+    int         operand_count;
 } OpcodeDefinition;
 
 static OpcodeDefinition opcode_definitions[] = {
@@ -84,7 +84,7 @@ static OpcodeDefinition opcode_definitions[] = {
     {"OP_SET_LOCAL", "set_local", {1}, 1},
     {"OP_GET_LOCAL", "get_local", {1}, 1},
     {"OP_GET_BUILTIN", "get_builtin", {1}, 1},
-    {"OP_CLOSURE", "closure", {2,1}, 2},
+    {"OP_CLOSURE", "closure", {2, 1}, 2},
     {"OP_GET_FREE", "get_free", {1}, 1},
     {"OP_CURRENT_CLOSURE", "current_closure", {0}, 0},
     {"OP_INVALID", "invalid", {0}, 0}
@@ -93,13 +93,21 @@ static OpcodeDefinition opcode_definitions[] = {
 // Functions
 //instructions *instruction_init(Opcode, size_t *operands, size_t operand_count);
 instructions *opcode_make_instruction(Opcode op, size_t *operands);
+
 void read_operands(const OpcodeDefinition *def, const uint8_t *ins, size_t *operands, size_t *bytes_read);
-void concat_instructions(instructions *, const instructions *);
-instructions * opcode_flatten_instructions(size_t n, instructions *ins_array[n]);
+
+void concat_instructions(instructions *, instructions *);
+
+instructions *opcode_flatten_instructions(size_t n, instructions *ins_array[n]);
+
 char *instructions_to_string(instructions *);
+
 void instructions_free(instructions *);
+
 instructions *opcode_copy_instructions(instructions *);
+
 OpcodeDefinition *opcode_definition_lookup(Opcode op);
+
 Opcode vm_instruction_decode(const uint8_t *bytes, size_t *operands);
 
 
