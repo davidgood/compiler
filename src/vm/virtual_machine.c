@@ -397,16 +397,16 @@ static hashtable *build_hash(const virtual_machine *vm, const size_t size) {
 
 static vm_error call_builtin(virtual_machine *vm, object_builtin *callee, size_t num_args) {
     vm_error     vm_err;
-    linked_list *args = linked_list_create();
+    linked_list *args = linked_list_create(object_free);
     for (size_t i = vm->sp - num_args; i < vm->sp; i++) {
         object_object *top = vm->stack[i];
         linked_list_addNode(args, top);
     }
     object_object *result = callee->function(args);
-    linked_list_free(args, NULL);
+    linked_list_free(args, nullptr);
     vm_push(vm, result);
     vm_err.code = VM_ERROR_NONE;
-    vm_err.msg  = NULL;
+    vm_err.msg  = nullptr;
     return vm_err;
 }
 
@@ -422,7 +422,7 @@ static vm_error call_closure(virtual_machine *vm, object_closure *closure, size_
     push_frame(vm, new_frame);
     vm->sp      = new_frame->bp + closure->fn->num_locals;
     vm_err.code = VM_ERROR_NONE;
-    vm_err.msg  = NULL;
+    vm_err.msg  = nullptr;
     object_free(closure);
     return vm_err;
 }

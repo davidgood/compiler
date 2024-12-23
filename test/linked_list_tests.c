@@ -16,7 +16,7 @@ void tearDown(void) {
 }
 
 void test_linked_list_create(void) {
-    linked_list *list = linked_list_create();
+    linked_list *list = linked_list_create(nullptr);
     TEST_ASSERT_NOT_NULL(list);
     TEST_ASSERT_NULL(list->head);
     TEST_ASSERT_NULL(list->tail);
@@ -25,9 +25,9 @@ void test_linked_list_create(void) {
 }
 
 void test_linked_list_addNode(void) {
-    linked_list *list = linked_list_create();
-    int *value = malloc(sizeof(int));
-    *value = 42;
+    linked_list *list  = linked_list_create(nullptr);
+    int *        value = malloc(sizeof(int));
+    *value             = 42;
     linked_list_addNode(list, value);
     TEST_ASSERT_EQUAL_UINT(1, list->size);
     TEST_ASSERT_EQUAL_INT(42, *(int *)list->head->data);
@@ -35,9 +35,9 @@ void test_linked_list_addNode(void) {
 }
 
 void test_linked_list_getNode(void) {
-    linked_list *list = linked_list_create();
-    int *value = malloc(sizeof(int));
-    *value = 42;
+    linked_list *list  = linked_list_create(nullptr);
+    int *        value = malloc(sizeof(int));
+    *value             = 42;
     linked_list_addNode(list, value);
     list_node *node = linked_list_get_at(list, 0);
     TEST_ASSERT_NOT_NULL(node);
@@ -46,15 +46,16 @@ void test_linked_list_getNode(void) {
 }
 
 void test_linked_list_removeNode(void) {
-    linked_list *list = linked_list_create();
-    int *value = malloc(sizeof(int));
-    *value = 42;
+    linked_list *list  = linked_list_create(nullptr);
+    int *        value = malloc(sizeof(int));
+    *value             = 42;
     linked_list_addNode(list, value);
     bool deleted = linked_list_delete_at(list, 0, free);
     TEST_ASSERT(deleted);
     TEST_ASSERT_EQUAL_UINT(0, list->size);
     linked_list_free(list, free);
 }
+
 /*
 void test_linked_list_clear(void) {
     linked_list *list = linked_list_create();

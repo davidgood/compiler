@@ -15,12 +15,13 @@ typedef struct list_node {
 
 // Circular Linked List structure
 typedef struct {
-    list_node *head; // Pointer to the tail node
-    list_node *tail; // Pointer to the tail node
-    size_t     size; // Number of elements in the list
+    list_node *head;               // Pointer to the tail node
+    list_node *tail;               // Pointer to the tail node
+    size_t     size;               // Number of elements in the list
+    void (*    free_func)(void *); // Function to free the data
 } linked_list;
 
-linked_list *linked_list_create();
+linked_list *linked_list_create(void (*free_func)(void *));
 
 list_node *linked_list_createNode(void *);
 

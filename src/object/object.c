@@ -20,6 +20,10 @@ const object_bool TRUE_OBJ  = {{OBJECT_BOOL, inspect, object_get_hash, object_eq
 const object_bool FALSE_OBJ = {{OBJECT_BOOL, inspect, object_get_hash, object_equals, 1}, false};
 const object_null NULL_OBJ  = {{OBJECT_NULL, inspect, NULL, NULL, 1}};
 
+/*********************************************************************************
+ ******************************  UTILITY FUNCTIONS *******************************
+ ********************************************************************************/
+
 static char *function_inspect(object_object *obj) {
     object_function *function   = (object_function *) obj;
     char *           str        = NULL;
@@ -309,137 +313,22 @@ size_t object_get_hash(void *object) {
     }
 }
 
-object_closure *object_create_closure(object_compiled_fn *fn, const arraylist *free_variables) {
-    object_closure *closure = malloc(sizeof(*closure));
-    if (closure == NULL) {
-        err(EXIT_FAILURE, "malloc failed");
-    }
-    fn->object.refcount++;
-    closure->fn = fn;
-    if (free_variables != NULL) {
-        for (size_t i                  = 0; i < free_variables->size; i++)
-            closure->free_variables[i] = (object_object *) free_variables->body[i];
-        closure->free_variables_count = free_variables->size;
-    } else {
-        closure->free_variables_count = 0;
-    }
-    closure->object.inspect  = inspect;
-    closure->object.type     = OBJECT_CLOSURE;
-    closure->object.hash     = NULL;
-    closure->object.equals   = object_equals;
-    closure->object.refcount = 1;
-    return closure;
-}
-
-object_int *object_create_int(const long value) {
-    object_int *int_obj = malloc(sizeof(object_int));
-    if (int_obj == NULL) {
-        err(EXIT_FAILURE, "malloc failed");
-    }
-    int_obj->object.inspect  = inspect;
-    int_obj->object.type     = OBJECT_INT;
-    int_obj->object.hash     = object_get_hash;
-    int_obj->object.equals   = object_equals;
-    int_obj->value           = value;
-    int_obj->object.refcount = 1;
-    return int_obj;
-}
-
-object_compiled_fn *object_create_compiled_fn(instructions *ins, const size_t num_locals, const size_t num_args) {
-    if (!ins || !ins->bytes || ins->length == 0) {
-        err(EXIT_FAILURE, "Invalid instructions input");
-    }
-
-    object_compiled_fn *compiled_fn = malloc(sizeof(object_compiled_fn));
-    if (!compiled_fn) {
-        err(EXIT_FAILURE, "Failed to allocate memory for compiled function");
-    }
-
-    // Allocate the instructions structure
-    compiled_fn->instructions = malloc(sizeof(instructions));
-    if (!compiled_fn->instructions) {
-        free(compiled_fn);
-        err(EXIT_FAILURE, "Failed to allocate memory for instructions");
-    }
-
-    // Copy metadata
-    compiled_fn->instructions->length   = ins->length;
-    compiled_fn->instructions->capacity = ins->capacity;
-
-    // Allocate and copy the bytes
-    compiled_fn->instructions->bytes = malloc(ins->length);
-    if (!compiled_fn->instructions->bytes) {
-        free(compiled_fn->instructions);
-        free(compiled_fn);
-        err(EXIT_FAILURE, "Failed to allocate memory for instruction bytes");
-    }
-    memcpy(compiled_fn->instructions->bytes, ins->bytes, ins->length);
-
-    // release the original instructions
-    instructions_free(ins);
-
-    // Initialize other fields
-    compiled_fn->num_locals      = num_locals;
-    compiled_fn->num_args        = num_args;
-    compiled_fn->object.type     = OBJECT_COMPILED_FUNCTION;
-    compiled_fn->object.inspect  = inspect;
-    compiled_fn->object.equals   = object_equals;
-    compiled_fn->object.hash     = NULL;
-    compiled_fn->object.refcount = 1;
-
-    return compiled_fn;
-}
-
-
-object_return_value *object_create_return_value(object_object *value) {
-    object_return_value *ret = malloc(sizeof(*ret));
-    if (ret == NULL) {
-        err(EXIT_FAILURE, "malloc failed");
-    }
-    ret->value        = value;
-    ret->obj.type     = OBJECT_RETURN_VALUE;
-    ret->obj.inspect  = inspect;
-    ret->obj.equals   = object_equals;
-    ret->obj.hash     = NULL;
-    ret->obj.refcount = 1;
-    return ret;
-}
-
-object_error *object_create_error(const char *fmt, ...) {
-    char *        message = NULL;
-    object_error *error   = malloc(sizeof(*error));
-    if (error == NULL) {
-        err(EXIT_FAILURE, "malloc failed");
-    }
-    error->object.type    = OBJECT_ERROR;
-    error->object.inspect = inspect;
-    error->object.hash    = NULL;
-    error->object.equals  = object_equals;
-    va_list args;
-    va_start(args, fmt);
-    const int ret = vasprintf(&message, fmt, args);
-    if (ret == -1) {
-        err(EXIT_FAILURE, "malloc failed");
-    }
-    va_end(args);
-
-    error->message         = message;
-    error->object.refcount = 1;
-    return error;
-}
+/*********************************************************************************
+ ******************************  FREE FUNCTIONS ********************************
+ ********************************************************************************/
 
 static void free_int_object(object_int *int_obj) {
-    int_obj->object.equals  = NULL;
-    int_obj->object.hash    = NULL;
-    int_obj->object.inspect = NULL;
+    int_obj->object.equals  = nullptr;
+    int_obj->object.hash    = nullptr;
+    int_obj->object.inspect = nullptr;
     int_obj->object.refcount == 0;
     free(int_obj);
-    int_obj = NULL;
+    int_obj = nullptr;
 }
 
 static void free_function_object(object_function *function_obj) {
     free_statement((ast_statement *) function_obj->body);
-    linked_list_free(function_obj->parameters, NULL);
+    linked_list_free(function_obj->parameters, object_free);
     free(function_obj);
 }
 
@@ -473,11 +362,11 @@ static void free_array_object(object_array *array_obj) {
         object_free(array_obj->elements->body[i]);
     }
     arraylist_destroy(array_obj->elements);
-    array_obj->elements = NULL;
+    array_obj->elements = nullptr;
     free(array_obj);
 }
 
-static void free_hash_object(object_hash *hash_obj) {
+/*static void free_hash_object(object_hash *hash_obj) {
     arraylist *keys = hashtable_get_keys(hash_obj->pairs);
     if (keys != NULL) {
         for (size_t i = 0; i < keys->size; i++) {
@@ -490,7 +379,12 @@ static void free_hash_object(object_hash *hash_obj) {
     hashtable_destroy(hash_obj->pairs);
     free(hash_obj);
     arraylist_destroy(keys);
+}*/
+static void free_hash_object(object_hash *hash_obj) {
+    hashtable_destroy(hash_obj->pairs);
+    free(hash_obj);
 }
+
 
 static void free_closure_object(object_closure *closure) {
     closure->fn->object.refcount--;
@@ -605,21 +499,9 @@ object_object *object_copy_object(object_object *object) {
     return object;
 }
 
-
-object_function *object_create_function(linked_list *parameters, ast_block_statement *body, environment *env) {
-    object_function *function = malloc(sizeof(*function));
-    if (function == NULL)
-        err(EXIT_FAILURE, "malloc failed");
-    function->parameters      = copy_parameters(parameters);
-    function->body            = (ast_block_statement *) copy_statement((ast_statement *) body);
-    function->env             = env;
-    function->object.type     = OBJECT_FUNCTION;
-    function->object.inspect  = inspect;
-    function->object.hash     = NULL;
-    function->object.equals   = object_equals;
-    function->object.refcount = 1;
-    return function;
-}
+/*********************************************************************************
+ ******************************  CREATE FUNCTIONS ********************************
+ ********************************************************************************/
 
 object_string *object_create_string(const char *value, const size_t length) {
     object_string *string_obj = malloc(sizeof(*string_obj));
@@ -636,7 +518,7 @@ object_string *object_create_string(const char *value, const size_t length) {
             err(EXIT_FAILURE, "malloc failed");
         string_obj->length = length;
     } else {
-        string_obj->value  = NULL;
+        string_obj->value  = nullptr;
         string_obj->length = 0;
     }
     string_obj->object.type     = OBJECT_STRING;
@@ -654,7 +536,7 @@ object_builtin *object_create_builtin(builtin_fn function) {
     }
     builtin->object.type     = OBJECT_BUILTIN;
     builtin->object.inspect  = inspect;
-    builtin->object.hash     = NULL;
+    builtin->object.hash     = nullptr;
     builtin->function        = function;
     builtin->object.refcount = 1;
     return builtin;
@@ -667,7 +549,7 @@ object_array *object_create_array(arraylist *elements) {
     }
     array->object.type     = OBJECT_ARRAY;
     array->object.inspect  = inspect;
-    array->object.hash     = NULL;
+    array->object.hash     = nullptr;
     array->elements        = elements;
     array->object.equals   = object_equals;
     array->object.refcount = 1;
@@ -681,9 +563,144 @@ object_hash *object_create_hash(hashtable *pairs) {
     }
     hash_obj->object.type     = OBJECT_HASH;
     hash_obj->object.inspect  = inspect;
-    hash_obj->object.hash     = NULL;
+    hash_obj->object.hash     = nullptr;
     hash_obj->object.equals   = object_equals;
     hash_obj->pairs           = pairs;
     hash_obj->object.refcount = 1;
     return hash_obj;
+}
+
+object_int *object_create_int(const long value) {
+    object_int *int_obj = malloc(sizeof(object_int));
+    if (int_obj == NULL) {
+        err(EXIT_FAILURE, "malloc failed");
+    }
+    int_obj->object.inspect  = inspect;
+    int_obj->object.type     = OBJECT_INT;
+    int_obj->object.hash     = object_get_hash;
+    int_obj->object.equals   = object_equals;
+    int_obj->value           = value;
+    int_obj->object.refcount = 1;
+    return int_obj;
+}
+
+object_closure *object_create_closure(object_compiled_fn *fn, const arraylist *free_variables) {
+    object_closure *closure = malloc(sizeof(*closure));
+    if (closure == NULL) {
+        err(EXIT_FAILURE, "malloc failed");
+    }
+    fn->object.refcount++;
+    closure->fn = fn;
+    if (free_variables != NULL) {
+        for (size_t i                  = 0; i < free_variables->size; i++)
+            closure->free_variables[i] = (object_object *) free_variables->body[i];
+        closure->free_variables_count = free_variables->size;
+    } else {
+        closure->free_variables_count = 0;
+    }
+    closure->object.inspect  = inspect;
+    closure->object.type     = OBJECT_CLOSURE;
+    closure->object.hash     = nullptr;
+    closure->object.equals   = object_equals;
+    closure->object.refcount = 1;
+    return closure;
+}
+
+object_function *object_create_function(linked_list *parameters, ast_block_statement *body, environment *env) {
+    object_function *function = malloc(sizeof(*function));
+    if (function == NULL) {
+        err(EXIT_FAILURE, "malloc failed");
+    }
+    function->parameters      = copy_parameters(parameters);
+    function->body            = (ast_block_statement *) copy_statement((ast_statement *) body);
+    function->env             = env;
+    function->object.type     = OBJECT_FUNCTION;
+    function->object.inspect  = inspect;
+    function->object.hash     = nullptr;
+    function->object.equals   = object_equals;
+    function->object.refcount = 1;
+    return function;
+}
+
+
+object_compiled_fn *object_create_compiled_fn(instructions *ins, const size_t num_locals, const size_t num_args) {
+    if (!ins || !ins->bytes || ins->length == 0) {
+        err(EXIT_FAILURE, "Invalid instructions input");
+    }
+
+    object_compiled_fn *compiled_fn = malloc(sizeof(object_compiled_fn));
+    if (!compiled_fn) {
+        err(EXIT_FAILURE, "Failed to allocate memory for compiled function");
+    }
+
+    // Allocate the instructions structure
+    compiled_fn->instructions = malloc(sizeof(instructions));
+    if (!compiled_fn->instructions) {
+        free(compiled_fn);
+        err(EXIT_FAILURE, "Failed to allocate memory for instructions");
+    }
+
+    // Copy metadata
+    compiled_fn->instructions->length   = ins->length;
+    compiled_fn->instructions->capacity = ins->capacity;
+
+    // Allocate and copy the bytes
+    compiled_fn->instructions->bytes = malloc(ins->length);
+    if (!compiled_fn->instructions->bytes) {
+        free(compiled_fn->instructions);
+        free(compiled_fn);
+        err(EXIT_FAILURE, "Failed to allocate memory for instruction bytes");
+    }
+    memcpy(compiled_fn->instructions->bytes, ins->bytes, ins->length);
+
+    // release the original instructions
+    instructions_free(ins);
+
+    // Initialize other fields
+    compiled_fn->num_locals      = num_locals;
+    compiled_fn->num_args        = num_args;
+    compiled_fn->object.type     = OBJECT_COMPILED_FUNCTION;
+    compiled_fn->object.inspect  = inspect;
+    compiled_fn->object.equals   = object_equals;
+    compiled_fn->object.hash     = nullptr;
+    compiled_fn->object.refcount = 1;
+
+    return compiled_fn;
+}
+
+object_return_value *object_create_return_value(object_object *value) {
+    object_return_value *ret = malloc(sizeof(*ret));
+    if (ret == NULL) {
+        err(EXIT_FAILURE, "malloc failed");
+    }
+    ret->value        = object_copy_object(value);
+    ret->obj.type     = OBJECT_RETURN_VALUE;
+    ret->obj.inspect  = inspect;
+    ret->obj.equals   = object_equals;
+    ret->obj.hash     = nullptr;
+    ret->obj.refcount = 1;
+    return ret;
+}
+
+object_error *object_create_error(const char *fmt, ...) {
+    char *        message = nullptr;
+    object_error *error   = malloc(sizeof(*error));
+    if (error == NULL) {
+        err(EXIT_FAILURE, "malloc failed");
+    }
+    error->object.type    = OBJECT_ERROR;
+    error->object.inspect = inspect;
+    error->object.hash    = nullptr;
+    error->object.equals  = object_equals;
+    va_list args;
+    va_start(args, fmt);
+    const int ret = vasprintf(&message, fmt, args);
+    if (ret == -1) {
+        err(EXIT_FAILURE, "malloc failed");
+    }
+    va_end(args);
+
+    error->message         = message;
+    error->object.refcount = 1;
+    return error;
 }

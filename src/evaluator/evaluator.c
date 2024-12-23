@@ -5,6 +5,7 @@
 #include "evaluator.h"
 
 #include <assert.h>
+#include <parser.h>
 #include <string.h>
 
 #include "../ast/ast.h"
@@ -62,9 +63,8 @@ static object_object *eval_integer_infix_expression(const char *operator,
         return (object_object *)
                 object_create_bool(left_value->value > right_value->value);
     else if (strcmp(operator, "==") == 0)
-        return (object_object *)
-                (object_object *) object_create_bool(
-                        left_value->value == right_value->value);
+        return (object_object *) object_create_bool(
+                left_value->value == right_value->value);
     else if (strcmp(operator, "!=") == 0)
         return (object_object *)
                 object_create_bool(left_value->value != right_value->value);
@@ -257,13 +257,13 @@ static arraylist *eval_expressions_to_array_list(const arraylist *expression_lis
 
 static linked_list *eval_expressions_to_linked_list(const linked_list *expression_list,
                                                     environment *      env) {
-    linked_list *    values   = linked_list_create();
+    linked_list *    values   = linked_list_create(object_free);
     const list_node *exp_node = expression_list->head;
     while (exp_node != NULL) {
-        object_object *value = evaluator_eval((ast_node *) exp_node->data, env);
+        object_object *value = evaluator_eval(exp_node->data, env);
         if (is_error(value)) {
-            linked_list_free(values, NULL);
-            values = linked_list_create();
+            linked_list_free(values, nullptr);
+            values = linked_list_create(object_free);
             linked_list_addNode(values, value);
             return values;
         }
@@ -339,6 +339,7 @@ static object_object *eval_hash_index_expression(object_object *left_value,
                                                  object_object *index_value) {
     const object_hash *hash_obj = (object_hash *) left_value;
     if (index_value->hash == NULL) {
+        //hashtable_destroy(left_value);
         return (object_object *) object_create_error("unusable as a hash key: %s",
                                                      get_type_name(
                                                              index_value->type));
@@ -363,7 +364,7 @@ static object_object *eval_index_expression(object_object *left_value,
 }
 
 static object_object *eval_while_expression(const ast_while_expression *while_exp, environment *env) {
-    object_object *result    = NULL;
+    object_object *result    = nullptr;
     object_object *condition = evaluator_eval((ast_node *) while_exp->condition, env);
     if (is_error(condition)) {
         return condition;
@@ -376,9 +377,11 @@ static object_object *eval_while_expression(const ast_while_expression *while_ex
         }
         object_free(condition);
         condition = evaluator_eval((ast_node *) while_exp->condition, env);
-        if (is_truthy(condition))
+        if (is_truthy(condition)) {
             object_free(result);
+        }
     }
+    object_free(condition);
     if (result == NULL) {
         return (object_object *) object_create_null();
     }
@@ -387,7 +390,7 @@ static object_object *eval_while_expression(const ast_while_expression *while_ex
 
 static object_object *eval_hash_literal(const ast_hash_literal *hash_exp, environment *env) {
     hashtable *pairs = hashtable_create(object_get_hash,
-                                        object_equals, NULL, NULL);
+                                        object_equals, object_free, object_free);
     arraylist *keys = hashtable_get_keys(hash_exp->pairs);
     if (keys != NULL) {
         for (size_t i = 0; i < keys->size; i++) {
@@ -485,16 +488,15 @@ static object_object *eval_expression(ast_expression *exp, environment *env) {
                 return function_value;
             }
             arguments_value = eval_expressions_to_linked_list(call_exp->arguments, env);
-            if (arguments_value->size == 1 &&
-                is_error(arguments_value->head->data)) {
+            if (arguments_value->size == 1 && is_error(arguments_value->head->data)) {
                 object_free(function_value);
                 exp_value = object_copy_object(arguments_value->head->data);
-                linked_list_free(arguments_value, NULL);
+                linked_list_free(arguments_value, object_free);
                 return exp_value;
             }
             call_exp_value = apply_function(function_value, arguments_value);
             object_free(function_value);
-            linked_list_free(arguments_value, NULL);
+            linked_list_free(arguments_value, object_free);
             return call_exp_value;
         case STRING_EXPRESSION:
             string_exp = (ast_string *) exp;
@@ -535,25 +537,27 @@ static object_object *eval_expression(ast_expression *exp, environment *env) {
         default:
             break;
     }
-    return NULL;
+    return nullptr;
 }
 
 static object_object *eval_block_statement(const ast_block_statement *block_stmt, environment *env) {
-    object_object *object = NULL;
+    object_object *object = nullptr;
     for (size_t i = 0; i < block_stmt->statement_count; i++) {
-        if (object)
+        if (object) {
             object_free(object);
+        }
         object = evaluator_eval((ast_node *) block_stmt->statements[i], env);
         if (object != NULL &&
             (object->type == OBJECT_RETURN_VALUE ||
-             object->type == OBJECT_ERROR))
+             object->type == OBJECT_ERROR)) {
             return object;
+        }
     }
     return object;
 }
 
 static object_object *eval_program(const ast_program *program, environment *env) {
-    object_object *object = NULL;
+    object_object *object = nullptr;
     for (size_t i = 0; i < program->statement_count; i++) {
         if (object) {
             object_free(object);
@@ -590,21 +594,26 @@ static object_object *eval_statement(ast_statement *statement, environment *env)
         case RETURN_STATEMENT:
             ret_stmt = (ast_return_statement *) statement;
             evaluated = evaluator_eval((ast_node *) ret_stmt->return_value, env);
-            if (is_error(evaluated))
+            if (is_error(evaluated)) {
                 return evaluated;
-            return (object_object *) object_create_return_value(evaluated);
+            }
+            object_return_value *ret_val = object_create_return_value(evaluated);
+            free(evaluated);
+            return (object_object *) ret_val;
         case LET_STATEMENT:
             let_stmt = (ast_let_statement *) statement;
             evaluated = evaluator_eval((ast_node *) let_stmt->value, env);
-            if (is_error(evaluated))
+            if (is_error(evaluated)) {
                 return evaluated;
-            if (evaluated == NULL)
+            }
+            if (evaluated == NULL) {
                 evaluated = (object_object *) object_create_null();
+            }
             environment_put(env, strdup(let_stmt->name->value), evaluated);
         default:
             break;
     }
-    return NULL;
+    return nullptr;
 }
 
 object_object *evaluator_eval(ast_node *node, environment *env) {

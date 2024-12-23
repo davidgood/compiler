@@ -49,10 +49,10 @@ void hashtable_set(hashtable *hash_table, void *key, void *value) {
     const size_t index = hash_table->hash_func(key) % hash_table->table_size;
 
     linked_list *    entry_list = hash_table->table[index];
-    hashtable_entry *entry      = NULL;
+    hashtable_entry *entry      = nullptr;
 
     if (entry_list == NULL) {
-        entry_list               = linked_list_create();
+        entry_list               = linked_list_create(nullptr);
         hash_table->table[index] = entry_list;
 
         size_t *used_slot = malloc(sizeof(*used_slot));
@@ -62,12 +62,12 @@ void hashtable_set(hashtable *hash_table, void *key, void *value) {
         *used_slot = index;
         arraylist_add(hash_table->used_slots, used_slot);
     } else {
-        const hashtable_entry temp_entry = {key, NULL, NULL, NULL};
+        const hashtable_entry temp_entry = {key, NULL, nullptr, nullptr};
         entry                            = find_entry(entry_list, &temp_entry, hash_table->key_equals);
     }
 
     if (entry == NULL) {
-        entry = malloc(sizeof(*entry));
+        entry = malloc(sizeof(hashtable_entry));
         if (entry == NULL) {
             err(EXIT_FAILURE, "malloc failed");
         }
@@ -93,9 +93,9 @@ void hashtable_set(hashtable *hash_table, void *key, void *value) {
 
 arraylist *hashtable_get_keys(const hashtable *hash_table) {
     if (hash_table->key_count == 0) {
-        return NULL;
+        return nullptr;
     }
-    arraylist *keys_list = arraylist_create(hash_table->key_count, NULL);
+    arraylist *keys_list = arraylist_create(hash_table->key_count, nullptr);
     for (size_t i = 0; i < hash_table->table_size; i++) {
         linked_list *bucket = hash_table->table[i];
         if (bucket == NULL) {
@@ -112,7 +112,7 @@ arraylist *hashtable_get_keys(const hashtable *hash_table) {
 }
 
 arraylist *hashtable_get_values(hashtable *hash_table) {
-    arraylist *values_list = arraylist_create(hash_table->key_count, NULL);
+    arraylist *values_list = arraylist_create(hash_table->key_count, nullptr);
     for (size_t i = 0; i < hash_table->table_size; i++) {
         linked_list *bucket = hash_table->table[i];
         if (bucket == NULL) {

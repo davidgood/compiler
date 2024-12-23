@@ -13,15 +13,16 @@
 
 
 // Function to create a new list
-linked_list *linked_list_create() {
-    linked_list *list = (linked_list *)malloc(sizeof(*list));
+linked_list *linked_list_create(void (*free_func)(void *)) {
+    linked_list *list = malloc(sizeof(linked_list));
     if (!list) {
         perror("Failed to allocate memory for linked list");
-        return NULL;
+        return nullptr;
     }
-    list->head = NULL;
-    list->tail = NULL;
-    list->size = 0;
+    list->head      = nullptr;
+    list->tail      = nullptr;
+    list->size      = 0;
+    list->free_func = free_func;
     return list;
 }
 
@@ -51,7 +52,7 @@ void linked_list_addNode(linked_list *list, void *data) {
         return;
     }
     list->tail->next = node;
-    list->tail = node;
+    list->tail       = node;
 }
 
 list_node *linked_list_get_at(const linked_list *list, size_t index) {
@@ -100,7 +101,7 @@ bool linked_list_delete_node(linked_list *list, const list_node *nodeToDelete) {
     }
 
     list_node *current = list->head;
-    list_node *prev = list->tail;
+    list_node *prev    = list->tail;
     for (size_t i = 0; i < list->size; i++) {
         if (current == nodeToDelete) {
             if (list->size == 1) {
@@ -117,7 +118,7 @@ bool linked_list_delete_node(linked_list *list, const list_node *nodeToDelete) {
             list->size--;
             return true;
         }
-        prev = current;
+        prev    = current;
         current = current->next;
     }
     return false;
@@ -131,16 +132,16 @@ bool linked_list_delete_at(linked_list *list, const size_t index, void (*free_da
     }
 
     list_node *current = list->head;
-    list_node *prev = list->tail;
+    list_node *prev    = list->tail;
 
     for (size_t i = 0; i < index; i++) {
-        prev = current;
+        prev    = current;
         current = current->next;
     }
 
     if (list->size == 1) {
-        list->head = NULL;
-        list->tail = NULL;
+        list->head = nullptr;
+        list->tail = nullptr;
     } else {
         prev->next = current->next;
         if (current == list->head)
@@ -168,8 +169,11 @@ void linked_list_free(linked_list *list, void (*free_data)(void *)) {
     list_node *current = list->head;
     for (size_t i = 0; i < list->size; i++) {
         list_node *next = current->next;
-        if (free_data)
+        if (list->free_func) {
+            list->free_func(current->data);
+        } else if (free_data) {
             free_data(current->data);
+        }
         free(current);
         current = next;
     }

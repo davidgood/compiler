@@ -48,53 +48,53 @@ static ast_expression *parse_index_expression(parser *, ast_expression *);
  *
  */
 static prefix_parse_fn prefix_fns[] = {
-        NULL,                        // ILLEGAL
-        NULL,                        // END OF FILE
+        nullptr,                     // ILLEGAL
+        nullptr,                     // END OF FILE
         parse_identifier_expression, // IDENT
         parse_integer_expression,    // INT
         parse_string_expression,     // STRING
-        NULL,                        // ASSIGN
-        NULL,                        // PLUS
+        nullptr,                     // ASSIGN
+        nullptr,                     // PLUS
         parse_prefix_expression,     // MINUS
         parse_prefix_expression,     // BANG
-        NULL,                        // SLASH
-        NULL,                        // ASTERISK
-        NULL,                        // PERCENT
-        NULL,                        // LT
-        NULL,                        // GT
-        NULL,                        // EQ
-        NULL,                        // NOT_EQ
-        NULL,                        // AND
-        NULL,                        // OR
-        NULL,                        // COMMA
-        NULL,                        // SEMICOLON
+        nullptr,                     // SLASH
+        nullptr,                     // ASTERISK
+        nullptr,                     // PERCENT
+        nullptr,                     // LT
+        nullptr,                     // GT
+        nullptr,                     // EQ
+        nullptr,                     // NOT_EQ
+        nullptr,                     // AND
+        nullptr,                     // OR
+        nullptr,                     // COMMA
+        nullptr,                     // SEMICOLON
         parse_grouped_expression,    // LPAREN
-        NULL,                        // RPAREN
+        nullptr,                     // RPAREN
         parse_hash_literal,          // LBRACE
-        NULL,                        // RBRACE
+        nullptr,                     // RBRACE
         parse_array_literal,         // LBRACKET
-        NULL,                        // RBRACKET
-        NULL,                        // COLON
+        nullptr,                     // RBRACKET
+        nullptr,                     // COLON
         parse_function_literal,      // FUNCTION
-        NULL,                        // LET
+        nullptr,                     // LET
         parse_if_expression,         // IF
-        NULL,                        // ELSE
-        NULL,                        // RETURN
+        nullptr,                     // ELSE
+        nullptr,                     // RETURN
         parse_boolean_expression,    // TRUE
         parse_boolean_expression,    // FALSE
         parse_while_expression       // WHILE
 };
 
 static infix_parse_fn infix_fns[] = {
-        NULL,                   // ILLEGAL
-        NULL,                   // END OF FILE
-        NULL,                   // IDENT
-        NULL,                   // INT
-        NULL,                   // STRING
-        NULL,                   // ASSIGN
+        nullptr,                // ILLEGAL
+        nullptr,                // END OF FILE
+        nullptr,                // IDENT
+        nullptr,                // INT
+        nullptr,                // STRING
+        nullptr,                // ASSIGN
         parse_infix_expression, // PLUS
         parse_infix_expression, // MINUS
-        NULL,                   // BANG
+        nullptr,                // BANG
         parse_infix_expression, // SLASH
         parse_infix_expression, // ASTERISK
         parse_infix_expression, // PERCENT
@@ -104,23 +104,23 @@ static infix_parse_fn infix_fns[] = {
         parse_infix_expression, // NOT_EQ
         parse_infix_expression, // AND
         parse_infix_expression, // OR
-        NULL,                   // COMMA
-        NULL,                   // SEMICOLON
+        nullptr,                // COMMA
+        nullptr,                // SEMICOLON
         parse_call_expression,  // LPAREN
-        NULL,                   // RPAREN
-        NULL,                   // LBRACE
-        NULL,                   // RBRACE
+        nullptr,                // RPAREN
+        nullptr,                // LBRACE
+        nullptr,                // RBRACE
         parse_index_expression, // LBRACKET
-        NULL,                   // RBRACKET
-        NULL,                   // COLON
-        NULL,                   // FUNCTION
-        NULL,                   // LET
-        NULL,                   // IF
-        NULL,                   // ELSE
-        NULL,                   // RETURN
-        NULL,                   // TRUE
-        NULL,                   // FALSE
-        NULL                    // WHILE
+        nullptr,                // RBRACKET
+        nullptr,                // COLON
+        nullptr,                // FUNCTION
+        nullptr,                // LET
+        nullptr,                // IF
+        nullptr,                // ELSE
+        nullptr,                // RETURN
+        nullptr,                // TRUE
+        nullptr,                // FALSE
+        nullptr                 // WHILE
 };
 
 /*
@@ -130,14 +130,14 @@ static infix_parse_fn infix_fns[] = {
 * */
 
 static void free_identifier(void *id) {
-    ast_identifier *ident = (ast_identifier *) id;
+    ast_identifier *ident = id;
     if (ident->token) {
         token_free(ident->token);
-        ident->token = NULL;
+        ident->token = nullptr;
     }
     if (ident->value) {
         free(ident->value);
-        ident->value = NULL;
+        ident->value = nullptr;
     }
     free(ident);
 }
@@ -445,7 +445,7 @@ void program_free(ast_program *program) {
 
 static void add_parse_error(parser *parser, char *errmsg) {
     if (parser->errors == NULL) {
-        parser->errors = linked_list_create();
+        parser->errors = linked_list_create(nullptr);
         if (parser->errors == NULL) {
             err(EXIT_FAILURE, "malloc failed");
         }
@@ -966,10 +966,10 @@ static ast_function_literal *create_function_literal(parser *parser) {
     func->expression.node.token_literal = function_literal_token_literal;
     func->expression.node.type          = EXPRESSION;
     func->expression.expression_type    = FUNCTION_LITERAL;
-    func->parameters                    = linked_list_create();
+    func->parameters                    = linked_list_create(nullptr);
     func->token                         = token_copy(parser->cur_tok);
-    func->body                          = NULL;
-    func->name                          = NULL;
+    func->body                          = nullptr;
+    func->name                          = nullptr;
     return func;
 }
 
@@ -983,7 +983,7 @@ static ast_call_expression *create_call_expression(parser *parser) {
     call_exp->expression.node.string        = call_expression_string;
     call_exp->expression.node.type          = EXPRESSION;
     call_exp->expression.expression_type    = CALL_EXPRESSION;
-    call_exp->arguments                     = linked_list_create();
+    call_exp->arguments                     = linked_list_create(nullptr);
     if (call_exp->arguments == NULL) {
         err(EXIT_FAILURE, "malloc failed");
     }
@@ -1658,14 +1658,14 @@ static void parse_call_arguments(parser *parser, ast_call_expression *call_exp) 
 
     if (!expect_peek(parser, RPAREN)) {
         linked_list_free(call_exp->arguments, free_expression);
-        call_exp->arguments = NULL;
+        call_exp->arguments = nullptr;
         return;
     }
 }
 
 static ast_expression *copy_identifier_expression(ast_expression *exp) {
     ast_identifier *ident_exp = (ast_identifier *) exp;
-    ast_identifier *copy      = malloc(sizeof(*copy));
+    ast_identifier *copy      = malloc(sizeof(ast_identifier));
     if (copy == NULL) {
         err(EXIT_FAILURE, "malloc failed");
     }
@@ -1767,10 +1767,10 @@ static ast_expression *copy_if_expression(ast_expression *exp) {
 }
 
 linked_list *copy_parameters(linked_list *parameters) {
-    linked_list *copy_list            = linked_list_create();
+    linked_list *copy_list            = linked_list_create(free_expression);
     list_node *  parameters_list_node = parameters->head;
     while (parameters_list_node) {
-        ast_identifier *param = (ast_identifier *) parameters_list_node->data;
+        ast_identifier *param = parameters_list_node->data;
         linked_list_addNode(copy_list, copy_expression((ast_expression *) param));
         parameters_list_node = parameters_list_node->next;
     }
