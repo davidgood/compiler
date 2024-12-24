@@ -145,7 +145,7 @@ static void free_identifier(void *id) {
 static void free_integer_expression(ast_integer *int_exp) {
     if (int_exp->token) {
         token_free(int_exp->token);
-        int_exp->token = NULL;
+        int_exp->token = nullptr;
     }
     free(int_exp);
 }
@@ -153,15 +153,15 @@ static void free_integer_expression(ast_integer *int_exp) {
 static void free_prefix_expression(ast_prefix_expression *prefix_exp) {
     if (prefix_exp->token) {
         token_free(prefix_exp->token);
-        prefix_exp->token = NULL;
+        prefix_exp->token = nullptr;
     }
     if (prefix_exp->operator) {
         free(prefix_exp->operator);
-        prefix_exp->operator = NULL;
+        prefix_exp->operator = nullptr;
     }
     if (prefix_exp->right) {
         free_expression(prefix_exp->right);
-        prefix_exp->right = NULL;
+        prefix_exp->right = nullptr;
     }
     free(prefix_exp);
 }
@@ -169,19 +169,19 @@ static void free_prefix_expression(ast_prefix_expression *prefix_exp) {
 static void free_infix_expression(ast_infix_expression *infix_exp) {
     if (infix_exp->operator) {
         free(infix_exp->operator);
-        infix_exp->operator = NULL;
+        infix_exp->operator = nullptr;
     }
     if (infix_exp->token) {
         token_free(infix_exp->token);
-        infix_exp->token = NULL;
+        infix_exp->token = nullptr;
     }
     if (infix_exp->left) {
         free_expression(infix_exp->left);
-        infix_exp->left = NULL;
+        infix_exp->left = nullptr;
     }
     if (infix_exp->right) {
         free_expression(infix_exp->right);
-        infix_exp->right = NULL;
+        infix_exp->right = nullptr;
     }
     free(infix_exp);
 }
@@ -261,15 +261,15 @@ static void free_if_expression(ast_if_expression *if_exp) {
 static void free_function_literal(ast_function_literal *function) {
     if (function->token) {
         token_free(function->token);
-        function->token = NULL;
+        function->token = nullptr;
     }
     if (function->parameters) {
         linked_list_free(function->parameters, free_identifier);
-        function->parameters = NULL;
+        function->parameters = nullptr;
     }
     if (function->body) {
         free_block_statement(function->body);
-        function->body = NULL;
+        function->body = nullptr;
     }
     free(function);
 }
@@ -287,15 +287,15 @@ static void free_hash_literal(ast_hash_literal *hash_exp) {
 static void free_call_expression(ast_call_expression *call_exp) {
     if (call_exp->token) {
         token_free(call_exp->token);
-        call_exp->token = NULL;
+        call_exp->token = nullptr;
     }
     if (call_exp->function) {
         free_expression(call_exp->function);
-        call_exp->function = NULL;
+        call_exp->function = nullptr;
     }
     if (call_exp->arguments) {
         linked_list_free(call_exp->arguments, free_expression);
-        call_exp->arguments = NULL;
+        call_exp->arguments = nullptr;
     }
     free(call_exp);
 }
@@ -454,7 +454,7 @@ static void add_parse_error(parser *parser, char *errmsg) {
 }
 
 static void handle_no_prefix_fn(parser *parser) {
-    char *msg = NULL;
+    char *msg = nullptr;
     asprintf(&msg, "no prefix parse function for the token \"%s\"", parser->cur_tok->literal);
     if (msg == NULL)
         err(EXIT_FAILURE, "malloc failed");
@@ -564,7 +564,7 @@ static char *string_string(void *exp) {
 
 static char *let_statement_string(void *stmt) {
     ast_let_statement *let_stmt        = stmt;
-    char *             let_stmt_string = NULL;
+    char *             let_stmt_string = nullptr;
     char *             ident_string    = let_stmt->name->expression.node.string(let_stmt->name);
     char *             value_string    = let_stmt->value ? let_stmt->value->node.string(let_stmt->value) : strdup("");
     char *             let_string      = strdup(let_stmt->token->literal);
@@ -579,7 +579,7 @@ static char *let_statement_string(void *stmt) {
 
 static char *return_statement_string(void *stmt) {
     ast_return_statement *ret_stmt        = stmt;
-    char *                ret_stmt_string = NULL;
+    char *                ret_stmt_string = nullptr;
     char *                value_string    =
             ret_stmt->return_value ? ret_stmt->return_value->node.string(ret_stmt->return_value) : strdup("");
     asprintf(&ret_stmt_string, "%s %s;", ret_stmt->statement.node.string(ret_stmt), value_string);
@@ -604,7 +604,7 @@ static char *integer_string(void *node) {
 
 static char *prefix_expression_string(void *node) {
     ast_prefix_expression *prefix_exp     = (ast_prefix_expression *) node;
-    char *                 str            = NULL;
+    char *                 str            = nullptr;
     char *                 operand_string = prefix_exp->right->node.string(prefix_exp->right);
     asprintf(&str, "(%s%s)", prefix_exp->operator, operand_string);
     free(operand_string);
@@ -616,7 +616,7 @@ static char *prefix_expression_string(void *node) {
 
 static char *infix_expression_string(void *node) {
     ast_infix_expression *infix_exp    = node;
-    char *                str          = NULL;
+    char *                str          = nullptr;
     char *                left_string  = infix_exp->left->node.string(infix_exp->left);
     char *                right_string = infix_exp->right->node.string(infix_exp->right);
     asprintf(&str, "(%s %s %s)", left_string, infix_exp->operator, right_string);
@@ -638,14 +638,14 @@ static char *expression_statement_string(void *stmt) {
 
 static char *block_statement_string(void *stmt) {
     ast_block_statement *block_stmt = stmt;
-    char *               string     = NULL;
+    char *               string     = nullptr;
     for (size_t i = 0; i < block_stmt->statement_count; i++) {
         ast_statement *s           = block_stmt->statements[i];
         char *         stmt_string = s->node.string(s);
         if (string == NULL)
             string = stmt_string;
         else {
-            char *temp = NULL;
+            char *temp = nullptr;
             asprintf(&temp, "%s %s", string, stmt_string);
             if (temp == NULL) {
                 free(stmt_string);
@@ -671,8 +671,8 @@ static char *boolean_expression_string(void *exp) {
 
 static char *hash_literal_string(void *exp) {
     ast_hash_literal *hash_exp = exp;
-    char *            string   = NULL;
-    char *            temp     = NULL;
+    char *            string   = nullptr;
+    char *            temp     = nullptr;
     int               ret;
     for (size_t i = 0; i < hash_exp->pairs->table_size; i++) {
         void *obj = hash_exp->pairs->table[i];
@@ -694,7 +694,7 @@ static char *hash_literal_string(void *exp) {
         if (ret == -1)
             err(EXIT_FAILURE, "malloc failed");
         string = temp;
-        temp   = NULL;
+        temp   = nullptr;
     }
     ret = asprintf(&temp, "{%s}", string);
     free(string);
@@ -704,13 +704,13 @@ static char *hash_literal_string(void *exp) {
 }
 
 static char *while_expression_token_literal(void *exp) {
-    ast_while_expression *while_exp = (ast_while_expression *) exp;
+    ast_while_expression *while_exp = exp;
     return while_exp->token->literal;
 }
 
 static char *while_expression_string(void *exp) {
-    ast_while_expression *while_exp        = (ast_while_expression *) exp;
-    char *                string           = NULL;
+    ast_while_expression *while_exp        = exp;
+    char *                string           = nullptr;
     char *                condition_string = while_exp->condition->node.string(while_exp->condition);
     char *                body_string      = while_exp->body->statement.node.string(while_exp->body);
     int                   ret              = asprintf(&string, "while%s %s", condition_string, body_string);
@@ -722,8 +722,8 @@ static char *while_expression_string(void *exp) {
 }
 
 static char *if_expression_string(void *exp) {
-    ast_if_expression *if_exp             = (ast_if_expression *) exp;
-    char *             string             = NULL;
+    ast_if_expression *if_exp             = exp;
+    char *             string             = nullptr;
     char *             condition_string   = if_exp->condition->node.string(if_exp->condition);
     char *             consequence_string = if_exp->consequence->statement.node.string(if_exp->consequence);
     if (if_exp->alternative != NULL) {
@@ -744,8 +744,8 @@ static char *if_expression_string(void *exp) {
 
 static char *array_literal_string(void *exp) {
     ast_array_literal *array  = (ast_array_literal *) exp;
-    char *             string = NULL;
-    char *             temp   = NULL;
+    char *             string = nullptr;
+    char *             temp   = nullptr;
     int                ret;
     for (size_t i = 0; i < array->elements->size; i++) {
         ast_expression *element        = (ast_expression *) arraylist_get(array->elements, i);
@@ -760,7 +760,7 @@ static char *array_literal_string(void *exp) {
         if (ret == -1)
             err(EXIT_FAILURE, "malloc failed");
         string = temp;
-        temp   = NULL;
+        temp   = nullptr;
     }
     ret = asprintf(&temp, "[%s]", string);
     if (ret == -1)
@@ -771,7 +771,7 @@ static char *array_literal_string(void *exp) {
 
 static char *index_exp_string(void *exp) {
     ast_index_expression *index_exp    = (ast_index_expression *) exp;
-    char *                string       = NULL;
+    char *                string       = nullptr;
     char *                left_string  = index_exp->left->node.string(index_exp->left);
     char *                index_string = index_exp->index->node.string(index_exp->index);
     int                   ret          = asprintf(&string, "(%s[%s])", left_string, index_string);
@@ -784,8 +784,8 @@ static char *index_exp_string(void *exp) {
 }
 
 char *join_parameters_list(linked_list *parameters_list) {
-    char *string = NULL;
-    char *temp   = NULL;
+    char *string = nullptr;
+    char *temp   = nullptr;
     if (parameters_list == NULL || parameters_list->size == 0)
         return strdup("");
 
@@ -815,7 +815,7 @@ char *join_parameters_list(linked_list *parameters_list) {
 static char *function_literal_string(void *exp) {
     ast_function_literal *func               = (ast_function_literal *) exp;
     char *                params_string      = join_parameters_list(func->parameters);
-    char *                func_string        = NULL;
+    char *                func_string        = nullptr;
     char *                func_token_literal = func->expression.node.token_literal(func);
     char *                body_string        = func->body->statement.node.string(func->body);
     if (func->name != NULL) {
@@ -840,7 +840,7 @@ static char *call_expression_string(void *exp) {
     ast_call_expression *call_exp        = (ast_call_expression *) exp;
     char *               args_string     = join_parameters_list(call_exp->arguments);
     char *               function_string = call_exp->function->node.string(call_exp->function);
-    char *               string          = NULL;
+    char *               string          = nullptr;
     asprintf(&string, "%s(%s)", function_string, args_string);
     free(function_string);
     free(args_string);
@@ -858,8 +858,8 @@ static char *call_expression_token_literal(void *exp) {
 static char *program_string(void *prog_ptr) {
     // TODO: maybe we could optimize this
     ast_program *program     = (ast_program *) prog_ptr;
-    char *       prog_string = NULL;
-    char *       temp_string = NULL;
+    char *       prog_string = nullptr;
+    char *       temp_string = nullptr;
     for (int i = 0; i < program->statement_count; i++) {
         ast_statement *stmt        = program->statements[i];
         char *         stmt_string = stmt->node.string(stmt);
@@ -877,7 +877,7 @@ static char *program_string(void *prog_ptr) {
             err(EXIT_FAILURE, "malloc failed");
         }
         prog_string = temp_string;
-        temp_string = NULL;
+        temp_string = nullptr;
     }
     return prog_string;
 }
@@ -896,8 +896,8 @@ static ast_let_statement *create_let_statement(parser *parser) {
     let_stmt->statement.node.token_literal = let_statement_token_literal;
     let_stmt->statement.node.string        = let_statement_string;
     let_stmt->statement.node.type          = STATEMENT;
-    let_stmt->name                         = NULL;
-    let_stmt->value                        = NULL;
+    let_stmt->name                         = nullptr;
+    let_stmt->value                        = nullptr;
     return let_stmt;
 }
 
@@ -911,7 +911,7 @@ static ast_return_statement *create_return_statement(parser *parser) {
         free(ret_stmt);
         err(EXIT_FAILURE, "malloc failed");
     }
-    ret_stmt->return_value                 = NULL;
+    ret_stmt->return_value                 = nullptr;
     ret_stmt->statement.statement_type     = RETURN_STATEMENT;
     ret_stmt->statement.node.token_literal = return_statement_token_literal;
     ret_stmt->statement.node.string        = return_statement_string;
@@ -929,7 +929,7 @@ static ast_expression_statement *create_expression_statement(parser *parser) {
         free(exp_stmt);
         err(EXIT_FAILURE, "malloc failed");
     }
-    exp_stmt->expression                   = NULL;
+    exp_stmt->expression                   = nullptr;
     exp_stmt->statement.statement_type     = EXPRESSION_STATEMENT;
     exp_stmt->statement.node.token_literal = expression_statement_token_literal;
     exp_stmt->statement.node.string        = expression_statement_string;
@@ -991,7 +991,7 @@ static ast_call_expression *create_call_expression(parser *parser) {
     if (call_exp->token == NULL) {
         err(EXIT_FAILURE, "malloc failed");
     }
-    call_exp->function = NULL;
+    call_exp->function = nullptr;
     return call_exp;
 }
 
@@ -1018,9 +1018,9 @@ parser *parser_init(lexer *l) {
         return NULL;
     }
     parser->lexer    = l;
-    parser->cur_tok  = NULL;
-    parser->peek_tok = NULL;
-    parser->errors   = NULL;
+    parser->cur_tok  = nullptr;
+    parser->peek_tok = nullptr;
+    parser->errors   = nullptr;
     parser_next_token(parser);
     parser_next_token(parser);
     return parser;
@@ -1061,7 +1061,7 @@ static int add_statement_to_block(ast_block_statement *block_stmt, ast_statement
 
 
 static void peek_error(parser *parser, token_type tok_type) {
-    char *msg = NULL;
+    char *msg = nullptr;
     asprintf(&msg, "expected next token to be %s, got %s instead", token_get_name_from_type(tok_type),
              token_get_name_from_type(parser->peek_tok->type));
     if (msg == NULL)
@@ -1145,7 +1145,7 @@ static ast_expression *parse_expression(parser *parser, operator_precedence prec
 }
 
 static ast_let_statement *parse_let_statement(parser *parser) {
-    ast_let_statement *let_stmt = (ast_let_statement *) create_statement(parser, LET_STATEMENT);
+    ast_let_statement *let_stmt = create_statement(parser, LET_STATEMENT);
 
     if (!expect_peek(parser, IDENT)) {
         free_statement((ast_statement *) let_stmt);
@@ -1271,7 +1271,7 @@ ast_expression *parse_integer_expression(parser *parser) {
     char *ep;
     int_exp->value = strtol(parser->cur_tok->literal, &ep, 10);
     if (ep == parser->cur_tok->literal || *ep != 0 || errno != 0) {
-        char *errmsg = NULL;
+        char *errmsg = nullptr;
         asprintf(&errmsg, "could not parse %s as integer", parser->cur_tok->literal);
         if (errmsg == NULL)
             err(EXIT_FAILURE, "malloc failed");
@@ -1431,7 +1431,7 @@ static ast_expression *parse_grouped_expression(parser *parser) {
     ast_expression *exp = parse_expression(parser, LOWEST);
     if (!expect_peek(parser, RPAREN)) {
         free_expression(exp);
-        exp = NULL;
+        exp = nullptr;
     }
 
 #ifdef TRACE
@@ -1471,13 +1471,13 @@ static ast_expression *parse_index_expression(parser *parser, ast_expression *le
     index_exp->expression.node.type          = EXPRESSION;
     index_exp->expression.expression_type    = INDEX_EXPRESSION;
     index_exp->left                          = left;
-    index_exp->index                         = NULL;
+    index_exp->index                         = nullptr;
     index_exp->token                         = token_copy(parser->cur_tok);
     parser_next_token(parser);
     index_exp->index = parse_expression(parser, LOWEST);
     if (!expect_peek(parser, RBRACKET)) {
         free_index_expression(index_exp);
-        index_exp = NULL;
+        index_exp = nullptr;
     }
 #ifdef TRACE
     untrace("parse_index_expression");
@@ -1516,8 +1516,8 @@ static ast_expression *parse_while_expression(parser *parser) {
     while_exp->expression.node.type          = EXPRESSION;
     while_exp->expression.expression_type    = WHILE_EXPRESSION;
     while_exp->token                         = token_copy(parser->cur_tok);
-    while_exp->condition                     = NULL;
-    while_exp->body                          = NULL;
+    while_exp->condition                     = nullptr;
+    while_exp->body                          = nullptr;
 
     if (!expect_peek(parser, LPAREN)) {
         free_while_expression(while_exp);
@@ -1556,9 +1556,9 @@ static ast_expression *parse_if_expression(parser *parser) {
     if_exp->expression.node.type          = EXPRESSION;
     if_exp->expression.expression_type    = IF_EXPRESSION;
     if_exp->token                         = token_copy(parser->cur_tok);
-    if_exp->condition                     = NULL;
-    if_exp->alternative                   = NULL;
-    if_exp->consequence                   = NULL;
+    if_exp->condition                     = nullptr;
+    if_exp->alternative                   = nullptr;
+    if_exp->consequence                   = nullptr;
 
     if (!expect_peek(parser, LPAREN)) {
         token_free(if_exp->token);
@@ -1612,7 +1612,7 @@ static void parse_function_parameters(parser *parser, ast_function_literal *func
 
     if (!expect_peek(parser, RPAREN)) {
         linked_list_free(function->parameters, free_identifier);
-        function->parameters = NULL;
+        function->parameters = nullptr;
     }
 }
 
@@ -1662,6 +1662,62 @@ static void parse_call_arguments(parser *parser, ast_call_expression *call_exp) 
         return;
     }
 }
+
+static ast_expression *parse_infix_expression(parser *parser, ast_expression *left) {
+    ast_infix_expression *infix_exp = malloc(sizeof(*infix_exp));
+    if (infix_exp == NULL) {
+        err(EXIT_FAILURE, "malloc failed");
+    }
+
+    // Initialize fields
+    infix_exp->expression.expression_type    = INFIX_EXPRESSION;
+    infix_exp->expression.node.string        = infix_expression_string;
+    infix_exp->expression.node.token_literal = infix_expression_token_literal;
+    infix_exp->expression.node.type          = EXPRESSION;
+    infix_exp->left                          = left;
+    infix_exp->right                         = nullptr;
+    infix_exp->operator                      = strdup(parser->cur_tok->literal);
+    if (infix_exp->operator == NULL) {
+        free(infix_exp);
+        err(EXIT_FAILURE, "malloc failed");
+    }
+
+    infix_exp->token = token_copy(parser->cur_tok);
+    if (infix_exp->token == NULL) {
+        free(infix_exp->operator);
+        free(infix_exp);
+        err(EXIT_FAILURE, "malloc failed");
+    }
+
+    // Parse the right-hand side
+    operator_precedence precedence = cur_precedence(parser);
+    parser_next_token(parser);
+    infix_exp->right = parse_expression(parser, precedence);
+    if (infix_exp->right == NULL) {
+        // Cleanup on failure
+        free(infix_exp->operator);
+        token_free(infix_exp->token);
+        free(infix_exp);
+        return NULL;
+    }
+    return (ast_expression *) infix_exp;
+}
+
+
+static ast_expression *parse_call_expression(parser *parser, ast_expression *function) {
+    ast_call_expression *call_exp = create_call_expression(parser);
+    parse_call_arguments(parser, call_exp);
+    if (call_exp->arguments == NULL) {
+        free_call_expression(call_exp);
+        return NULL;
+    }
+    call_exp->function = function;
+    return (ast_expression *) call_exp;
+}
+
+/*******************************************************************
+ * *********************** COPY EXPRESSIONS ************************
+ *******************************************************************/
 
 static ast_expression *copy_identifier_expression(ast_expression *exp) {
     ast_identifier *ident_exp = (ast_identifier *) exp;
@@ -1762,7 +1818,7 @@ static ast_expression *copy_if_expression(ast_expression *exp) {
     if (if_exp->alternative)
         copy->alternative = (ast_block_statement *) copy_statement((ast_statement *) if_exp->alternative);
     else
-        copy->alternative = NULL;
+        copy->alternative = nullptr;
     return (ast_expression *) copy;
 }
 
@@ -1900,6 +1956,10 @@ ast_expression *copy_expression(ast_expression *exp) {
     }
 }
 
+/*******************************************************************
+ * *********************** COPY STATEMENTS ************************
+ *******************************************************************/
+
 static ast_statement *copy_letstatement(ast_statement *stmt) {
     ast_let_statement *let_stmt  = (ast_let_statement *) stmt;
     ast_let_statement *copy_stmt = malloc(sizeof(*let_stmt));
@@ -1983,54 +2043,4 @@ ast_statement *copy_statement(ast_statement *stmt) {
     }
 }
 
-static ast_expression *parse_infix_expression(parser *parser, ast_expression *left) {
-    ast_infix_expression *infix_exp = malloc(sizeof(*infix_exp));
-    if (infix_exp == NULL) {
-        err(EXIT_FAILURE, "malloc failed");
-    }
 
-    // Initialize fields
-    infix_exp->expression.expression_type    = INFIX_EXPRESSION;
-    infix_exp->expression.node.string        = infix_expression_string;
-    infix_exp->expression.node.token_literal = infix_expression_token_literal;
-    infix_exp->expression.node.type          = EXPRESSION;
-    infix_exp->left                          = left;
-    infix_exp->right                         = NULL;
-    infix_exp->operator                      = strdup(parser->cur_tok->literal);
-    if (infix_exp->operator == NULL) {
-        free(infix_exp);
-        err(EXIT_FAILURE, "malloc failed");
-    }
-
-    infix_exp->token = token_copy(parser->cur_tok);
-    if (infix_exp->token == NULL) {
-        free(infix_exp->operator);
-        free(infix_exp);
-        err(EXIT_FAILURE, "malloc failed");
-    }
-
-    // Parse the right-hand side
-    operator_precedence precedence = cur_precedence(parser);
-    parser_next_token(parser);
-    infix_exp->right = parse_expression(parser, precedence);
-    if (infix_exp->right == NULL) {
-        // Cleanup on failure
-        free(infix_exp->operator);
-        token_free(infix_exp->token);
-        free(infix_exp);
-        return NULL;
-    }
-    return (ast_expression *) infix_exp;
-}
-
-
-static ast_expression *parse_call_expression(parser *parser, ast_expression *function) {
-    ast_call_expression *call_exp = create_call_expression(parser);
-    parse_call_arguments(parser, call_exp);
-    if (call_exp->arguments == NULL) {
-        free_call_expression(call_exp);
-        return NULL;
-    }
-    call_exp->function = function;
-    return (ast_expression *) call_exp;
-}
