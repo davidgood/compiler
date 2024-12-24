@@ -4,6 +4,7 @@
 
 #include "object.h"
 #include <err.h>
+#include <log.h>
 #include <stdarg.h>
 #include <stddef.h>
 #include <stdlib.h>
@@ -26,7 +27,7 @@ const object_null NULL_OBJ  = {{OBJECT_NULL, inspect, NULL, NULL, 1}};
 
 static char *function_inspect(object_object *obj) {
     object_function *function   = (object_function *) obj;
-    char *           str        = NULL;
+    char *           str        = nullptr;
     char *           params_str = join_parameters_list(function->parameters);
     char *           body_str   = function->body->statement.node.string(function->body);
     const int        ret        = asprintf(&str, "fn(%s) {\n%s\n}", params_str, body_str);
@@ -39,8 +40,8 @@ static char *function_inspect(object_object *obj) {
 }
 
 static char *join_expressions_list(arraylist *list) {
-    char *string = NULL;
-    char *temp   = NULL;
+    char *string = nullptr;
+    char *temp   = nullptr;
     int   ret;
     for (size_t i = 0; i < list->size; i++) {
         object_object *elem        = (object_object *) list->body[i];
@@ -56,14 +57,14 @@ static char *join_expressions_list(arraylist *list) {
             err(EXIT_FAILURE, "malloc failed");
         }
         string = temp;
-        temp   = NULL;
+        temp   = nullptr;
     }
     return string;
 }
 
 static char *join_expressions_table(hashtable *table) {
-    char *string = NULL;
-    char *temp   = NULL;
+    char *string = nullptr;
+    char *temp   = nullptr;
     int   ret;
     for (size_t i = 0; i < table->table_size; i++) {
         size_t *     index      = (size_t *) table->used_slots->body[i];
@@ -88,7 +89,7 @@ static char *join_expressions_table(hashtable *table) {
                 err(EXIT_FAILURE, "malloc failed");
             }
             string = temp;
-            temp   = NULL;
+            temp   = nullptr;
         }
     }
     ret = asprintf(&temp, "{%s}", string);
@@ -108,8 +109,8 @@ char *inspect(object_object *obj) {
     object_hash *        hash_obj;
     object_compiled_fn * compiled_fn;
     object_closure *     closure;
-    char *               string          = NULL;
-    char *               elements_string = NULL;
+    char *               string          = nullptr;
+    char *               elements_string = nullptr;
     int                  ret;
 
     switch (obj->type) {
@@ -358,13 +359,24 @@ static void free_string_object(object_string *str_obj) {
 }
 
 static void free_array_object(object_array *array_obj) {
-    for (size_t i = 0; i < array_obj->elements->size; i++) {
-        object_free(array_obj->elements->body[i]);
+    if (!array_obj)
+        return;
+
+    log_debug("Freeing array object: %p (refcount: %d)", array_obj, array_obj->object.refcount);
+
+    if (array_obj->elements) {
+        if (!array_obj->elements->free_func) {
+            for (size_t i = 0; i < array_obj->elements->size; i++) {
+                object_free(array_obj->elements->body[i]);
+            }
+        }
+        arraylist_destroy(array_obj->elements);
+        array_obj->elements = nullptr;
     }
-    arraylist_destroy(array_obj->elements);
-    array_obj->elements = nullptr;
+
     free(array_obj);
 }
+
 
 /*static void free_hash_object(object_hash *hash_obj) {
     arraylist *keys = hashtable_get_keys(hash_obj->pairs);
@@ -453,15 +465,15 @@ void object_free(void *v) {
     }
 }
 
-object_object *object_copy_object(object_object *object) {
+/*object_object *object_copy_object(object_object *object) {
     if (!object) {
         return (object_object *) object_create_null();
     }
 
     if (object->type == OBJECT_BOOL || object->type == OBJECT_NULL || object->type == OBJECT_BUILTIN) {
+        object->refcount++;
         return object;
     }
-    object->refcount++;
 
     if (object->type == OBJECT_INT) {
         object_int *int_obj = (object_int *) object;
@@ -497,6 +509,43 @@ object_object *object_copy_object(object_object *object) {
     }
 
     return object;
+}*/
+void *_object_copy_object(void *object) {
+    return object_copy_object((object_object *) object);
+}
+
+object_object *object_copy_object(object_object *object) {
+    if (!object) {
+        return (object_object *) object_create_null();
+    }
+
+    log_debug("Copying object %s: %p", get_type_name(object->type), object);
+
+    // Immutable types (reuse reference)
+    if (object->type == OBJECT_BOOL || object->type == OBJECT_NULL || object->type == OBJECT_BUILTIN) {
+        return object;
+    }
+    // Mutable types (create deep copy)
+    switch (object->type) {
+        case OBJECT_INT: {
+            object_int *int_obj = (object_int *) object;
+            return (object_object *) object_create_int(int_obj->value);
+        }
+        case OBJECT_ARRAY: {
+            object_array *array_obj = (object_array *) object;
+            arraylist *   elements  = arraylist_clone(array_obj->elements, _object_copy_object, object_free);
+            return (object_object *) object_create_array(elements);
+        }
+        case OBJECT_HASH: {
+            object_hash *hash  = (object_hash *) object;
+            hashtable *  pairs = hashtable_clone(hash->pairs, _object_copy_object, _object_copy_object);
+            return (object_object *) object_create_hash(pairs);
+        }
+        // Add cases for other types as needed...
+        default:
+            object->refcount++;
+            return object;
+    }
 }
 
 /*********************************************************************************

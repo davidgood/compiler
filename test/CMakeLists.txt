@@ -9,7 +9,7 @@ set(CMAKE_C_FLAGS_DEBUG "-g")
 # Include Unity sources
 include_directories(${CMAKE_SOURCE_DIR}/Unity/src)
 
-add_definitions(-DDEBUG)
+add_definitions(-DDEBUG -DLOG_USE_COLOR)
 
 # Include all source headers and source files
 file(GLOB_RECURSE ALL_HEADERS "${CMAKE_SOURCE_DIR}/src/*.h")
@@ -24,6 +24,13 @@ file(GLOB_RECURSE SRC_FILES "${CMAKE_SOURCE_DIR}/src/*.c" "${CMAKE_SOURCE_DIR}/t
 list(FILTER SRC_FILES EXCLUDE REGEX ".*main\\.c$")
 list(FILTER SRC_FILES EXCLUDE REGEX ".*CMakeCCompilerId\\.c$")
 
+# Include log.c explicitly
+set(LOG_SOURCE ${CMAKE_SOURCE_DIR}/src/logging/log.c)
+if (EXISTS ${LOG_SOURCE})
+    list(APPEND SRC_FILES ${LOG_SOURCE})
+else ()
+    message(FATAL_ERROR "log.c not found at ${LOG_SOURCE}")
+endif ()
 
 # Test source files
 set(TEST_SOURCES
@@ -39,10 +46,15 @@ set(TEST_SOURCES
         symbol_table_tests.c
         vm_tests.c
 )
+
 # Create individual test executables for each test file
 foreach (TEST_FILE ${TEST_SOURCES})
     get_filename_component(TEST_NAME ${TEST_FILE} NAME_WE)
-    add_executable(${TEST_NAME} ${TEST_FILE} ${SRC_FILES})
-    target_link_libraries(${TEST_NAME} PRIVATE unity)
-    add_test(NAME ${TEST_NAME} COMMAND ${TEST_NAME})
+    if (TEST_FILE AND SRC_FILES)
+        add_executable(${TEST_NAME} ${TEST_FILE} ${SRC_FILES})
+        target_link_libraries(${TEST_NAME} PRIVATE unity)
+        add_test(NAME ${TEST_NAME} COMMAND ${TEST_NAME})
+    else ()
+        message(FATAL_ERROR "Missing sources for ${TEST_NAME}")
+    endif ()
 endforeach ()

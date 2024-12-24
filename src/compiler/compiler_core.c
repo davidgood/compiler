@@ -41,7 +41,7 @@ compiler *compiler_init_with_state(const symbol_table *symbol_table, arraylist *
     compiler *compiler = compiler_init();
     symbol_table_free(compiler->symbol_table);
     compiler->symbol_table   = symbol_table_copy(symbol_table);
-    compiler->constants_pool = arraylist_clone(constants, _copy_object);
+    compiler->constants_pool = arraylist_clone(constants, _copy_object, nullptr);
     return compiler;
 }
 

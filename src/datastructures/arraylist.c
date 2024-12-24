@@ -5,8 +5,33 @@
 
 #include <arraylist.h>
 #include <assert.h>
+#include <err.h>
 #include <stdio.h>
 #include <string.h>
+#include "../logging/log.h"
+
+static arraylist *active_lists[1024];
+static size_t     active_count = 0;
+
+void track_arraylist(arraylist *list) {
+    active_lists[active_count++] = list;
+}
+
+void untrack_arraylist(arraylist *list) {
+    for (size_t i = 0; i < active_count; i++) {
+        if (active_lists[i] == list) {
+            active_lists[i] = active_lists[--active_count];
+            return;
+        }
+    }
+}
+
+void log_active_arraylists(void) {
+    log_debug("Active Arraylists (%zu):", active_count);
+    for (size_t i = 0; i < active_count; i++) {
+        log_debug("  %p", active_lists[i]);
+    }
+}
 
 /**
  * Create a new, empty arraylist.
@@ -28,7 +53,8 @@ arraylist *arraylist_create(size_t capacity, void (*free_func)(void *)) {
         perror("Error: Failed to allocate memory for arraylist body");
         exit(EXIT_FAILURE);
     }
-
+    //log_debug("Created Arraylist %p", new_list);
+    track_arraylist(new_list);
     return new_list;
 }
 
@@ -70,6 +96,7 @@ extern inline unsigned int arraylist_size(const arraylist *l) {
  * Add item at the end of the list.
  */
 void arraylist_add(arraylist *l, void *item) {
+    //log_debug("Arraylist %p, adding %p", l, item);
     arraylist_allocate(l, l->size + 1);
     // add new item to the end of the list
     l->body[l->size] = item;
@@ -185,30 +212,31 @@ arraylist *arraylist_slice_end(const arraylist *l, const unsigned int index) {
 /**
  *  Clone the arraylist.
  */
-arraylist *var_clone(const clone_args args) {
-    arraylist *new_list = arraylist_create(ARRAYLIST_INITIAL_CAPACITY, args.free_func);
-    if (args.l->size == 0) {
+arraylist *arraylist_clone(const arraylist *l, void *(*copy_func)(void *), void (*free_func)(void *)) {
+    arraylist *new_list = arraylist_create(ARRAYLIST_INITIAL_CAPACITY, free_func);
+    if (l->size == 0) {
         return new_list;
     }
-    arraylist_allocate(new_list, args.l->size);
-    for (unsigned int i = 0; i < args.l->size; i++) {
-        if (args.copy_func != NULL) {
-            void *item = args.copy_func(args.l->body[i]);
-            arraylist_add(new_list, item);
-        }
+    if (!copy_func) {
+        err(EXIT_FAILURE, "Copy function must be provided.");
     }
-    new_list->size = args.l->size;
+    arraylist_allocate(new_list, l->size);
+    for (unsigned int i = 0; i < l->size; i++) {
+        void *item = copy_func(l->body[i]);
+        arraylist_add(new_list, item);
+    }
+    new_list->size = l->size;
     return new_list;
 }
 
 char *arraylist_zip(const arraylist *l, const char *delim) {
     const size_t delim_len = strlen(delim);
     size_t       total_len = 0;
-    char *       result    = NULL;
+    char *       result    = nullptr;
     unsigned int i;
 
     if (l == NULL || l->size == 0) {
-        return NULL;
+        return nullptr;
     }
 
     char *item;
@@ -219,7 +247,7 @@ char *arraylist_zip(const arraylist *l, const char *delim) {
     // Allocate the result string
     result = malloc(total_len + 1);
     if (result == NULL) {
-        return NULL;
+        return nullptr;
     }
 
     // Copy the strings into the result
@@ -289,17 +317,20 @@ void arraylist_sort(const arraylist *l, int (*cmp_func)(const void *, const void
     qsort(l->body, l->size, sizeof(void *), cmp_func);
 }
 
-void var_destroy(const destory_args args) {
+void var_destroy(destory_args args) {
     if (args.l == NULL || args.l->body == NULL) {
         return;
     }
     if (args.l->free_func != NULL) {
         for (unsigned i = 0; i < args.l->size; i++) {
             if (args.l->body[i] != NULL) {
+                //log_debug("Arraylist %p calling free_func on %p", args.l, args.l->body[i]);
                 args.l->free_func(args.l->body[i]);
             }
         }
     }
+    untrack_arraylist(args.l);
+    //log_debug("Freeing arraylist %p, size %u, free_func %p", args.l, args.l->size, args.l->free_func);
     free(args.l->body);
     free(args.l);
 }

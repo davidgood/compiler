@@ -37,26 +37,10 @@ void var_destroy(const destory_args args);
 #define arraylist_destroy(...) var_destroy((destory_args){__VA_ARGS__});
 /******************************************************************************/
 
-/**
- * Safe Variadic function to copy an arraylist.
- */
-typedef struct {
-    arraylist *l;
-
-    void * (*copy_func)(void *);
-
-    void (*free_func)(void *);
-} clone_args;
-
-void clone_base(arraylist *l, ...);
-
-arraylist *var_clone(clone_args args);
-
-#define arraylist_clone(...) var_clone((clone_args){__VA_ARGS__});
-/******************************************************************************/
-
 
 arraylist *arraylist_create(size_t capacity, void (*free_func)(void *));
+
+arraylist *arraylist_clone(const arraylist *l, void *(*copy_func)(void *), void (*free_func)(void *));
 
 void arraylist_sort(const arraylist *l, int (*cmp_func)(const void *, const void *));
 
@@ -91,6 +75,8 @@ char *arraylist_to_string(const arraylist *l);
 void *arraylist_to_array(const arraylist *l);
 
 void arraylist_allocate(arraylist *l, unsigned int size);
+
+void log_active_arraylists(void);
 
 #define arraylist_iterate(l, index, item) \
 for (index = 0, item = l->body[0]; index < l->size; item = l->body[++index])

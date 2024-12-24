@@ -239,11 +239,25 @@ static object_object *eval_identifier_expression(ast_expression *exp, const envi
     return object_copy_object(value_obj);
 }
 
-static arraylist *eval_expressions_to_array_list(const arraylist *expression_list,
+/*static arraylist *eval_expressions_to_array_list(const arraylist *expression_list,
                                                  environment *    env) {
-    arraylist *values = arraylist_create(expression_list->size, NULL);
+    arraylist *values = arraylist_create(expression_list->size, object_free);
     for (size_t i = 0; i < expression_list->size; i++) {
         object_object *value = evaluator_eval((ast_node *) expression_list->body[i], env);
+        if (is_error(value)) {
+            arraylist_destroy(values);
+            values = arraylist_create(1, object_free);
+            arraylist_add(values, value);
+            return values;
+        }
+        arraylist_add(values, value);
+    }
+    return values;
+}*/
+static arraylist *eval_expressions_to_array_list(const arraylist *expression_list, environment *env) {
+    arraylist *values = arraylist_create(expression_list->size, object_free);
+    for (size_t i = 0; i < expression_list->size; i++) {
+        object_object *value = evaluator_eval(expression_list->body[i], env);
         if (is_error(value)) {
             arraylist_destroy(values);
             values = arraylist_create(1, object_free);
@@ -312,7 +326,7 @@ static object_object *apply_function(object_object *function_obj, linked_list *a
     }
 }
 
-static object_object *eval_array_index_expression(object_object *left_value,
+/*static object_object *eval_array_index_expression(object_object *left_value,
                                                   object_object *index_value) {
     const object_array *array_obj = (object_array *) left_value;
     const object_int *  index_obj = (object_int *) index_value;
@@ -321,8 +335,22 @@ static object_object *eval_array_index_expression(object_object *left_value,
         return (object_object *) object_create_null();
     }
 
-    /* we need to copy the return value because the left_value and index_value objects need to be freed */
+    /* we need to copy the return value because the left_value and index_value objects need to be freed #1#
     return object_copy_object(array_obj->elements->body[index_obj->value]);
+}*/
+static object_object *eval_array_index_expression(object_object *left_value,
+                                                  object_object *index_value) {
+    const object_array *array_obj = (object_array *) left_value;
+    const object_int *  index_obj = (object_int *) index_value;
+
+    if (index_obj->value < 0 || index_obj->value >= array_obj->elements->size) {
+        return (object_object *) object_create_null();
+    }
+
+    // Return a reference instead of copying the object
+    object_object *result = array_obj->elements->body[index_obj->value];
+    result->refcount++; // Increment refcount for the reference
+    return result;
 }
 
 static object_object *eval_string_index_expression(object_object *left_value,
@@ -386,6 +414,21 @@ static object_object *eval_while_expression(const ast_while_expression *while_ex
         return (object_object *) object_create_null();
     }
     return result;
+}
+
+static object_object *eval_array_literal(const ast_array_literal *array_exp, environment *env) {
+    arraylist *elements = arraylist_create(array_exp->elements->size, object_free);
+
+    for (size_t i = 0; i < array_exp->elements->size; i++) {
+        object_object *value = evaluator_eval(array_exp->elements->body[i], env);
+        if (is_error(value)) {
+            arraylist_destroy(elements);
+            return value;
+        }
+        arraylist_add(elements, value);
+    }
+
+    return (object_object *) object_create_array(elements);
 }
 
 static object_object *eval_hash_literal(const ast_hash_literal *hash_exp, environment *env) {
@@ -502,17 +545,6 @@ static object_object *eval_expression(ast_expression *exp, environment *env) {
             string_exp = (ast_string *) exp;
             return (object_object *) object_create_string(
                     string_exp->value, string_exp->length);
-        case ARRAY_LITERAL:
-            array_exp = (ast_array_literal *) exp;
-            arraylist *elements = eval_expressions_to_array_list(
-                    array_exp->elements, env);
-            if (elements->size == 1 && is_error(elements->body[0])) {
-                object_free(array_exp);
-                exp_value = object_copy_object(elements->body[0]);
-                arraylist_destroy(elements);
-                return exp_value;
-            }
-            return (object_object *) object_create_array(elements);
         case INDEX_EXPRESSION:
             index_exp = (ast_index_expression *) exp;
             left_value = evaluator_eval((ast_node *) index_exp->left, env);
@@ -528,6 +560,9 @@ static object_object *eval_expression(ast_expression *exp, environment *env) {
             object_free(left_value);
             object_free(exp_value);
             return index_exp_value;
+        case ARRAY_LITERAL:
+            array_exp = (ast_array_literal *) exp;
+            return eval_array_literal(array_exp, env);
         case HASH_LITERAL:
             hash_exp = (ast_hash_literal *) exp;
             return eval_hash_literal(hash_exp, env);

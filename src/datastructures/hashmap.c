@@ -189,8 +189,7 @@ void hashtable_remove_and_free(hashtable *t, void *key) {
 
 
 hashtable *hashtable_clone(const hashtable *src, void * (*key_copy)(void *), void * (*value_copy)(void *)) {
-    hashtable *copy = hashtable_create(src->hash_func,
-                                       src->key_equals, src->free_key, src->free_value);
+    hashtable *copy = hashtable_create(src->hash_func, src->key_equals, src->free_key, src->free_value);
     for (size_t i = 0; i < src->used_slots->size; i++) {
         const size_t *     index      = (size_t *) src->used_slots->body[i];
         const linked_list *entry_list = src->table[*index];

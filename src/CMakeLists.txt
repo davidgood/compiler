@@ -53,4 +53,6 @@ add_executable(compiler main.c
         compiler/compiler_utils.c
         compiler/compiler_utils.h
         compiler/compiler_core.c
-        compiler/compiler_core.h)
+        compiler/compiler_core.h
+        logging/log.c
+        logging/log.h)

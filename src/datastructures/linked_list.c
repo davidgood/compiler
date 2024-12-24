@@ -5,8 +5,7 @@
 #include "linked_list.h"
 #include <stdio.h>
 #include <stdlib.h>
-#include <stdbool.h>
-
+#include "../logging/log.h"
 
 #define LOG_ALLOC(ptr, type) printf("[ALLOC] %s: %p\n", type, ptr)
 #define LOG_FREE(ptr, type) printf("[FREE] %s: %p\n", type, ptr)
@@ -23,6 +22,7 @@ linked_list *linked_list_create(void (*free_func)(void *)) {
     list->tail      = nullptr;
     list->size      = 0;
     list->free_func = free_func;
+    log_debug("Linked List Created: %p ", list);
     return list;
 }
 
@@ -31,10 +31,10 @@ list_node *linked_list_createNode(void *data) {
     list_node *node = malloc(sizeof(list_node));
     if (!node) {
         perror("Failed to allocate memory for list node");
-        return NULL;
+        return nullptr;
     }
     node->data = data;
-    node->next = NULL;
+    node->next = nullptr;
     return node;
 }
 
@@ -44,7 +44,7 @@ void linked_list_addNode(linked_list *list, void *data) {
     if (node == NULL)
         return;
     node->data = data;
-    node->next = NULL;
+    node->next = nullptr;
     list->size++;
     if (list->head == NULL) {
         list->head = node;
@@ -165,6 +165,7 @@ void linked_list_free(linked_list *list, void (*free_data)(void *)) {
         fprintf(stderr, "List is NULL\n");
         return;
     }
+    log_debug("Linked List Free: %p", list);
 
     list_node *current = list->head;
     for (size_t i = 0; i < list->size; i++) {

@@ -7,7 +7,7 @@
 
 # =============================================================================
 # Project: compiler
-# Configurations: Debug
+# Configurations: 
 # =============================================================================
 # =============================================================================
 
@@ -22,7 +22,7 @@ rule CUSTOM_COMMAND
 #############################################
 # Rule for compiling C files.
 
-rule C_COMPILER__unity_unscanned_Debug
+rule C_COMPILER__unity_unscanned_
   depfile = $DEP_FILE
   deps = gcc
   command = ${LAUNCHER}${CODE_CHECK}/usr/bin/cc $DEFINES $INCLUDES $FLAGS -MD -MT $out -MF $DEP_FILE -o $out -c $in
@@ -32,8 +32,8 @@ rule C_COMPILER__unity_unscanned_Debug
 #############################################
 # Rule for linking C static library.
 
-rule C_STATIC_LIBRARY_LINKER__unity_Debug
-  command = $PRE_LINK && /home/dgood/.local/share/JetBrains/Toolbox/apps/clion/bin/cmake/linux/x64/bin/cmake -E rm -f $TARGET_FILE && /usr/bin/ar qc $TARGET_FILE $LINK_FLAGS $in && /usr/bin/ranlib $TARGET_FILE && $POST_BUILD
+rule C_STATIC_LIBRARY_LINKER__unity_
+  command = $PRE_LINK && /usr/bin/cmake -E rm -f $TARGET_FILE && /usr/bin/ar qc $TARGET_FILE $LINK_FLAGS $in && /usr/bin/ranlib $TARGET_FILE && $POST_BUILD
   description = Linking C static library $TARGET_FILE
   restat = $RESTAT
 
@@ -251,7 +251,7 @@ rule C_EXECUTABLE_LINKER__vm_tests_Debug
 # Rule for re-running cmake.
 
 rule RERUN_CMAKE
-  command = /home/dgood/.local/share/JetBrains/Toolbox/apps/clion/bin/cmake/linux/x64/bin/cmake --regenerate-during-build -S/home/dgood/Projects/C/compiler -B/home/dgood/Projects/C/compiler/build
+  command = /usr/bin/cmake --regenerate-during-build -S/home/dgood/Projects/C/compiler -B/home/dgood/Projects/C/compiler/build
   description = Re-running CMake...
   generator = 1
 
@@ -260,7 +260,7 @@ rule RERUN_CMAKE
 # Rule for cleaning all built files.
 
 rule CLEAN
-  command = /home/dgood/.local/share/JetBrains/Toolbox/apps/clion/bin/ninja/linux/x64/ninja $FILE_ARG -t clean $TARGETS
+  command = /usr/bin/ninja-build $FILE_ARG -t clean $TARGETS
   description = Cleaning all built files...
 
 
@@ -268,6 +268,6 @@ rule CLEAN
 # Rule for printing all primary targets available.
 
 rule HELP
-  command = /home/dgood/.local/share/JetBrains/Toolbox/apps/clion/bin/ninja/linux/x64/ninja -t targets
+  command = /usr/bin/ninja-build -t targets
   description = All primary targets available:
 

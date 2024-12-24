@@ -2,6 +2,7 @@
 // Created by dgood on 12/18/24.
 //
 
+#include <ast_debug_print.h>
 #include <err.h>
 #include <stdbool.h>
 #include <stdio.h>
@@ -26,10 +27,12 @@ void tearDown(void) {
 }
 
 static object_object *test_eval(const char *input, environment *env) {
-    lexer *        lexer   = lexer_init(input);
-    parser *       parser  = parser_init(lexer);
-    ast_program *  program = parse_program(parser);
-    object_object *obj     = evaluator_eval((ast_node *) program, env);
+    lexer *      lexer   = lexer_init(input);
+    parser *     parser  = parser_init(lexer);
+    ast_program *program = parse_program(parser);
+    ast_debug_print(program);
+    printf("^-- objects above created by the parser and unit tests --^\n");
+    object_object *obj = evaluator_eval((ast_node *) program, env);
     program_free(program);
     parser_free(parser);
     return obj;
@@ -466,41 +469,54 @@ static void test_modulo_by_zero(void) {
 }
 
 
-static void
-test_let_statements(void) {
-    environment *env;
-    typedef struct {
-        const char *input;
-        long        expected;
-    } test_input;
-
-    test_input tests[] = {
-            {
-                    "let a = 5; a;", 5
-            },
-            {
-                    "let a = 5 * 5; a;", 25
-            },
-            {
-                    "let a = 5; let b = a; b;", 5
-            },
-            {
-                    "let a = 5; let b = a; let c = a + b + 5; c;", 15
-            }
-    };
+static void test_let_statement_simple_assignment(void) {
+    const char *input    = "let a = 5; a;";
+    long        expected = 5;
 
     print_test_separator_line();
-    size_t ntests = sizeof(tests) / sizeof(tests[0]);
-    for (size_t i = 0; i < ntests; i++) {
-        test_input test = tests[i];
-        env             = environment_create();
-        printf("Testing let statement for %s\n", test.input);
-        object_object *evaluated = test_eval(test.input, env);
-        test_integer_object(evaluated, test.expected);
-        object_free(evaluated);
-        environment_free(env);
-    }
+    environment *  env       = environment_create();
+    object_object *evaluated = test_eval(input, env);
+    test_integer_object(evaluated, expected);
+    object_free(evaluated);
+    environment_free(env);
 }
+
+static void test_let_statement_with_multiplication(void) {
+    const char *input    = "let a = 5 * 5; a;";
+    long        expected = 25;
+
+    print_test_separator_line();
+    environment *  env       = environment_create();
+    object_object *evaluated = test_eval(input, env);
+    test_integer_object(evaluated, expected);
+    object_free(evaluated);
+    environment_free(env);
+}
+
+static void test_let_statement_with_variable_assignment(void) {
+    const char *input    = "let a = 5; let b = a; b;";
+    long        expected = 5;
+
+    print_test_separator_line();
+    environment *  env       = environment_create();
+    object_object *evaluated = test_eval(input, env);
+    test_integer_object(evaluated, expected);
+    object_free(evaluated);
+    environment_free(env);
+}
+
+static void test_let_statement_with_multiple_variables(void) {
+    const char *input    = "let a = 5; let b = a; let c = a + b + 5; c;";
+    long        expected = 15;
+
+    print_test_separator_line();
+    environment *  env       = environment_create();
+    object_object *evaluated = test_eval(input, env);
+    test_integer_object(evaluated, expected);
+    object_free(evaluated);
+    environment_free(env);
+}
+
 
 static void test_function_object(void) {
     const char * input = "fn(x) { x + 2;};";
@@ -521,51 +537,78 @@ static void test_function_object(void) {
     object_free(evaluated);
 }
 
-static void
-test_function_application(void) {
-    typedef struct {
-        const char *input;
-        long        expected;
-    } test_input;
-
-    test_input tests[] = {
-            {
-                    "let identity = fn(x) {x;}; identity(5);",
-                    5
-            },
-            {
-                    "let identity = fn(x) { return x;}; identity(5);",
-                    5
-            },
-            {
-                    "let double = fn(x) { x * 2;} double(5);",
-                    10
-            },
-            {
-                    "let add = fn(x, y) {x + y;}; add(5, 5);",
-                    10
-            },
-            {
-                    "let add = fn(x, y) {x + y;}; add(5 + 5, add(5, 5));", 20
-            },
-            {
-                    "fn(x) { x; }(5)",
-                    5
-            }
-    };
+static void test_function_application_identity_function(void) {
+    const char *input    = "let identity = fn(x) {x;}; identity(5);";
+    long        expected = 5;
 
     print_test_separator_line();
-    size_t ntests = sizeof(tests) / sizeof(tests[0]);
-    for (size_t i = 0; i < ntests; i++) {
-        test_input test = tests[i];
-        printf("Testing function application for %s\n", test.input);
-        environment *  env       = environment_create();
-        object_object *evaluated = test_eval(test.input, env);
-        test_integer_object(evaluated, test.expected);
-        environment_free(env);
-        object_free(evaluated);
-    }
+    environment *  env       = environment_create();
+    object_object *evaluated = test_eval(input, env);
+    test_integer_object(evaluated, expected);
+    object_free(evaluated);
+    environment_free(env);
 }
+
+static void test_function_application_identity_function_with_return(void) {
+    const char *input    = "let identity = fn(x) { return x;}; identity(5);";
+    long        expected = 5;
+
+    print_test_separator_line();
+    environment *  env       = environment_create();
+    object_object *evaluated = test_eval(input, env);
+    test_integer_object(evaluated, expected);
+    object_free(evaluated);
+    environment_free(env);
+}
+
+static void test_function_application_double_function(void) {
+    const char *input    = "let double = fn(x) { x * 2;} double(5);";
+    long        expected = 10;
+
+    print_test_separator_line();
+    environment *  env       = environment_create();
+    object_object *evaluated = test_eval(input, env);
+    test_integer_object(evaluated, expected);
+    object_free(evaluated);
+    environment_free(env);
+}
+
+static void test_function_application_add_function(void) {
+    const char *input    = "let add = fn(x, y) {x + y;}; add(5, 5);";
+    long        expected = 10;
+
+    print_test_separator_line();
+    environment *  env       = environment_create();
+    object_object *evaluated = test_eval(input, env);
+    test_integer_object(evaluated, expected);
+    object_free(evaluated);
+    environment_free(env);
+}
+
+static void test_function_application_add_function_with_nested_calls(void) {
+    const char *input    = "let add = fn(x, y) {x + y;}; add(5 + 5, add(5, 5));";
+    long        expected = 20;
+
+    print_test_separator_line();
+    environment *  env       = environment_create();
+    object_object *evaluated = test_eval(input, env);
+    test_integer_object(evaluated, expected);
+    object_free(evaluated);
+    environment_free(env);
+}
+
+static void test_function_application_anonymous_function(void) {
+    const char *input    = "fn(x) { x; }(5)";
+    long        expected = 5;
+
+    print_test_separator_line();
+    environment *  env       = environment_create();
+    object_object *evaluated = test_eval(input, env);
+    test_integer_object(evaluated, expected);
+    object_free(evaluated);
+    environment_free(env);
+}
+
 
 static void test_string_literal(void) {
     const char *   input     = "\"Hello, world!\"";
@@ -713,55 +756,169 @@ static void test_array_literals(void) {
     environment_free(env);
 }
 
-static void test_array_index_expressions(void) {
-    typedef struct {
-        const char *   input;
-        object_object *expected;
-    } test_input;
-
-    test_input tests[] = {
-            {"[1, 2, 3][0]", (object_object *) object_create_int(1)},
-            {"[1, 2, 3][1]", (object_object *) object_create_int(2)},
-            {"[1, 2, 3][2]", (object_object *) object_create_int(3)},
-            {"let i = 0; [1][i]", (object_object *) object_create_int(1)},
-            {"[1, 2, 3][1 + 1]", (object_object *) object_create_int(3)},
-            {"let my_array = [1, 2, 3]; my_array[2];", (object_object *) object_create_int(3)},
-            {"let my_array = [1, 2, 3]; my_array[0] + my_array[1] + my_array[2]",
-             (object_object *) object_create_int(6)},
-            {"let my_array = [1, 2, 3]; let i = my_array[0]; my_array[i]",
-             (object_object *) object_create_int(2)},
-            {"[1, 2, 3][3]", (object_object *) object_create_null()},
-            {"[1, 2, 3][-1]", (object_object *) object_create_null()},
-            {"\"apple\"[0]", (object_object *) object_create_string("a", 1)},
-            {"\"apple\"[3]", (object_object *) object_create_string("l", 1)}
-    };
+static void test_array_index_expression_first_element(void) {
+    const char *   input    = "[1, 2, 3][0]";
+    object_object *expected = (object_object *) object_create_int(1);
 
     print_test_separator_line();
-    size_t ntests = sizeof(tests) / sizeof(tests[0]);
-    for (size_t i = 0; i < ntests; i++) {
-        test_input test = tests[i];
-        printf("Testing index expression evaluation for %s\n", test.input);
-        environment *  env       = environment_create();
-        object_object *evaluated = test_eval(test.input, env);
-        TEST_ASSERT_EQUAL_INT(evaluated->type, test.expected->type);
-        if (test.expected->type == OBJECT_INT) {
-            test_integer_object(evaluated, ((object_int *) test.expected)->value);
-            object_free(test.expected);
-            object_free(evaluated);
-        } else if (test.expected->type == OBJECT_STRING) {
-            TEST_ASSERT_EQUAL_INT(evaluated->type, OBJECT_STRING);
-            object_string *actual_string   = (object_string *) evaluated;
-            object_string *expected_string = (object_string *) test.expected;
-            TEST_ASSERT_EQUAL_STRING(expected_string->value, actual_string->value);
-            object_free(test.expected);
-            object_free(evaluated);
-        } else {
-            test_null_object(evaluated);
-            object_free(evaluated);
-        }
-        environment_free(env);
-    }
+    environment *  env       = environment_create();
+    object_object *evaluated = test_eval(input, env);
+    test_integer_object(evaluated, ((object_int *) expected)->value);
+    object_free(expected);
+    object_free(evaluated);
+    environment_free(env);
 }
+
+static void test_array_index_expression_second_element(void) {
+    const char *   input    = "[1, 2, 3][1]";
+    object_object *expected = (object_object *) object_create_int(2);
+
+    print_test_separator_line();
+    environment *  env       = environment_create();
+    object_object *evaluated = test_eval(input, env);
+    test_integer_object(evaluated, ((object_int *) expected)->value);
+    object_free(expected);
+    object_free(evaluated);
+    environment_free(env);
+}
+
+static void test_array_index_expression_third_element(void) {
+    const char *   input    = "[1, 2, 3][2]";
+    object_object *expected = (object_object *) object_create_int(3);
+
+    print_test_separator_line();
+    environment *  env       = environment_create();
+    object_object *evaluated = test_eval(input, env);
+    test_integer_object(evaluated, ((object_int *) expected)->value);
+    object_free(expected);
+    object_free(evaluated);
+    environment_free(env);
+}
+
+static void test_array_index_expression_variable_index(void) {
+    const char *   input    = "let i = 0; [1][i]";
+    object_object *expected = (object_object *) object_create_int(1);
+
+    print_test_separator_line();
+    environment *  env       = environment_create();
+    object_object *evaluated = test_eval(input, env);
+    test_integer_object(evaluated, ((object_int *) expected)->value);
+    object_free(expected);
+    object_free(evaluated);
+    environment_free(env);
+}
+
+static void test_array_index_expression_index_with_expression(void) {
+    const char *   input    = "[1, 2, 3][1 + 1]";
+    object_object *expected = (object_object *) object_create_int(3);
+
+    print_test_separator_line();
+    environment *  env       = environment_create();
+    object_object *evaluated = test_eval(input, env);
+    test_integer_object(evaluated, ((object_int *) expected)->value);
+    object_free(expected);
+    object_free(evaluated);
+    environment_free(env);
+}
+
+static void test_array_index_expression_variable_array(void) {
+    const char *   input    = "let my_array = [1, 2, 3]; my_array[2];";
+    object_object *expected = (object_object *) object_create_int(3);
+
+    print_test_separator_line();
+    environment *  env       = environment_create();
+    object_object *evaluated = test_eval(input, env);
+    test_integer_object(evaluated, ((object_int *) expected)->value);
+    object_free(expected);
+    object_free(evaluated);
+    environment_free(env);
+    //print_active_objects();
+}
+
+static void test_array_index_expression_sum_of_elements(void) {
+    const char *   input    = "let my_array = [1, 2, 3]; my_array[0] + my_array[1] + my_array[2]";
+    object_object *expected = (object_object *) object_create_int(6);
+
+    print_test_separator_line();
+    environment *  env       = environment_create();
+    object_object *evaluated = test_eval(input, env);
+    test_integer_object(evaluated, ((object_int *) expected)->value);
+    object_free(expected);
+    object_free(evaluated);
+    environment_free(env);
+}
+
+static void test_array_index_expression_variable_assignment_from_array(void) {
+    const char *   input    = "let my_array = [1, 2, 3]; let i = my_array[0]; my_array[i]";
+    object_object *expected = (object_object *) object_create_int(2);
+
+    print_test_separator_line();
+    environment *  env       = environment_create();
+    object_object *evaluated = test_eval(input, env);
+    test_integer_object(evaluated, ((object_int *) expected)->value);
+    object_free(expected);
+    object_free(evaluated);
+    environment_free(env);
+}
+
+static void test_array_index_expression_out_of_bounds(void) {
+    const char *   input    = "[1, 2, 3][3]";
+    object_object *expected = (object_object *) object_create_null();
+
+    print_test_separator_line();
+    environment *  env       = environment_create();
+    object_object *evaluated = test_eval(input, env);
+    test_null_object(evaluated);
+    object_free(expected);
+    object_free(evaluated);
+    environment_free(env);
+}
+
+static void test_array_index_expression_negative_index(void) {
+    const char *   input    = "[1, 2, 3][-1]";
+    object_object *expected = (object_object *) object_create_null();
+
+    print_test_separator_line();
+    environment *  env       = environment_create();
+    object_object *evaluated = test_eval(input, env);
+    test_null_object(evaluated);
+    object_free(expected);
+    object_free(evaluated);
+    environment_free(env);
+}
+
+static void test_string_index_expression(void) {
+    const char *   input    = "\"apple\"[0]";
+    object_object *expected = (object_object *) object_create_string("a", 1);
+
+    print_test_separator_line();
+    environment *  env       = environment_create();
+    object_object *evaluated = test_eval(input, env);
+    TEST_ASSERT_EQUAL_INT(evaluated->type, OBJECT_STRING);
+    object_string *actual_string   = (object_string *) evaluated;
+    object_string *expected_string = (object_string *) expected;
+    TEST_ASSERT_EQUAL_STRING(expected_string->value, actual_string->value);
+    object_free(expected);
+    object_free(evaluated);
+    environment_free(env);
+}
+
+static void test_string_index_expression_second_character(void) {
+    const char *   input    = "\"apple\"[3]";
+    object_object *expected = (object_object *) object_create_string("l", 1);
+
+    print_test_separator_line();
+    environment *  env       = environment_create();
+    object_object *evaluated = test_eval(input, env);
+    TEST_ASSERT_EQUAL_INT(evaluated->type, OBJECT_STRING);
+    object_string *actual_string   = (object_string *) evaluated;
+    object_string *expected_string = (object_string *) expected;
+    TEST_ASSERT_EQUAL_STRING(expected_string->value, actual_string->value);
+    object_free(expected);
+    object_free(evaluated);
+    environment_free(env);
+}
+
 
 static void test_enclosing_env(void) {
     const char *input = "let first = 10;\n"\
@@ -846,105 +1003,134 @@ static void test_hash_literals(void) {
     environment_free(env);
 }
 
-static void test_hash_index_expressions(void) {
-    typedef struct {
-        const char *   input;
-        object_object *expected;
-    } test_input;
-
-    test_input tests[] = {
-            {
-                    "{\"foo\": 5}[\"foo\"]",
-                    (object_object *) object_create_int(5)
-            },
-            {
-                    "{\"foo\": 5}[\"bar\"]",
-                    (object_object *) object_create_null()
-            },
-            {
-                    "let key = \"foo\"; {\"foo\": 5}[key]",
-                    (object_object *) object_create_int(5)
-            },
-            {
-                    "{}[\"foo\"]",
-                    (object_object *) object_create_null()
-            },
-            {
-                    "{5: 5}[5]",
-                    (object_object *) object_create_int(5)
-            },
-            {
-                    "{true: 5}[true]",
-                    (object_object *) object_create_int(5)
-            },
-            {
-                    "{false: 5}[false]",
-                    (object_object *) object_create_int(5)
-            }
-    };
+static void test_hash_index_expression_existing_key(void) {
+    const char *   input    = "{\"foo\": 5}[\"foo\"]";
+    object_object *expected = (object_object *) object_create_int(5);
 
     print_test_separator_line();
-    size_t      ntests = sizeof(tests) / sizeof(tests[0]);
-    object_int *expected_int;
-    for (size_t i = 0; i < ntests; i++) {
-        test_input test = tests[i];
-        printf("Testing hash index expression for %s\n", test.input);
-        environment *  env       = environment_create();
-        object_object *evaluated = test_eval(test.input, env);
-        switch (test.expected->type) {
-            case OBJECT_INT:
-                expected_int = (object_int *) test.expected;
-                test_integer_object(evaluated, expected_int->value);
-                break;
-            case OBJECT_NULL:
-                TEST_ASSERT_EQUAL_INT(evaluated->type, OBJECT_NULL);
-                break;
-            default:
-                err(EXIT_FAILURE, "Unknown type: %s", get_type_name(test.expected->type));
-        }
-        object_free(test.expected);
-        object_free(evaluated);
-        environment_free(env);
-    }
+    environment *  env       = environment_create();
+    object_object *evaluated = test_eval(input, env);
+    test_integer_object(evaluated, ((object_int *) expected)->value);
+    object_free(expected);
+    object_free(evaluated);
+    environment_free(env);
 }
 
-static void test_string_comparison(void) {
-    typedef struct {
-        const char *input;
-        _Bool       expected;
-    } test_input;
+static void test_hash_index_expression_non_existing_key(void) {
+    const char *   input    = "{\"foo\": 5}[\"bar\"]";
+    object_object *expected = (object_object *) object_create_null();
 
-    test_input tests[] = {
-            {
-                    "let s1 = \"apple\";\n"\
-                    "let s2 = \"apple\";\n"\
-                    "s1 == s2;",
-                    true
-            },
-            {
-                    "let s1 = \"apple\";\n"\
-                    "let s2 = \"apples\";\n"\
-                    "s1 == s2;",
-                    false
-            }
-    };
     print_test_separator_line();
-    size_t ntests = sizeof(tests) / sizeof(tests[0]);
-    for (size_t i = 0; i < ntests; i++) {
-        test_input test = tests[i];
-        printf("Testing string comparison for %s\n", test.input);
-        environment *  env       = environment_create();
-        object_object *evaluated = test_eval(test.input, env);
-        TEST_ASSERT_EQUAL_INT(evaluated->type, OBJECT_BOOL);
-        object_bool *actual = (object_bool *) evaluated;
-        TEST_ASSERT_EQUAL_INT(actual->value, test.expected);
-        object_free(evaluated);
-        environment_free(env);
-    }
+    environment *  env       = environment_create();
+    object_object *evaluated = test_eval(input, env);
+    TEST_ASSERT_EQUAL_INT(evaluated->type, OBJECT_NULL);
+    object_free(expected);
+    object_free(evaluated);
+    environment_free(env);
 }
+
+static void test_hash_index_expression_variable_key(void) {
+    const char *   input    = "let key = \"foo\"; {\"foo\": 5}[key]";
+    object_object *expected = (object_object *) object_create_int(5);
+
+    print_test_separator_line();
+    environment *  env       = environment_create();
+    object_object *evaluated = test_eval(input, env);
+    test_integer_object(evaluated, ((object_int *) expected)->value);
+    object_free(expected);
+    object_free(evaluated);
+    environment_free(env);
+}
+
+static void test_hash_index_expression_empty_hash(void) {
+    const char *   input    = "{}[\"foo\"]";
+    object_object *expected = (object_object *) object_create_null();
+
+    print_test_separator_line();
+    environment *  env       = environment_create();
+    object_object *evaluated = test_eval(input, env);
+    TEST_ASSERT_EQUAL_INT(evaluated->type, OBJECT_NULL);
+    object_free(expected);
+    object_free(evaluated);
+    environment_free(env);
+}
+
+static void test_hash_index_expression_integer_key(void) {
+    const char *   input    = "{5: 5}[5]";
+    object_object *expected = (object_object *) object_create_int(5);
+
+    print_test_separator_line();
+    environment *  env       = environment_create();
+    object_object *evaluated = test_eval(input, env);
+    test_integer_object(evaluated, ((object_int *) expected)->value);
+    object_free(expected);
+    object_free(evaluated);
+    environment_free(env);
+}
+
+static void test_hash_index_expression_boolean_key_true(void) {
+    const char *   input    = "{true: 5}[true]";
+    object_object *expected = (object_object *) object_create_int(5);
+
+    print_test_separator_line();
+    environment *  env       = environment_create();
+    object_object *evaluated = test_eval(input, env);
+    test_integer_object(evaluated, ((object_int *) expected)->value);
+    object_free(expected);
+    object_free(evaluated);
+    environment_free(env);
+}
+
+static void test_hash_index_expression_boolean_key_false(void) {
+    const char *   input    = "{false: 5}[false]";
+    object_object *expected = (object_object *) object_create_int(5);
+
+    print_test_separator_line();
+    environment *  env       = environment_create();
+    object_object *evaluated = test_eval(input, env);
+    test_integer_object(evaluated, ((object_int *) expected)->value);
+    object_free(expected);
+    object_free(evaluated);
+    environment_free(env);
+}
+
+
+static void test_string_comparison_equal_strings(void) {
+    const char *input = "let s1 = \"apple\";\n"\
+            "let s2 = \"apple\";\n"\
+            "s1 == s2;";
+    _Bool expected = true;
+
+    print_test_separator_line();
+    environment *  env       = environment_create();
+    object_object *evaluated = test_eval(input, env);
+    TEST_ASSERT_EQUAL_INT(evaluated->type, OBJECT_BOOL);
+    object_bool *actual = (object_bool *) evaluated;
+    TEST_ASSERT_EQUAL_INT(actual->value, expected);
+    object_free(evaluated);
+    environment_free(env);
+}
+
+static void test_string_comparison_different_strings(void) {
+    const char *input = "let s1 = \"apple\";\n"\
+            "let s2 = \"apples\";\n"\
+            "s1 == s2;";
+    _Bool expected = false;
+
+    print_test_separator_line();
+    environment *  env       = environment_create();
+    object_object *evaluated = test_eval(input, env);
+    TEST_ASSERT_EQUAL_INT(evaluated->type, OBJECT_BOOL);
+    object_bool *actual = (object_bool *) evaluated;
+    TEST_ASSERT_EQUAL_INT(actual->value, expected);
+    object_free(evaluated);
+    environment_free(env);
+}
+
 
 int main() {
     UNITY_BEGIN();
+    RUN_TEST(test_builtins);
     RUN_TEST(test_eval_integer_expression);
     RUN_TEST(test_eval_bool_expression);
     RUN_TEST(test_bang_operator);
@@ -960,18 +1146,43 @@ int main() {
     RUN_TEST(test_identifier_not_found);
     RUN_TEST(test_unknown_operator_string_minus_string);
     RUN_TEST(test_unusable_function_as_hash_key);
-    RUN_TEST(test_let_statements);
-    // RUN_TEST(test_function_object);
-    // RUN_TEST(test_function_application);
-    // RUN_TEST(test_string_literal);
-    // RUN_TEST(test_string_concatenation);
-    // RUN_TEST(test_builtins);
-    // RUN_TEST(test_array_literals);
-    // RUN_TEST(test_array_index_expressions);
-    // RUN_TEST(test_enclosing_env);
-    // RUN_TEST(test_hash_literals);
-    // RUN_TEST(test_hash_index_expressions);
-    // RUN_TEST(test_while_expressions);
-    // RUN_TEST(test_string_comparison);
+    RUN_TEST(test_let_statement_simple_assignment);
+    RUN_TEST(test_let_statement_with_multiplication);
+    RUN_TEST(test_let_statement_with_variable_assignment);
+    RUN_TEST(test_let_statement_with_multiple_variables);
+    RUN_TEST(test_function_object);
+    RUN_TEST(test_string_literal);       //pass
+    RUN_TEST(test_string_concatenation); //pass
+    RUN_TEST(test_array_literals);
+    RUN_TEST(test_while_expressions);
+    RUN_TEST(test_hash_index_expression_boolean_key_true);
+    RUN_TEST(test_hash_index_expression_boolean_key_false);
+    RUN_TEST(test_hash_index_expression_integer_key);
+    RUN_TEST(test_hash_index_expression_empty_hash);
+    RUN_TEST(test_hash_index_expression_existing_key);
+    RUN_TEST(test_hash_index_expression_non_existing_key);
+    RUN_TEST(test_hash_index_expression_variable_key);
+    RUN_TEST(test_array_index_expression_first_element);
+    RUN_TEST(test_array_index_expression_second_element);
+    RUN_TEST(test_array_index_expression_third_element);
+    RUN_TEST(test_array_index_expression_variable_index);
+    RUN_TEST(test_array_index_expression_index_with_expression);
+    RUN_TEST(test_array_index_expression_variable_array);
+    RUN_TEST(test_array_index_expression_sum_of_elements);
+    RUN_TEST(test_array_index_expression_variable_assignment_from_array);
+    RUN_TEST(test_array_index_expression_out_of_bounds);
+    RUN_TEST(test_array_index_expression_negative_index);
+    RUN_TEST(test_string_index_expression);
+    RUN_TEST(test_string_index_expression_second_character);
+    RUN_TEST(test_function_application_identity_function);
+    RUN_TEST(test_function_application_identity_function_with_return);
+    RUN_TEST(test_function_application_double_function);
+    RUN_TEST(test_function_application_add_function);
+    RUN_TEST(test_function_application_add_function_with_nested_calls);
+    RUN_TEST(test_function_application_anonymous_function);
+    RUN_TEST(test_enclosing_env);
+    RUN_TEST(test_hash_literals);
+    RUN_TEST(test_string_comparison_equal_strings);
+    RUN_TEST(test_string_comparison_different_strings);
     return UNITY_END();
 }
