@@ -5,9 +5,8 @@
 #include "virtual_machine.h"
 
 #include <assert.h>
-#include <conversions.h>
+#include "../datastructures/conversions.h"
 #include <err.h>
-#include <log.h>
 #include <stdarg.h>
 #include <stdlib.h>
 #include "../compiler/compiler_core.h"

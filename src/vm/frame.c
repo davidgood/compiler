@@ -5,7 +5,6 @@
 #include "frame.h"
 
 #include <err.h>
-#include <log.h>
 #include <stdlib.h>
 
 frame *frame_init(object_closure *cl, size_t bp) {

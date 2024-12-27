@@ -1,18 +1,18 @@
 #include "opcode.h"
 
 #include <arpa/inet.h> // For big-endian conversions
-#include <conversions.h>
+#include "../datastructures/conversions.h"
 #include <err.h>
 #include <stdarg.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
-OpcodeDefinition * opcode_definition_lookup(const Opcode op) {
+OpcodeDefinition *opcode_definition_lookup(const Opcode op) {
     if (op >= sizeof(opcode_definitions) / sizeof(OpcodeDefinition)) {
-        return NULL;
+        return nullptr;
     }
-    return &opcode_definitions[op-1];
+    return &opcode_definitions[op - 1];
 }
 
 // Function to create instruction
@@ -20,7 +20,7 @@ instructions *opcode_make_instruction(Opcode op, size_t *operands) {
     OpcodeDefinition *def = opcode_definition_lookup(op);
 
     if (!def) {
-        return NULL;
+        return nullptr;
     }
 
     // Calculate instruction length
@@ -51,9 +51,9 @@ instructions *opcode_make_instruction(Opcode op, size_t *operands) {
     for (int i = 0; i < def->operand_count; i++) {
         int width = def->operand_widths[i];
         if (width == 2) {
-            put_uint16_big_endian(&instruction->bytes[offset], 2, (uint16_t)operands[i]);
+            put_uint16_big_endian(&instruction->bytes[offset], 2, (uint16_t) operands[i]);
         } else if (width == 1) {
-            instruction->bytes[offset] = (uint8_t)operands[i];
+            instruction->bytes[offset] = (uint8_t) operands[i];
         }
         offset += width;
     }
@@ -68,17 +68,17 @@ void read_operands(const OpcodeDefinition *def, const uint8_t *ins, size_t *oper
     *bytes_read = 0;
     for (size_t i = 0; i < def->operand_count; i++) {
         switch (def->operand_widths[i]) {
-        case 2:
-            operands[i] = ntohs(*(uint16_t *)(ins + *bytes_read));
-            *bytes_read += 2;
-            break;
-        case 1:
-            operands[i] = ins[*bytes_read];
-            *bytes_read += 1;
-            break;
-        default:
-            fprintf(stderr, "Unsupported operand width\n");
-            break;
+            case 2:
+                operands[i] = ntohs(*(uint16_t *) (ins + *bytes_read));
+                *bytes_read += 2;
+                break;
+            case 1:
+                operands[i] = ins[*bytes_read];
+                *bytes_read += 1;
+                break;
+            default:
+                fprintf(stderr, "Unsupported operand width\n");
+                break;
         }
     }
 }
@@ -133,136 +133,136 @@ instructions *opcode_flatten_instructions(size_t n, instructions *ins_array[n]) 
         err(EXIT_FAILURE, "Failed to allocate memory for flattened instructions object");
     }
 
-    flat_ins->bytes = bytes;
-    flat_ins->length = bytes_len;
+    flat_ins->bytes    = bytes;
+    flat_ins->length   = bytes_len;
     flat_ins->capacity = bytes_len;
     return flat_ins;
 }
 
-char * instructions_to_string(instructions *instructions) {
-    char *string = NULL;
+char *instructions_to_string(instructions *instructions) {
+    char *string = nullptr;
     for (size_t i = 0; i < instructions->length; i++) {
-        Opcode op = instructions->bytes[i];
-        size_t operand;
+        Opcode            op = instructions->bytes[i];
+        size_t            operand;
         OpcodeDefinition *op_def = opcode_definition_lookup(op);
         switch (op) {
-        case OP_CONSTANT:
-        case OP_JUMP_NOT_TRUTHY:
-        case OP_JUMP:
-        case OP_SET_GLOBAL:
-        case OP_GET_GLOBAL:
-        case OP_ARRAY:
-        case OP_HASH:
-            operand = be_to_size_t(instructions->bytes + i + 1);
-            if (string == NULL) {
-                int retval = asprintf(&string, "%04zu %s %zu", i, op_def->name, operand);
-                if (retval == -1)
-                    err(EXIT_FAILURE, "malloc failed");
-            } else {
-                char *temp = NULL;
-                int retval = asprintf(&temp, "%s\n%04zu %s %zu", string, i, op_def->name, operand);
-                if (retval == -1)
-                    err(EXIT_FAILURE, "malloc failed");
-                free(string);
-                string = temp;
-            }
-            i += 2;
-            break;
-        case OP_SET_LOCAL:
-        case OP_GET_LOCAL:
-        case OP_CALL:
-        case OP_GET_BUILTIN:
-        case OP_GET_FREE:
-            operand = be_to_size_t_1(instructions->bytes + i + 1);
-            if (string == NULL) {
-                int retval = asprintf(&string, "%04zu %s %zu", i, op_def->name, operand);
-                if (retval == -1)
-                    err(EXIT_FAILURE, "malloc failed");
-            } else {
-                char *temp = NULL;
-                int retval = asprintf(&temp, "%s\n%04zu %s %zu", string, i, op_def->name, operand);
-                if (retval == -1)
-                    err(EXIT_FAILURE, "malloc failed");
-                free(string);
-                string = temp;
-            }
-            i++;
-            break;
-        case OP_CLOSURE:
-            operand = be_to_size_t(instructions->bytes + i + 1)    ;
-            if (string == NULL) {
-                int retval = asprintf(&string, "%04zu %s %zu", i, op_def->name, operand);
-                if (retval == -1)
-                    err(EXIT_FAILURE, "malloc failed");
-            } else {
-                char *temp = NULL;
-                int retval = asprintf(&temp, "%s\n%04zu %s %zu", string, i, op_def->name, operand);
-                if (retval == -1)
-                    err(EXIT_FAILURE, "malloc failed");
-                free(string);
-                string = temp;
-            }
-            i += 2;
-            operand = be_to_size_t_1(instructions->bytes + i + 1);
-            if (string == NULL) {
-                int retval = asprintf(&string, " %zu", operand);
-                if (retval == -1)
-                    err(EXIT_FAILURE, "malloc failed");
-            } else {
-                char *temp = NULL;
-                int retval = asprintf(&temp, "%s %zu", string, operand);
-                if (retval == -1)
-                    err(EXIT_FAILURE, "malloc failed");
-                free(string);
-                string = temp;
-            }
-            i++;
-            break;
-        case OP_ADD:
-        case OP_SUB:
-        case OP_MUL:
-        case OP_DIV:
-        case OP_TRUE:
-        case OP_FALSE:
-        case OP_GREATER_THAN:
-        case OP_EQUAL:
-        case OP_NOT_EQUAL:
-        case OP_MINUS:
-        case OP_BANG:
-        case OP_NULL:
-        case OP_INDEX:
-        case OP_RETURN:
-        case OP_RETURN_VALUE:
-        case OP_CURRENT_CLOSURE:
-            if (string == NULL) {
-                int retval = asprintf(&string, "%04zu %s", i, op_def->name);
-                if (retval == -1)
-                    err(EXIT_FAILURE, "malloc failed");
-            } else {
-                char *temp = NULL;
-                int retval = asprintf(&temp, "%s\n%04zu %s", string, i, op_def->name);
-                if (retval == -1)
-                    err(EXIT_FAILURE, "malloc failed");
-                free(string);
-                string = temp;
-            }
-            break;
-        case OP_POP:
-            if (string == NULL) {
-                int retval = asprintf(&string, "%04zu %s", i, "OPPOP");
-                if (retval == -1)
-                    err(EXIT_FAILURE, "malloc failed");
-            } else {
-                char *temp = NULL;
-                int retval = asprintf(&temp, "%s\n%04zu %s", string, i, "OPPOP");
-                if (retval == -1)
-                    err(EXIT_FAILURE, "malloc failed");
-                free(string);
-                string = temp;
-            }
-            break;
-        default:
-            return "";
+            case OP_CONSTANT:
+            case OP_JUMP_NOT_TRUTHY:
+            case OP_JUMP:
+            case OP_SET_GLOBAL:
+            case OP_GET_GLOBAL:
+            case OP_ARRAY:
+            case OP_HASH:
+                operand = be_to_size_t(instructions->bytes + i + 1);
+                if (string == NULL) {
+                    int retval = asprintf(&string, "%04zu %s %zu", i, op_def->name, operand);
+                    if (retval == -1)
+                        err(EXIT_FAILURE, "malloc failed");
+                } else {
+                    char *temp   = nullptr;
+                    int   retval = asprintf(&temp, "%s\n%04zu %s %zu", string, i, op_def->name, operand);
+                    if (retval == -1)
+                        err(EXIT_FAILURE, "malloc failed");
+                    free(string);
+                    string = temp;
+                }
+                i += 2;
+                break;
+            case OP_SET_LOCAL:
+            case OP_GET_LOCAL:
+            case OP_CALL:
+            case OP_GET_BUILTIN:
+            case OP_GET_FREE:
+                operand = be_to_size_t_1(instructions->bytes + i + 1);
+                if (string == NULL) {
+                    int retval = asprintf(&string, "%04zu %s %zu", i, op_def->name, operand);
+                    if (retval == -1)
+                        err(EXIT_FAILURE, "malloc failed");
+                } else {
+                    char *temp   = nullptr;
+                    int   retval = asprintf(&temp, "%s\n%04zu %s %zu", string, i, op_def->name, operand);
+                    if (retval == -1)
+                        err(EXIT_FAILURE, "malloc failed");
+                    free(string);
+                    string = temp;
+                }
+                i++;
+                break;
+            case OP_CLOSURE:
+                operand = be_to_size_t(instructions->bytes + i + 1);
+                if (string == NULL) {
+                    int retval = asprintf(&string, "%04zu %s %zu", i, op_def->name, operand);
+                    if (retval == -1)
+                        err(EXIT_FAILURE, "malloc failed");
+                } else {
+                    char *temp   = nullptr;
+                    int   retval = asprintf(&temp, "%s\n%04zu %s %zu", string, i, op_def->name, operand);
+                    if (retval == -1)
+                        err(EXIT_FAILURE, "malloc failed");
+                    free(string);
+                    string = temp;
+                }
+                i += 2;
+                operand = be_to_size_t_1(instructions->bytes + i + 1);
+                if (string == NULL) {
+                    int retval = asprintf(&string, " %zu", operand);
+                    if (retval == -1)
+                        err(EXIT_FAILURE, "malloc failed");
+                } else {
+                    char *temp   = nullptr;
+                    int   retval = asprintf(&temp, "%s %zu", string, operand);
+                    if (retval == -1)
+                        err(EXIT_FAILURE, "malloc failed");
+                    free(string);
+                    string = temp;
+                }
+                i++;
+                break;
+            case OP_ADD:
+            case OP_SUB:
+            case OP_MUL:
+            case OP_DIV:
+            case OP_TRUE:
+            case OP_FALSE:
+            case OP_GREATER_THAN:
+            case OP_EQUAL:
+            case OP_NOT_EQUAL:
+            case OP_MINUS:
+            case OP_BANG:
+            case OP_NULL:
+            case OP_INDEX:
+            case OP_RETURN:
+            case OP_RETURN_VALUE:
+            case OP_CURRENT_CLOSURE:
+                if (string == NULL) {
+                    int retval = asprintf(&string, "%04zu %s", i, op_def->name);
+                    if (retval == -1)
+                        err(EXIT_FAILURE, "malloc failed");
+                } else {
+                    char *temp   = nullptr;
+                    int   retval = asprintf(&temp, "%s\n%04zu %s", string, i, op_def->name);
+                    if (retval == -1)
+                        err(EXIT_FAILURE, "malloc failed");
+                    free(string);
+                    string = temp;
+                }
+                break;
+            case OP_POP:
+                if (string == NULL) {
+                    int retval = asprintf(&string, "%04zu %s", i, "OPPOP");
+                    if (retval == -1)
+                        err(EXIT_FAILURE, "malloc failed");
+                } else {
+                    char *temp   = nullptr;
+                    int   retval = asprintf(&temp, "%s\n%04zu %s", string, i, "OPPOP");
+                    if (retval == -1)
+                        err(EXIT_FAILURE, "malloc failed");
+                    free(string);
+                    string = temp;
+                }
+                break;
+            default:
+                return "";
         }
     }
     return string;
@@ -274,12 +274,11 @@ void instructions_free(instructions *ins) {
     }
     if (ins->bytes) {
         free(ins->bytes);
-        ins->bytes = NULL;
+        ins->bytes = nullptr;
     }
     ins->capacity = ins->length = 0;
     free(ins);
 }
-
 
 
 instructions *opcode_copy_instructions(instructions *ins) {
@@ -309,7 +308,7 @@ instructions *opcode_copy_instructions(instructions *ins) {
     memcpy(ret->bytes, ins->bytes, ins->length);
 
     // Copy the length and capacity
-    ret->length = ins->length;
+    ret->length   = ins->length;
     ret->capacity = ins->capacity;
 
     return ret;
@@ -321,7 +320,7 @@ Opcode vm_instruction_decode(const uint8_t *bytes, size_t *operands) {
         return OP_INVALID; // Return an invalid opcode if input is NULL
     }
 
-    Opcode op = (Opcode)bytes[0];
+    Opcode            op  = (Opcode) bytes[0];
     OpcodeDefinition *def = opcode_definition_lookup(op);
 
     if (!def) {

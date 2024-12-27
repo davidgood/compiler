@@ -9,7 +9,6 @@
 #include <stdio.h>
 #include <stdarg.h>
 #include <stdlib.h>
-#include <stdbool.h>
 
 size_t *create_size_t_array(size_t count, ...) {
     va_list ap;

@@ -6,7 +6,6 @@
 #define CONVERSIONS_H
 #include <stddef.h>
 #include <stdint.h>
-#include <stdbool.h>
 
 char *long_to_string(long);
 

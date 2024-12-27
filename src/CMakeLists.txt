@@ -5,6 +5,8 @@ set(CMAKE_C_STANDARD 23)
 set(CMAKE_C_STANDARD_REQUIRED ON)
 
 add_executable(compiler main.c
+        logging/log.c
+        logging/log.h
         token/token.c
         token/token.h
         datastructures/hashmap.c
@@ -54,5 +56,4 @@ add_executable(compiler main.c
         compiler/compiler_utils.h
         compiler/compiler_core.c
         compiler/compiler_core.h
-        logging/log.c
-        logging/log.h)
+)

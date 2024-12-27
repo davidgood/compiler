@@ -5,7 +5,6 @@
 #include "evaluator.h"
 
 #include <assert.h>
-#include <parser.h>
 #include <string.h>
 
 #include "../ast/ast.h"

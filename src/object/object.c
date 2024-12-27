@@ -4,9 +4,8 @@
 
 #include "object.h"
 #include <err.h>
-#include <log.h>
-#include <stdarg.h>
 #include <stddef.h>
+#include <stdarg.h>
 #include <stdlib.h>
 #include <string.h>
 #include "../ast/ast.h"

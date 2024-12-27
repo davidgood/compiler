@@ -3,7 +3,7 @@
  */
 #define arraylist_memshift(s, offset, length) memmove((s) + (offset), (s), (length) * sizeof(*(s)))
 
-#include <arraylist.h>
+#include "arraylist.h"
 #include <assert.h>
 #include <err.h>
 #include <stdio.h>
