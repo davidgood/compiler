@@ -35,16 +35,13 @@ static char *get_err_msg(const char *s, ...) {
  * if the new object will replace it in the stack position.
  */
 void vm_push_copy(virtual_machine *vm, object_object *obj) {
-    log_debug("Enter VM Push Copy");
     if (vm->stack[vm->sp] != nullptr) {
-        log_debug("Freeing existing item");
         object_free(vm->stack[vm->sp]);
         vm->stack[vm->sp] = nullptr;
 
     }
     vm->stack[vm->sp++] = object_copy_object(obj);
     vm->stack_count++;
-    log_debug("Leave VM Push Copy");
 }
 
 static void vm_push(virtual_machine *vm, object_object *obj) {
@@ -83,7 +80,6 @@ static frame *pop_frame(virtual_machine *vm) {
 
 
 virtual_machine *vm_init(const bytecode *bytecode) {
-    log_debug("Enter VM Init");
 
     virtual_machine *vm = malloc(sizeof(virtual_machine));
     if (vm == NULL) {
@@ -129,7 +125,6 @@ virtual_machine *vm_init(const bytecode *bytecode) {
     object_free(main_closure);
     object_free(main_fn);
 
-    log_debug("Leave VM Init");
     return vm;
 }
 
@@ -147,9 +142,7 @@ virtual_machine *vm_init_with_state(bytecode *bytecode, object_object *globals[G
 }
 
 void vm_free(virtual_machine *vm) {
-    log_debug("Enter VM Free");
 
-    log_debug("Freeing stack objects");
     // Free stack objects
     for (size_t i = 0; i < vm->stack_count; i++) {
         if (vm->stack[i] != NULL) {
@@ -158,7 +151,6 @@ void vm_free(virtual_machine *vm) {
         }
     }
 
-    log_debug("Freeing global objects");
     // Free global objects
     for (size_t i = 0; i < GLOBALS_SIZE; i++) {
         if (vm->globals[i] != NULL) {
@@ -175,7 +167,6 @@ void vm_free(virtual_machine *vm) {
         }
     }
 
-    log_debug("Freeing constant objects");
     // Free constants
     if (vm->constants != NULL) {
         arraylist_destroy(vm->constants, object_free);
@@ -186,7 +177,6 @@ void vm_free(virtual_machine *vm) {
     free(vm);
     vm = nullptr;
 
-    log_debug("Leave VM Free");
 }
 
 object_object *vm_last_popped_stack_elem(virtual_machine *vm) {
@@ -194,7 +184,6 @@ object_object *vm_last_popped_stack_elem(virtual_machine *vm) {
 }
 
 static vm_error vm_push_closure(virtual_machine *vm, size_t const_index, size_t num_free_vars) {
-    log_debug("Enter VM Push Closure");
     vm_error       vm_err = {VM_ERROR_NONE, nullptr};
     object_object *obj    = arraylist_get(vm->constants, const_index);
     if (obj->type != OBJECT_COMPILED_FUNCTION) {
@@ -212,7 +201,6 @@ static vm_error vm_push_closure(virtual_machine *vm, size_t const_index, size_t 
     object_closure *    closure = object_create_closure(fn, free_vars);
     arraylist_destroy(free_vars);
     vm_push(vm, (object_object *) closure);
-    log_debug("Leave VM Push Closure");
     return vm_err;
 }
 
@@ -227,7 +215,6 @@ static object_object *get_constant(virtual_machine *vm, size_t const_index) {
 }
 
 static vm_error execute_binary_int_op(virtual_machine *vm, Opcode op, long leftval, long rightval) {
-    log_debug("Enter Binary Int Op");
     long              result;
     vm_error          error = {VM_ERROR_NONE, nullptr};
     OpcodeDefinition *op_def;
@@ -252,7 +239,6 @@ static vm_error execute_binary_int_op(virtual_machine *vm, Opcode op, long leftv
     }
     object_object *result_obj = (object_object *) object_create_int(result);
     vm_replace_top(vm, result_obj);
-    log_debug("Leave Binary Int Op");
     return error;
 }
 
@@ -534,7 +520,6 @@ uint16_t read_uint16(const uint8_t *bytes) {
 }
 
 vm_error vm_run(virtual_machine *vm) {
-    log_debug("Enter VM Run");
     size_t          const_index, jmp_pos, symbol_index, array_size, num_elements;
     vm_error        vm_err;
     object_object * top = nullptr;
@@ -567,7 +552,6 @@ vm_error vm_run(virtual_machine *vm) {
             case OP_CONSTANT:
                 const_index = read_uint16(&current_frame_instructions->bytes[ip + 1]);
                 current_frame->ip += 2;
-                log_debug("Pushing constant %zu", const_index);
                 vm_push_copy(vm, get_constant(vm, const_index));
                 break;
             case OP_ADD:
@@ -621,8 +605,7 @@ vm_error vm_run(virtual_machine *vm) {
             case OP_SET_GLOBAL:
                 symbol_index = read_uint16(&current_frame_instructions->bytes[ip + 1]);
                 current_frame->ip += 2;
-                top = vm_pop(vm);
-                log_debug("Copying object to globals");
+                top                       = vm_pop(vm);
                 vm->globals[symbol_index] = object_copy_object(top);
                 break;
             case OP_SET_LOCAL:
@@ -637,7 +620,6 @@ vm_error vm_run(virtual_machine *vm) {
             case OP_GET_GLOBAL:
                 symbol_index = read_uint16(&current_frame_instructions->bytes[ip + 1]);
                 current_frame->ip += 2;
-                log_debug("Making a copy of global object");
                 vm_push_copy(vm, vm->globals[symbol_index]);
                 break;
             case OP_GET_LOCAL:
@@ -694,7 +676,6 @@ vm_error vm_run(virtual_machine *vm) {
                 return_value = vm_pop(vm);
                 popped_frame = pop_frame(vm);
                 vm->sp       = popped_frame->bp - 1;
-                log_debug("Pushing return value %zu", return_value);
                 vm_replace_top(vm, object_copy_object(return_value));
                 break;
             case OP_RETURN:
@@ -735,6 +716,5 @@ vm_error vm_run(virtual_machine *vm) {
     }
     vm_err.code = VM_ERROR_NONE;
     vm_err.msg  = nullptr;
-    log_debug("Leave VM Run");
     return vm_err;
 }
