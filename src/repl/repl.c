@@ -12,7 +12,6 @@
 #include <unistd.h>
 #include "../ast/ast.h"
 #include "../compiler/compiler_core.h"
-#include "../compiler/symbol_table.h"
 #include "../evaluator/evaluator.h"
 #include "../lexer/lexer.h"
 #include "../object/builtins.h"
@@ -35,6 +34,34 @@ static const char *MONKEY_FACE = "            __,__\n\
            '-----'\n\
 ";
 
+static void dump_bytecode(bytecode *bytecode) {
+    object_compiled_fn *fn;
+    object_int *        int_obj;
+    char *              instructions = instructions_to_string(bytecode->instructions);
+    printf(" Instructions:\n%s\n", instructions);
+    free(instructions);
+    if (bytecode->constants_pool == NULL)
+        return;
+    for (size_t i = 0; i < bytecode->constants_pool->size; i++) {
+        object_object *constant = arraylist_get(bytecode->constants_pool, i);
+        printf("CONSTANT %zu %p %s:\n", i, constant, get_type_name(constant->type));
+        switch (constant->type) {
+            case OBJECT_COMPILED_FUNCTION:
+                fn = (object_compiled_fn *) constant;
+                char *ins = instructions_to_string(fn->instructions);
+                printf(" Instructions:\n%s", ins);
+                free(ins);
+                break;
+            case OBJECT_INT:
+                int_obj = (object_int *) constant;
+                printf(" Value: %ld\n", int_obj->value);
+                break;
+            default:
+                break;
+        }
+        printf("\n");
+    }
+}
 
 static void print_parse_errors(const parser *parser) {
     printf("%s\n", MONKEY_FACE);
@@ -47,7 +74,7 @@ static void print_parse_errors(const parser *parser) {
     }
 }
 
-/*
+
 static void free_lines(arraylist *lines) {
     for (size_t i = 0; i < lines->capacity; i++) {
         free(lines->body[i]);
@@ -71,70 +98,77 @@ int execute_file(const char *filename) {
             case EPERM:
             case EBADF:
                 err(EXIT_FAILURE, "Failed to open file %s", filename);
+                break;
             default:
                 err(EXIT_FAILURE, "Failed to open file %s", filename);
         }
     }
     size_t       line_size      = 0;
-    char *       line           = NULL;
-    char *       program_string = NULL;
+    char *       line           = nullptr;
+    char *       program_string = nullptr;
     environment *env            = environment_create();
     fseek(file, 0L, SEEK_END);
     const long file_size = ftell(file);
     rewind(file);
     program_string = malloc(file_size);
+
     if (program_string == NULL) {
         err(EXIT_FAILURE, "malloc failed");
     }
 
     while (getline(&line, &line_size, file) != -1) {
         strcat(program_string, line);
-        line      = NULL;
+        line      = nullptr;
         line_size = 0;
     }
-    lexer *      l       = lexer_init(program_string);
-    parser *     parser  = parser_init(l);
-    ast_program *program = parse_program(parser);
+
+    fclose(file);
+
+    lexer *      lexer    = lexer_init(program_string);
+    parser *     parser   = parser_init(lexer);
+    ast_program *program  = parse_program(parser);
+    compiler *   compiler = compiler_init();
+
+    printf("Executing file %s\n", program_string);
+
     free(program_string);
 
     if (parser->errors) {
         print_parse_errors(parser);
         goto EXIT;
     }
-    symbol_table *sym_table = symbol_table_init();
-    for (size_t i = 0; i < sizeof(BUILTINS) / sizeof(BUILTINS[0]); i++) {
-        symbol_define_builtin(sym_table, sizeof(BUILTINS[i]), BUILTINS[i]);
-    }
 
-    compiler *           comp  = compiler_init_with_state(sym_table);
-    const compiler_error error = compile(comp, (ast_node *) program);
+    compiler_error error = compile(compiler, (ast_node *) program);
     if (error.error_code != COMPILER_ERROR_NONE) {
         err(EXIT_FAILURE, "Failed to compile program");
     }
-    bytecode *       bytecode = get_bytecode(comp);
-    const arraylist *consts   = bytecode->constants_pool;
-    virtual_machine *machine  = vm_init_with_state(bytecode, arraylist_to_array(consts));
-    const vm_error   vmerror  = vm_run(machine);
-    if (vmerror.code != VM_ERROR_NONE) {
+    bytecode *bytecode = get_bytecode(compiler);
+
+    dump_bytecode(bytecode);
+
+    virtual_machine *machine  = vm_init(bytecode);
+    const vm_error   vm_error = vm_run(machine);
+
+    if (vm_error.code != VM_ERROR_NONE) {
         err(EXIT_FAILURE, "Failed to run program");
     }
     object_object *object = vm_last_popped_stack_elem(machine);
-    printf("%s\n", object->inspect(object));
-    /*object_object *evaluated = eval((ast_node *) program, env);
+    printf("Result: %s\n", object->inspect(object));
+
+    //object_object *evaluated = evaluator_eval((ast_node *) program, env);
     environment_free(env);
-    if (evaluated != NULL) {
-        if (evaluated->type != OBJECT_NULL) {
-            char *s = evaluated->inspect(evaluated);
-            printf("%s\n", s);
-            free(s);
-        }
-        object_free(evaluated);
-    }*/
-/*
+    // if (evaluated != NULL) {
+    //     if (evaluated->type != OBJECT_NULL) {
+    //         char *s = evaluated->inspect(evaluated);
+    //         printf("%s\n", s);
+    //         free(s);
+    //     }
+    //     object_free(evaluated);
+    // }
+
 EXIT:
     program_free(program);
     parser_free(parser);
-    fclose(file);
     if (line)
         free(line);
     return 0;
@@ -143,9 +177,9 @@ EXIT:
 int repl(void) {
     ssize_t      bytes_read;
     size_t       line_size = 0;
-    char *       line      = NULL;
-    parser *     parser    = NULL;
-    ast_program *program   = NULL;
+    char *       line      = nullptr;
+    parser *     parser    = nullptr;
+    ast_program *program   = nullptr;
     environment *env       = environment_create();
     printf("%s\n", MONKEY_FACE);
     printf("Welcome to the monkey programming language\n");
@@ -158,13 +192,13 @@ int repl(void) {
         if (line[bytes_read - 2] == '\\') {
             line[bytes_read - 2] = 0;
             arraylist_add(lines, line);
-            line      = NULL;
+            line      = nullptr;
             line_size = 0;
             printf("%s", "    ");
             continue;
         }
         arraylist_add(lines, line);
-        line      = NULL;
+        line      = nullptr;
         line_size = 0;
 
         char * program_string = arraylist_zip(lines, "\n");
@@ -177,7 +211,7 @@ int repl(void) {
             goto CONTINUE;
         }
 
-        object_object *evaluated = eval((ast_node *) program, env);
+        object_object *evaluated = evaluator_eval((ast_node *) program, env);
         if (evaluated != NULL) {
             char *s = evaluated->inspect(evaluated);
             printf("%s\n", s);
@@ -190,9 +224,9 @@ int repl(void) {
         parser_free(parser);
         free_lines(lines);
         free(program_string);
-        line    = NULL;
-        program = NULL;
-        parser  = NULL;
+        line    = nullptr;
+        program = nullptr;
+        parser  = nullptr;
         printf("%s", PROMPT);
     }
 
@@ -209,4 +243,23 @@ int repl(void) {
     environment_free(env);
     return 0;
 }
-*/
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
