@@ -211,6 +211,7 @@ compiler_error compile_expression_node(compiler *compiler, ast_expression *expre
             arraylist_destroy(free_symbols, symbol_free);
             object_compiled_fn *compiled_fn = object_create_compiled_fn(ins,
                                                                         num_locals, func_exp->parameters->size);
+            instructions_free(ins);
             constant_idx = add_constant(compiler, (object_object *) compiled_fn);
             emit(compiler, OP_CLOSURE, (size_t[]){constant_idx, free_symbols_count});
             break;

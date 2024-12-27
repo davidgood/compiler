@@ -160,7 +160,7 @@ object_compiled_fn *object_create_compiled_fn(instructions *, size_t, size_t);
 
 object_closure *object_create_closure(object_compiled_fn *fn, const arraylist *);
 
-//object_bool *get_monkey_true(void);
+void *_object_copy_object(void *);
 
 object_object *object_copy_object(object_object *);
 

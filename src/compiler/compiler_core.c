@@ -20,7 +20,7 @@ compiler *compiler_init(void) {
     if (compiler == NULL) {
         err(EXIT_FAILURE, "Could not allocate memory for compiler");
     }
-    compiler->constants_pool = NULL;
+    compiler->constants_pool = nullptr;
     compiler->symbol_table   = symbol_table_init();
     for (size_t i = 0; i < get_builtins_count(); i++) {
         const char *builtin_name = (char *) get_builtins_name(i);
@@ -111,7 +111,8 @@ void compiler_enter_scope(compiler *compiler) {
 void compiler_free(compiler *compiler) {
     arraylist_destroy(compiler->scopes);
     if (compiler->constants_pool) {
-        arraylist_destroy(compiler->constants_pool);
+        arraylist_destroy(compiler->constants_pool, object_free);
+        compiler->constants_pool = nullptr;
     }
     symbol_table_free(compiler->symbol_table);
     free(compiler);

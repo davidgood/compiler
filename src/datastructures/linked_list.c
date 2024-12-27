@@ -22,7 +22,6 @@ linked_list *linked_list_create(void (*free_func)(void *)) {
     list->tail      = nullptr;
     list->size      = 0;
     list->free_func = free_func;
-    log_debug("Linked List Created: %p ", list);
     return list;
 }
 
@@ -58,7 +57,7 @@ void linked_list_addNode(linked_list *list, void *data) {
 list_node *linked_list_get_at(const linked_list *list, size_t index) {
     if (list->head == NULL || index >= list->size) {
         fprintf(stderr, "Invalid index or NULL list\n");
-        return NULL;
+        return nullptr;
     }
     list_node *current = list->head;
     for (size_t i = 0; i < index; i++) {
@@ -105,8 +104,8 @@ bool linked_list_delete_node(linked_list *list, const list_node *nodeToDelete) {
     for (size_t i = 0; i < list->size; i++) {
         if (current == nodeToDelete) {
             if (list->size == 1) {
-                list->head = NULL;
-                list->tail = NULL;
+                list->head = nullptr;
+                list->tail = nullptr;
             } else {
                 prev->next = current->next;
                 if (current == list->head)
@@ -165,7 +164,6 @@ void linked_list_free(linked_list *list, void (*free_data)(void *)) {
         fprintf(stderr, "List is NULL\n");
         return;
     }
-    log_debug("Linked List Free: %p", list);
 
     list_node *current = list->head;
     for (size_t i = 0; i < list->size; i++) {

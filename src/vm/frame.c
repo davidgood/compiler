@@ -5,9 +5,11 @@
 #include "frame.h"
 
 #include <err.h>
+#include <log.h>
 #include <stdlib.h>
 
 frame *frame_init(object_closure *cl, size_t bp) {
+    log_debug("Entering Frame Init");
     frame *frame = malloc(sizeof(*frame));
     if (frame == NULL) {
         err(EXIT_FAILURE, "malloc failed");
@@ -22,6 +24,7 @@ frame *frame_init(object_closure *cl, size_t bp) {
 }
 
 void frame_free(frame *frame) {
+    log_debug("Entering Frame Free");
     object_free(frame->cl);
     free(frame);
 }

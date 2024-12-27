@@ -326,11 +326,13 @@ void var_destroy(destory_args args) {
             if (args.l->body[i] != NULL) {
                 //log_debug("Arraylist %p calling free_func on %p", args.l, args.l->body[i]);
                 args.l->free_func(args.l->body[i]);
+                args.l->body[i] = nullptr;
             }
         }
     }
     untrack_arraylist(args.l);
-    //log_debug("Freeing arraylist %p, size %u, free_func %p", args.l, args.l->size, args.l->free_func);
     free(args.l->body);
+    args.l->body = nullptr;
     free(args.l);
+    args.l = nullptr;
 }

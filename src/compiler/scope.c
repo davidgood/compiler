@@ -16,7 +16,7 @@ compilation_scope *scope_init() {
     if (scope->instructions == NULL) {
         err(EXIT_FAILURE, "malloc failed");
     }
-    scope->instructions->bytes    = NULL;
+    scope->instructions->bytes    = nullptr;
     scope->instructions->length   = 0;
     scope->instructions->capacity = 0;
     return scope;
@@ -32,7 +32,7 @@ void scope_free(compilation_scope *scope) {
     }
     if (scope->instructions) {
         instructions_free(scope->instructions);
-        scope->instructions = NULL;
+        scope->instructions = nullptr;
     }
     free(scope);
 }

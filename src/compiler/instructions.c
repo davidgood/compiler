@@ -9,9 +9,7 @@
 #include "scope.h"
 
 
-instructions *get_current_instructions(const compiler *compiler) {
-    return get_top_scope(compiler)->instructions;
-}
+instructions *get_current_instructions(const compiler *compiler) { return get_top_scope(compiler)->instructions; }
 
 bool last_instruction_is(const compiler *compiler, const Opcode opcode) {
     if (get_current_instructions(compiler)->length == 0)
@@ -90,7 +88,9 @@ bytecode *get_bytecode(const compiler *compiler) {
     bytecode *               bytecode = malloc(sizeof(*bytecode));
     const compilation_scope *scope    = get_top_scope(compiler);
     bytecode->instructions            = opcode_copy_instructions(scope->instructions);
-    bytecode->constants_pool          = compiler->constants_pool;
+    bytecode->constants_pool          = compiler->constants_pool
+                                   ? arraylist_clone(compiler->constants_pool, _object_copy_object, object_free)
+                                   : nullptr;
     return bytecode;
 }
 
@@ -100,7 +100,11 @@ void bytecode_free(bytecode *bytecode) {
     }
     if (bytecode->instructions) {
         instructions_free(bytecode->instructions);
-        bytecode->instructions = NULL;
+        bytecode->instructions = nullptr;
+    }
+    if (bytecode->constants_pool) {
+        arraylist_destroy(bytecode->constants_pool, object_free);
+        bytecode->constants_pool = nullptr;
     }
     free(bytecode);
 }

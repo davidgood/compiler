@@ -27,7 +27,7 @@ SubmitInactivityTimeout:
 NightlyStartTime: 00:00:00 EDT
 
 # Commands for the build/test/submit cycle
-ConfigureCommand: "/usr/bin/cmake" "/home/dgood/Projects/C/compiler"
+ConfigureCommand: "/home/dgood/.local/share/JetBrains/Toolbox/apps/clion/bin/cmake/linux/x64/bin/cmake" "/home/dgood/Projects/C/compiler"
 MakeCommand: /usr/bin/cmake --build . --config "${CTEST_CONFIGURATION_TYPE}"
 DefaultCTestConfigurationType: Release
 
