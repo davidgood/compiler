@@ -321,7 +321,6 @@ size_t object_get_hash(void *object) {
  ********************************************************************************/
 
 static void free_int_object(object_int *int_obj) {
-    log_debug("Freeing object %s: %p", get_type_name(int_obj->object.type), int_obj);
     int_obj->object.equals  = nullptr;
     int_obj->object.hash    = nullptr;
     int_obj->object.inspect = nullptr;
@@ -331,7 +330,6 @@ static void free_int_object(object_int *int_obj) {
 }
 
 static void free_function_object(object_function *function_obj) {
-    log_debug("Freeing object %s: %p", get_type_name(function_obj->object.type), function_obj);
     free_statement((ast_statement *) function_obj->body);
     linked_list_free(function_obj->parameters, object_free);
     free(function_obj);
@@ -342,7 +340,6 @@ static void free_compiled_function_object(object_compiled_fn *compiled_fn) {
     if (compiled_fn == NULL) {
         return;
     }
-    log_debug("Freeing compiled function object: %p (refcount: %d)", compiled_fn, compiled_fn->object.refcount);
     if (compiled_fn->instructions != NULL) {
         instructions_free(compiled_fn->instructions);
     }
@@ -351,14 +348,11 @@ static void free_compiled_function_object(object_compiled_fn *compiled_fn) {
 }
 
 static void free_error_object(object_error *err_obj) {
-    log_debug("Freeing object %s: %p", get_type_name(err_obj->object.type), err_obj);
     free(err_obj->message);
     free(err_obj);
 }
 
 static void free_return_object(object_return_value *ret_obj) {
-    log_debug("Freeing object %s: %p", get_type_name(ret_obj->obj.type), ret_obj);
-
     if (ret_obj->value) {
         free(ret_obj->value);
     }
@@ -367,8 +361,6 @@ static void free_return_object(object_return_value *ret_obj) {
 }
 
 static void free_string_object(object_string *str_obj) {
-    log_debug("Freeing object %s: %p", get_type_name(str_obj->object.type), str_obj);
-
     if (str_obj->value) {
         free(str_obj->value);
     }
@@ -379,8 +371,6 @@ static void free_string_object(object_string *str_obj) {
 static void free_array_object(object_array *array_obj) {
     if (!array_obj)
         return;
-
-    log_debug("Freeing array object: %p (refcount: %d)", array_obj, array_obj->object.refcount);
 
     if (array_obj->elements) {
         if (!array_obj->elements->free_func) {
@@ -396,14 +386,12 @@ static void free_array_object(object_array *array_obj) {
 }
 
 static void free_hash_object(object_hash *hash_obj) {
-    log_debug("Freeing object %s: %p", get_type_name(hash_obj->object.type), hash_obj);
     hashtable_destroy(hash_obj->pairs);
     free(hash_obj);
 }
 
 
 static void free_closure_object(object_closure *closure) {
-    log_debug("Freeing object %s: %p", get_type_name(closure->object.type), closure);
     closure->fn->object.refcount--;
     if (closure->fn->object.refcount == 0) {
         free_compiled_function_object(closure->fn);
@@ -416,7 +404,6 @@ static void free_closure_object(object_closure *closure) {
 
 void object_free(void *v) {
     static int count = 0;
-    log_debug("Enter Object Free %d", count++);
     if (!v) {
         fprintf(stderr, "object_free: null pointer passed\n");
         return;
@@ -432,7 +419,6 @@ void object_free(void *v) {
     if (object->refcount > 0) {
         object->refcount--;
         if (object->refcount > 0) {
-            log_debug("Skipping Free %s: %p (refcount: %d)", get_type_name(object->type), object, object->refcount);
             return;
         }
     }
@@ -479,8 +465,6 @@ object_object *object_copy_object(object_object *object) {
     if (!object) {
         return (object_object *) object_create_null();
     }
-
-    log_debug("Copying object %s: %p", get_type_name(object->type), object);
 
     // Immutable types (reuse reference)
     if (object->type == OBJECT_BOOL || object->type == OBJECT_NULL || object->type == OBJECT_BUILTIN) {
@@ -541,7 +525,6 @@ object_string *object_create_string(const char *value, const size_t length) {
     string_obj->object.inspect  = inspect;
     string_obj->object.equals   = object_equals;
     string_obj->object.refcount = 1;
-    log_debug("Created %s: %p count %d", get_type_name(string_obj->object.type), string_obj, create_count++);
     return string_obj;
 }
 
@@ -555,7 +538,6 @@ object_builtin *object_create_builtin(builtin_fn function) {
     builtin->object.hash     = nullptr;
     builtin->function        = function;
     builtin->object.refcount = 1;
-    log_debug("Created %s: %p count", get_type_name(builtin->object.type), builtin);
     return builtin;
 }
 
@@ -570,7 +552,6 @@ object_array *object_create_array(arraylist *elements) {
     array->elements        = elements;
     array->object.equals   = object_equals;
     array->object.refcount = 1;
-    log_debug("Created %s: %p", get_type_name(array->object.type), array);
 
     return array;
 }
@@ -586,7 +567,6 @@ object_hash *object_create_hash(hashtable *pairs) {
     hash_obj->object.equals   = object_equals;
     hash_obj->pairs           = pairs;
     hash_obj->object.refcount = 1;
-    log_debug("Created %s: %p", get_type_name(hash_obj->object.type), hash_obj);
 
     return hash_obj;
 }
@@ -602,8 +582,6 @@ object_int *object_create_int(const long value) {
     int_obj->object.equals   = object_equals;
     int_obj->value           = value;
     int_obj->object.refcount = 1;
-
-    log_debug("Created %s: %p", get_type_name(int_obj->object.type), int_obj);
 
     return int_obj;
 }
@@ -628,8 +606,6 @@ object_closure *object_create_closure(object_compiled_fn *fn, const arraylist *f
     closure->object.equals   = object_equals;
     closure->object.refcount = 1;
 
-    log_debug("Created %s: %p", get_type_name(closure->object.type), closure);
-
     return closure;
 }
 
@@ -646,9 +622,6 @@ object_function *object_create_function(linked_list *parameters, ast_block_state
     function->object.hash     = nullptr;
     function->object.equals   = object_equals;
     function->object.refcount = 1;
-
-    log_debug("Created %s: %p", get_type_name(function->object.type), function);
-
 
     return function;
 }
@@ -692,7 +665,6 @@ object_compiled_fn *object_create_compiled_fn(instructions *ins, const size_t nu
     compiled_fn->object.equals   = object_equals;
     compiled_fn->object.hash     = nullptr;
     compiled_fn->object.refcount = 1;
-    log_debug("Created %s: %p", get_type_name(compiled_fn->object.type), compiled_fn);
 
     return compiled_fn;
 }
@@ -708,7 +680,6 @@ object_return_value *object_create_return_value(object_object *value) {
     ret->obj.equals   = object_equals;
     ret->obj.hash     = nullptr;
     ret->obj.refcount = 1;
-    log_debug("Created %s: %p", get_type_name(ret->obj.type), ret);
 
     return ret;
 }
@@ -733,8 +704,6 @@ object_error *object_create_error(const char *fmt, ...) {
 
     error->message         = message;
     error->object.refcount = 1;
-    log_debug("Created %s: %p", get_type_name(error->object.type), error);
-
 
     return error;
 }
