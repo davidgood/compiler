@@ -1,17 +1,64 @@
-name: CMake with Coverage
+name: Build and Test Workflow
 
 on:
   push:
-    branches: [ "*" ]
+    branches: [ "*" ]  # Run tests on any branch push
   pull_request:
-    branches: [ "*" ]
+    branches: [ "main" ]  # Run full build on PRs targeting main
 
 env:
   BUILD_TYPE: Debug
   TARGET_GROUP: test
 
 jobs:
-  build:
+  # Test Job (Runs on any push)
+  test:
+    if: github.event_name == 'push'  # Ensure this job only runs on pushes
+    runs-on: ubuntu-latest
+    container:
+      image: fedora
+
+    steps:
+      # Checkout repository
+      - uses: actions/checkout@v4
+
+      # Install Dependencies
+      - name: Install Dependencies
+        run: |
+          dnf install -y cmake gcc g++ valgrind
+
+      # Create Build Directory
+      - name: Create Build Directory
+        run: mkdir -p build
+
+      # Configure CMake
+      - name: Configure CMake
+        run: |
+          cmake -B build \
+                -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} \
+                -DTARGET_GROUP=${{env.TARGET_GROUP}} \
+                -DCMAKE_C_STANDARD=23
+
+      # Build
+      - name: Build
+        run: cmake --build build --config ${{env.BUILD_TYPE}}
+
+      # Run Tests
+      - name: Run CTest
+        working-directory: build
+        run: ctest --output-on-failure
+
+      # Run Tests with Valgrind
+      - name: Run Tests with Valgrind
+        working-directory: build
+        run: |
+          for test_executable in $(ctest -N | grep 'Test #' | awk -F ': ' '{print $2}'); do
+            valgrind --leak-check=full --error-exitcode=1 ./bin/${test_executable}
+          done
+
+  # Full Build and Coverage (Runs on PRs to main)
+  full-build:
+    if: github.event_name == 'pull_request'  # Ensure this job only runs on pull requests
     runs-on: ubuntu-latest
     container:
       image: fedora
@@ -73,11 +120,3 @@ jobs:
         with:
           name: ctest-results
           path: build/ctest_results.txt
-
-      # Run Tests with Valgrind
-      - name: Run Tests with Valgrind
-        working-directory: build
-        run: |
-          for test_executable in $(ctest -N | grep 'Test #' | awk -F ': ' '{print $2}'); do
-            valgrind --leak-check=full --error-exitcode=1 ./bin/${test_executable}
-          done
