@@ -73,159 +73,185 @@ build rebuild_cache: phony CMakeFiles/rebuild_cache.util
 
 build cmake_object_order_depends_target_compiler: phony || .
 
-build src/CMakeFiles/compiler.dir/main.c.o: C_COMPILER__compiler_unscanned_ /home/dgood/Projects/C/compiler/src/main.c || cmake_object_order_depends_target_compiler
+build src/CMakeFiles/compiler.dir/main.c.o: C_COMPILER__compiler_unscanned_Debug /home/dgood/Projects/C/compiler/src/main.c || cmake_object_order_depends_target_compiler
+  DEFINES = -DDEBUG
   DEP_FILE = src/CMakeFiles/compiler.dir/main.c.o.d
-  FLAGS = -std=gnu2x
+  FLAGS = -g -std=gnu2x
   OBJECT_DIR = src/CMakeFiles/compiler.dir
   OBJECT_FILE_DIR = src/CMakeFiles/compiler.dir
 
-build src/CMakeFiles/compiler.dir/logging/log.c.o: C_COMPILER__compiler_unscanned_ /home/dgood/Projects/C/compiler/src/logging/log.c || cmake_object_order_depends_target_compiler
+build src/CMakeFiles/compiler.dir/logging/log.c.o: C_COMPILER__compiler_unscanned_Debug /home/dgood/Projects/C/compiler/src/logging/log.c || cmake_object_order_depends_target_compiler
+  DEFINES = -DDEBUG
   DEP_FILE = src/CMakeFiles/compiler.dir/logging/log.c.o.d
-  FLAGS = -std=gnu2x
+  FLAGS = -g -std=gnu2x
   OBJECT_DIR = src/CMakeFiles/compiler.dir
   OBJECT_FILE_DIR = src/CMakeFiles/compiler.dir/logging
 
-build src/CMakeFiles/compiler.dir/token/token.c.o: C_COMPILER__compiler_unscanned_ /home/dgood/Projects/C/compiler/src/token/token.c || cmake_object_order_depends_target_compiler
+build src/CMakeFiles/compiler.dir/token/token.c.o: C_COMPILER__compiler_unscanned_Debug /home/dgood/Projects/C/compiler/src/token/token.c || cmake_object_order_depends_target_compiler
+  DEFINES = -DDEBUG
   DEP_FILE = src/CMakeFiles/compiler.dir/token/token.c.o.d
-  FLAGS = -std=gnu2x
+  FLAGS = -g -std=gnu2x
   OBJECT_DIR = src/CMakeFiles/compiler.dir
   OBJECT_FILE_DIR = src/CMakeFiles/compiler.dir/token
 
-build src/CMakeFiles/compiler.dir/datastructures/hashmap.c.o: C_COMPILER__compiler_unscanned_ /home/dgood/Projects/C/compiler/src/datastructures/hashmap.c || cmake_object_order_depends_target_compiler
+build src/CMakeFiles/compiler.dir/datastructures/hashmap.c.o: C_COMPILER__compiler_unscanned_Debug /home/dgood/Projects/C/compiler/src/datastructures/hashmap.c || cmake_object_order_depends_target_compiler
+  DEFINES = -DDEBUG
   DEP_FILE = src/CMakeFiles/compiler.dir/datastructures/hashmap.c.o.d
-  FLAGS = -std=gnu2x
+  FLAGS = -g -std=gnu2x
   OBJECT_DIR = src/CMakeFiles/compiler.dir
   OBJECT_FILE_DIR = src/CMakeFiles/compiler.dir/datastructures
 
-build src/CMakeFiles/compiler.dir/lexer/lexer.c.o: C_COMPILER__compiler_unscanned_ /home/dgood/Projects/C/compiler/src/lexer/lexer.c || cmake_object_order_depends_target_compiler
+build src/CMakeFiles/compiler.dir/lexer/lexer.c.o: C_COMPILER__compiler_unscanned_Debug /home/dgood/Projects/C/compiler/src/lexer/lexer.c || cmake_object_order_depends_target_compiler
+  DEFINES = -DDEBUG
   DEP_FILE = src/CMakeFiles/compiler.dir/lexer/lexer.c.o.d
-  FLAGS = -std=gnu2x
+  FLAGS = -g -std=gnu2x
   OBJECT_DIR = src/CMakeFiles/compiler.dir
   OBJECT_FILE_DIR = src/CMakeFiles/compiler.dir/lexer
 
-build src/CMakeFiles/compiler.dir/ast/ast_debug_print.c.o: C_COMPILER__compiler_unscanned_ /home/dgood/Projects/C/compiler/src/ast/ast_debug_print.c || cmake_object_order_depends_target_compiler
+build src/CMakeFiles/compiler.dir/ast/ast_debug_print.c.o: C_COMPILER__compiler_unscanned_Debug /home/dgood/Projects/C/compiler/src/ast/ast_debug_print.c || cmake_object_order_depends_target_compiler
+  DEFINES = -DDEBUG
   DEP_FILE = src/CMakeFiles/compiler.dir/ast/ast_debug_print.c.o.d
-  FLAGS = -std=gnu2x
+  FLAGS = -g -std=gnu2x
   OBJECT_DIR = src/CMakeFiles/compiler.dir
   OBJECT_FILE_DIR = src/CMakeFiles/compiler.dir/ast
 
-build src/CMakeFiles/compiler.dir/datastructures/arraylist.c.o: C_COMPILER__compiler_unscanned_ /home/dgood/Projects/C/compiler/src/datastructures/arraylist.c || cmake_object_order_depends_target_compiler
+build src/CMakeFiles/compiler.dir/datastructures/arraylist.c.o: C_COMPILER__compiler_unscanned_Debug /home/dgood/Projects/C/compiler/src/datastructures/arraylist.c || cmake_object_order_depends_target_compiler
+  DEFINES = -DDEBUG
   DEP_FILE = src/CMakeFiles/compiler.dir/datastructures/arraylist.c.o.d
-  FLAGS = -std=gnu2x
+  FLAGS = -g -std=gnu2x
   OBJECT_DIR = src/CMakeFiles/compiler.dir
   OBJECT_FILE_DIR = src/CMakeFiles/compiler.dir/datastructures
 
-build src/CMakeFiles/compiler.dir/object/environment.c.o: C_COMPILER__compiler_unscanned_ /home/dgood/Projects/C/compiler/src/object/environment.c || cmake_object_order_depends_target_compiler
+build src/CMakeFiles/compiler.dir/object/environment.c.o: C_COMPILER__compiler_unscanned_Debug /home/dgood/Projects/C/compiler/src/object/environment.c || cmake_object_order_depends_target_compiler
+  DEFINES = -DDEBUG
   DEP_FILE = src/CMakeFiles/compiler.dir/object/environment.c.o.d
-  FLAGS = -std=gnu2x
+  FLAGS = -g -std=gnu2x
   OBJECT_DIR = src/CMakeFiles/compiler.dir
   OBJECT_FILE_DIR = src/CMakeFiles/compiler.dir/object
 
-build src/CMakeFiles/compiler.dir/object/object.c.o: C_COMPILER__compiler_unscanned_ /home/dgood/Projects/C/compiler/src/object/object.c || cmake_object_order_depends_target_compiler
+build src/CMakeFiles/compiler.dir/object/object.c.o: C_COMPILER__compiler_unscanned_Debug /home/dgood/Projects/C/compiler/src/object/object.c || cmake_object_order_depends_target_compiler
+  DEFINES = -DDEBUG
   DEP_FILE = src/CMakeFiles/compiler.dir/object/object.c.o.d
-  FLAGS = -std=gnu2x
+  FLAGS = -g -std=gnu2x
   OBJECT_DIR = src/CMakeFiles/compiler.dir
   OBJECT_FILE_DIR = src/CMakeFiles/compiler.dir/object
 
-build src/CMakeFiles/compiler.dir/opcode/opcode.c.o: C_COMPILER__compiler_unscanned_ /home/dgood/Projects/C/compiler/src/opcode/opcode.c || cmake_object_order_depends_target_compiler
+build src/CMakeFiles/compiler.dir/opcode/opcode.c.o: C_COMPILER__compiler_unscanned_Debug /home/dgood/Projects/C/compiler/src/opcode/opcode.c || cmake_object_order_depends_target_compiler
+  DEFINES = -DDEBUG
   DEP_FILE = src/CMakeFiles/compiler.dir/opcode/opcode.c.o.d
-  FLAGS = -std=gnu2x
+  FLAGS = -g -std=gnu2x
   OBJECT_DIR = src/CMakeFiles/compiler.dir
   OBJECT_FILE_DIR = src/CMakeFiles/compiler.dir/opcode
 
-build src/CMakeFiles/compiler.dir/parser/parser.c.o: C_COMPILER__compiler_unscanned_ /home/dgood/Projects/C/compiler/src/parser/parser.c || cmake_object_order_depends_target_compiler
+build src/CMakeFiles/compiler.dir/parser/parser.c.o: C_COMPILER__compiler_unscanned_Debug /home/dgood/Projects/C/compiler/src/parser/parser.c || cmake_object_order_depends_target_compiler
+  DEFINES = -DDEBUG
   DEP_FILE = src/CMakeFiles/compiler.dir/parser/parser.c.o.d
-  FLAGS = -std=gnu2x
+  FLAGS = -g -std=gnu2x
   OBJECT_DIR = src/CMakeFiles/compiler.dir
   OBJECT_FILE_DIR = src/CMakeFiles/compiler.dir/parser
 
-build src/CMakeFiles/compiler.dir/parser/parser_tracing.c.o: C_COMPILER__compiler_unscanned_ /home/dgood/Projects/C/compiler/src/parser/parser_tracing.c || cmake_object_order_depends_target_compiler
+build src/CMakeFiles/compiler.dir/parser/parser_tracing.c.o: C_COMPILER__compiler_unscanned_Debug /home/dgood/Projects/C/compiler/src/parser/parser_tracing.c || cmake_object_order_depends_target_compiler
+  DEFINES = -DDEBUG
   DEP_FILE = src/CMakeFiles/compiler.dir/parser/parser_tracing.c.o.d
-  FLAGS = -std=gnu2x
+  FLAGS = -g -std=gnu2x
   OBJECT_DIR = src/CMakeFiles/compiler.dir
   OBJECT_FILE_DIR = src/CMakeFiles/compiler.dir/parser
 
-build src/CMakeFiles/compiler.dir/datastructures/stack.c.o: C_COMPILER__compiler_unscanned_ /home/dgood/Projects/C/compiler/src/datastructures/stack.c || cmake_object_order_depends_target_compiler
+build src/CMakeFiles/compiler.dir/datastructures/stack.c.o: C_COMPILER__compiler_unscanned_Debug /home/dgood/Projects/C/compiler/src/datastructures/stack.c || cmake_object_order_depends_target_compiler
+  DEFINES = -DDEBUG
   DEP_FILE = src/CMakeFiles/compiler.dir/datastructures/stack.c.o.d
-  FLAGS = -std=gnu2x
+  FLAGS = -g -std=gnu2x
   OBJECT_DIR = src/CMakeFiles/compiler.dir
   OBJECT_FILE_DIR = src/CMakeFiles/compiler.dir/datastructures
 
-build src/CMakeFiles/compiler.dir/compiler/symbol_table.c.o: C_COMPILER__compiler_unscanned_ /home/dgood/Projects/C/compiler/src/compiler/symbol_table.c || cmake_object_order_depends_target_compiler
+build src/CMakeFiles/compiler.dir/compiler/symbol_table.c.o: C_COMPILER__compiler_unscanned_Debug /home/dgood/Projects/C/compiler/src/compiler/symbol_table.c || cmake_object_order_depends_target_compiler
+  DEFINES = -DDEBUG
   DEP_FILE = src/CMakeFiles/compiler.dir/compiler/symbol_table.c.o.d
-  FLAGS = -std=gnu2x
+  FLAGS = -g -std=gnu2x
   OBJECT_DIR = src/CMakeFiles/compiler.dir
   OBJECT_FILE_DIR = src/CMakeFiles/compiler.dir/compiler
 
-build src/CMakeFiles/compiler.dir/evaluator/evaluator.c.o: C_COMPILER__compiler_unscanned_ /home/dgood/Projects/C/compiler/src/evaluator/evaluator.c || cmake_object_order_depends_target_compiler
+build src/CMakeFiles/compiler.dir/evaluator/evaluator.c.o: C_COMPILER__compiler_unscanned_Debug /home/dgood/Projects/C/compiler/src/evaluator/evaluator.c || cmake_object_order_depends_target_compiler
+  DEFINES = -DDEBUG
   DEP_FILE = src/CMakeFiles/compiler.dir/evaluator/evaluator.c.o.d
-  FLAGS = -std=gnu2x
+  FLAGS = -g -std=gnu2x
   OBJECT_DIR = src/CMakeFiles/compiler.dir
   OBJECT_FILE_DIR = src/CMakeFiles/compiler.dir/evaluator
 
-build src/CMakeFiles/compiler.dir/object/builtins.c.o: C_COMPILER__compiler_unscanned_ /home/dgood/Projects/C/compiler/src/object/builtins.c || cmake_object_order_depends_target_compiler
+build src/CMakeFiles/compiler.dir/object/builtins.c.o: C_COMPILER__compiler_unscanned_Debug /home/dgood/Projects/C/compiler/src/object/builtins.c || cmake_object_order_depends_target_compiler
+  DEFINES = -DDEBUG
   DEP_FILE = src/CMakeFiles/compiler.dir/object/builtins.c.o.d
-  FLAGS = -std=gnu2x
+  FLAGS = -g -std=gnu2x
   OBJECT_DIR = src/CMakeFiles/compiler.dir
   OBJECT_FILE_DIR = src/CMakeFiles/compiler.dir/object
 
-build src/CMakeFiles/compiler.dir/datastructures/linked_list.c.o: C_COMPILER__compiler_unscanned_ /home/dgood/Projects/C/compiler/src/datastructures/linked_list.c || cmake_object_order_depends_target_compiler
+build src/CMakeFiles/compiler.dir/datastructures/linked_list.c.o: C_COMPILER__compiler_unscanned_Debug /home/dgood/Projects/C/compiler/src/datastructures/linked_list.c || cmake_object_order_depends_target_compiler
+  DEFINES = -DDEBUG
   DEP_FILE = src/CMakeFiles/compiler.dir/datastructures/linked_list.c.o.d
-  FLAGS = -std=gnu2x
+  FLAGS = -g -std=gnu2x
   OBJECT_DIR = src/CMakeFiles/compiler.dir
   OBJECT_FILE_DIR = src/CMakeFiles/compiler.dir/datastructures
 
-build src/CMakeFiles/compiler.dir/datastructures/conversions.c.o: C_COMPILER__compiler_unscanned_ /home/dgood/Projects/C/compiler/src/datastructures/conversions.c || cmake_object_order_depends_target_compiler
+build src/CMakeFiles/compiler.dir/datastructures/conversions.c.o: C_COMPILER__compiler_unscanned_Debug /home/dgood/Projects/C/compiler/src/datastructures/conversions.c || cmake_object_order_depends_target_compiler
+  DEFINES = -DDEBUG
   DEP_FILE = src/CMakeFiles/compiler.dir/datastructures/conversions.c.o.d
-  FLAGS = -std=gnu2x
+  FLAGS = -g -std=gnu2x
   OBJECT_DIR = src/CMakeFiles/compiler.dir
   OBJECT_FILE_DIR = src/CMakeFiles/compiler.dir/datastructures
 
-build src/CMakeFiles/compiler.dir/repl/repl.c.o: C_COMPILER__compiler_unscanned_ /home/dgood/Projects/C/compiler/src/repl/repl.c || cmake_object_order_depends_target_compiler
+build src/CMakeFiles/compiler.dir/repl/repl.c.o: C_COMPILER__compiler_unscanned_Debug /home/dgood/Projects/C/compiler/src/repl/repl.c || cmake_object_order_depends_target_compiler
+  DEFINES = -DDEBUG
   DEP_FILE = src/CMakeFiles/compiler.dir/repl/repl.c.o.d
-  FLAGS = -std=gnu2x
+  FLAGS = -g -std=gnu2x
   OBJECT_DIR = src/CMakeFiles/compiler.dir
   OBJECT_FILE_DIR = src/CMakeFiles/compiler.dir/repl
 
-build src/CMakeFiles/compiler.dir/vm/virtual_machine.c.o: C_COMPILER__compiler_unscanned_ /home/dgood/Projects/C/compiler/src/vm/virtual_machine.c || cmake_object_order_depends_target_compiler
+build src/CMakeFiles/compiler.dir/vm/virtual_machine.c.o: C_COMPILER__compiler_unscanned_Debug /home/dgood/Projects/C/compiler/src/vm/virtual_machine.c || cmake_object_order_depends_target_compiler
+  DEFINES = -DDEBUG
   DEP_FILE = src/CMakeFiles/compiler.dir/vm/virtual_machine.c.o.d
-  FLAGS = -std=gnu2x
+  FLAGS = -g -std=gnu2x
   OBJECT_DIR = src/CMakeFiles/compiler.dir
   OBJECT_FILE_DIR = src/CMakeFiles/compiler.dir/vm
 
-build src/CMakeFiles/compiler.dir/vm/frame.c.o: C_COMPILER__compiler_unscanned_ /home/dgood/Projects/C/compiler/src/vm/frame.c || cmake_object_order_depends_target_compiler
+build src/CMakeFiles/compiler.dir/vm/frame.c.o: C_COMPILER__compiler_unscanned_Debug /home/dgood/Projects/C/compiler/src/vm/frame.c || cmake_object_order_depends_target_compiler
+  DEFINES = -DDEBUG
   DEP_FILE = src/CMakeFiles/compiler.dir/vm/frame.c.o.d
-  FLAGS = -std=gnu2x
+  FLAGS = -g -std=gnu2x
   OBJECT_DIR = src/CMakeFiles/compiler.dir
   OBJECT_FILE_DIR = src/CMakeFiles/compiler.dir/vm
 
-build src/CMakeFiles/compiler.dir/compiler/instructions.c.o: C_COMPILER__compiler_unscanned_ /home/dgood/Projects/C/compiler/src/compiler/instructions.c || cmake_object_order_depends_target_compiler
+build src/CMakeFiles/compiler.dir/compiler/instructions.c.o: C_COMPILER__compiler_unscanned_Debug /home/dgood/Projects/C/compiler/src/compiler/instructions.c || cmake_object_order_depends_target_compiler
+  DEFINES = -DDEBUG
   DEP_FILE = src/CMakeFiles/compiler.dir/compiler/instructions.c.o.d
-  FLAGS = -std=gnu2x
+  FLAGS = -g -std=gnu2x
   OBJECT_DIR = src/CMakeFiles/compiler.dir
   OBJECT_FILE_DIR = src/CMakeFiles/compiler.dir/compiler
 
-build src/CMakeFiles/compiler.dir/compiler/scope.c.o: C_COMPILER__compiler_unscanned_ /home/dgood/Projects/C/compiler/src/compiler/scope.c || cmake_object_order_depends_target_compiler
+build src/CMakeFiles/compiler.dir/compiler/scope.c.o: C_COMPILER__compiler_unscanned_Debug /home/dgood/Projects/C/compiler/src/compiler/scope.c || cmake_object_order_depends_target_compiler
+  DEFINES = -DDEBUG
   DEP_FILE = src/CMakeFiles/compiler.dir/compiler/scope.c.o.d
-  FLAGS = -std=gnu2x
+  FLAGS = -g -std=gnu2x
   OBJECT_DIR = src/CMakeFiles/compiler.dir
   OBJECT_FILE_DIR = src/CMakeFiles/compiler.dir/compiler
 
-build src/CMakeFiles/compiler.dir/compiler/node_compiler.c.o: C_COMPILER__compiler_unscanned_ /home/dgood/Projects/C/compiler/src/compiler/node_compiler.c || cmake_object_order_depends_target_compiler
+build src/CMakeFiles/compiler.dir/compiler/node_compiler.c.o: C_COMPILER__compiler_unscanned_Debug /home/dgood/Projects/C/compiler/src/compiler/node_compiler.c || cmake_object_order_depends_target_compiler
+  DEFINES = -DDEBUG
   DEP_FILE = src/CMakeFiles/compiler.dir/compiler/node_compiler.c.o.d
-  FLAGS = -std=gnu2x
+  FLAGS = -g -std=gnu2x
   OBJECT_DIR = src/CMakeFiles/compiler.dir
   OBJECT_FILE_DIR = src/CMakeFiles/compiler.dir/compiler
 
-build src/CMakeFiles/compiler.dir/compiler/compiler_utils.c.o: C_COMPILER__compiler_unscanned_ /home/dgood/Projects/C/compiler/src/compiler/compiler_utils.c || cmake_object_order_depends_target_compiler
+build src/CMakeFiles/compiler.dir/compiler/compiler_utils.c.o: C_COMPILER__compiler_unscanned_Debug /home/dgood/Projects/C/compiler/src/compiler/compiler_utils.c || cmake_object_order_depends_target_compiler
+  DEFINES = -DDEBUG
   DEP_FILE = src/CMakeFiles/compiler.dir/compiler/compiler_utils.c.o.d
-  FLAGS = -std=gnu2x
+  FLAGS = -g -std=gnu2x
   OBJECT_DIR = src/CMakeFiles/compiler.dir
   OBJECT_FILE_DIR = src/CMakeFiles/compiler.dir/compiler
 
-build src/CMakeFiles/compiler.dir/compiler/compiler_core.c.o: C_COMPILER__compiler_unscanned_ /home/dgood/Projects/C/compiler/src/compiler/compiler_core.c || cmake_object_order_depends_target_compiler
+build src/CMakeFiles/compiler.dir/compiler/compiler_core.c.o: C_COMPILER__compiler_unscanned_Debug /home/dgood/Projects/C/compiler/src/compiler/compiler_core.c || cmake_object_order_depends_target_compiler
+  DEFINES = -DDEBUG
   DEP_FILE = src/CMakeFiles/compiler.dir/compiler/compiler_core.c.o.d
-  FLAGS = -std=gnu2x
+  FLAGS = -g -std=gnu2x
   OBJECT_DIR = src/CMakeFiles/compiler.dir
   OBJECT_FILE_DIR = src/CMakeFiles/compiler.dir/compiler
 
@@ -237,7 +263,8 @@ build src/CMakeFiles/compiler.dir/compiler/compiler_core.c.o: C_COMPILER__compil
 #############################################
 # Link the executable bin/compiler
 
-build bin/compiler: C_EXECUTABLE_LINKER__compiler_ src/CMakeFiles/compiler.dir/main.c.o src/CMakeFiles/compiler.dir/logging/log.c.o src/CMakeFiles/compiler.dir/token/token.c.o src/CMakeFiles/compiler.dir/datastructures/hashmap.c.o src/CMakeFiles/compiler.dir/lexer/lexer.c.o src/CMakeFiles/compiler.dir/ast/ast_debug_print.c.o src/CMakeFiles/compiler.dir/datastructures/arraylist.c.o src/CMakeFiles/compiler.dir/object/environment.c.o src/CMakeFiles/compiler.dir/object/object.c.o src/CMakeFiles/compiler.dir/opcode/opcode.c.o src/CMakeFiles/compiler.dir/parser/parser.c.o src/CMakeFiles/compiler.dir/parser/parser_tracing.c.o src/CMakeFiles/compiler.dir/datastructures/stack.c.o src/CMakeFiles/compiler.dir/compiler/symbol_table.c.o src/CMakeFiles/compiler.dir/evaluator/evaluator.c.o src/CMakeFiles/compiler.dir/object/builtins.c.o src/CMakeFiles/compiler.dir/datastructures/linked_list.c.o src/CMakeFiles/compiler.dir/datastructures/conversions.c.o src/CMakeFiles/compiler.dir/repl/repl.c.o src/CMakeFiles/compiler.dir/vm/virtual_machine.c.o src/CMakeFiles/compiler.dir/vm/frame.c.o src/CMakeFiles/compiler.dir/compiler/instructions.c.o src/CMakeFiles/compiler.dir/compiler/scope.c.o src/CMakeFiles/compiler.dir/compiler/node_compiler.c.o src/CMakeFiles/compiler.dir/compiler/compiler_utils.c.o src/CMakeFiles/compiler.dir/compiler/compiler_core.c.o
+build bin/compiler: C_EXECUTABLE_LINKER__compiler_Debug src/CMakeFiles/compiler.dir/main.c.o src/CMakeFiles/compiler.dir/logging/log.c.o src/CMakeFiles/compiler.dir/token/token.c.o src/CMakeFiles/compiler.dir/datastructures/hashmap.c.o src/CMakeFiles/compiler.dir/lexer/lexer.c.o src/CMakeFiles/compiler.dir/ast/ast_debug_print.c.o src/CMakeFiles/compiler.dir/datastructures/arraylist.c.o src/CMakeFiles/compiler.dir/object/environment.c.o src/CMakeFiles/compiler.dir/object/object.c.o src/CMakeFiles/compiler.dir/opcode/opcode.c.o src/CMakeFiles/compiler.dir/parser/parser.c.o src/CMakeFiles/compiler.dir/parser/parser_tracing.c.o src/CMakeFiles/compiler.dir/datastructures/stack.c.o src/CMakeFiles/compiler.dir/compiler/symbol_table.c.o src/CMakeFiles/compiler.dir/evaluator/evaluator.c.o src/CMakeFiles/compiler.dir/object/builtins.c.o src/CMakeFiles/compiler.dir/datastructures/linked_list.c.o src/CMakeFiles/compiler.dir/datastructures/conversions.c.o src/CMakeFiles/compiler.dir/repl/repl.c.o src/CMakeFiles/compiler.dir/vm/virtual_machine.c.o src/CMakeFiles/compiler.dir/vm/frame.c.o src/CMakeFiles/compiler.dir/compiler/instructions.c.o src/CMakeFiles/compiler.dir/compiler/scope.c.o src/CMakeFiles/compiler.dir/compiler/node_compiler.c.o src/CMakeFiles/compiler.dir/compiler/compiler_utils.c.o src/CMakeFiles/compiler.dir/compiler/compiler_core.c.o
+  FLAGS = -g
   OBJECT_DIR = src/CMakeFiles/compiler.dir
   POST_BUILD = :
   PRE_LINK = :

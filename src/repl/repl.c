@@ -181,10 +181,13 @@ int repl(void) {
     parser *     parser    = nullptr;
     ast_program *program   = nullptr;
     environment *env       = environment_create();
+
     printf("%s\n", MONKEY_FACE);
     printf("Welcome to the monkey programming language\n");
     printf("%s", PROMPT);
+
     arraylist *lines = arraylist_create(4, free);
+
     while ((bytes_read = getline(&line, &line_size, stdin)) != -1) {
         if (strcmp(line, "quit\n") == 0)
             break;
@@ -197,14 +200,16 @@ int repl(void) {
             printf("%s", "    ");
             continue;
         }
+
         arraylist_add(lines, line);
         line      = nullptr;
         line_size = 0;
 
-        char * program_string = arraylist_zip(lines, "\n");
-        lexer *l              = lexer_init(program_string);
-        parser                = parser_init(l);
-        program               = parse_program(parser);
+        char *program_string = arraylist_zip(lines, "\n");
+
+        lexer *l = lexer_init(program_string);
+        parser   = parser_init(l);
+        program  = parse_program(parser);
 
         if (parser->errors) {
             print_parse_errors(parser);
@@ -222,7 +227,7 @@ int repl(void) {
     CONTINUE:
         program_free(program);
         parser_free(parser);
-        free_lines(lines);
+        //free_lines(lines);
         free(program_string);
         line    = nullptr;
         program = nullptr;

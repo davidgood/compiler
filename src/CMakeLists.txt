@@ -3,6 +3,10 @@ project(compiler C)
 
 set(CMAKE_C_STANDARD 23)
 set(CMAKE_C_STANDARD_REQUIRED ON)
+set(CMAKE_BUILD_TYPE Debug)
+set(CMAKE_C_FLAGS_DEBUG "-g")
+
+add_definitions(-DDEBUG)
 
 add_executable(compiler main.c
         logging/log.c
