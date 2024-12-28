@@ -1,4 +1,4 @@
-name: CodeQL Analysis
+name: CodeQL Analysis with Fedora
 
 on:
   push:
@@ -9,19 +9,25 @@ on:
 jobs:
   analyze:
     name: Analyze (${{ matrix.language }})
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-latest # Required for GitHub Actions, but we will use a Fedora container
     container:
-      image: fedora    
+      image: fedora:latest
+
     permissions:
       security-events: write
+
     strategy:
       fail-fast: false
       matrix:
         include:
-        - language: c-cpp
-          build-mode: manual
+          - language: c-cpp
+            build-mode: manual
 
     steps:
+    - name: Install Dependencies
+      run: |
+        dnf install -y cmake gcc gcc-c++ git make
+
     - name: Checkout repository
       uses: actions/checkout@v4
 
@@ -31,7 +37,7 @@ jobs:
       with:
         languages: ${{ matrix.language }}
 
-    # Build your project manually
+    # Build your project manually in the Fedora container
     - name: Build the project
       run: |
         mkdir -p build
