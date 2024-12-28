@@ -1,5 +1,0 @@
-/home/dgood/Projects/C/compiler/build/CMakeFiles/edit_cache.dir
-/home/dgood/Projects/C/compiler/build/CMakeFiles/rebuild_cache.dir
-/home/dgood/Projects/C/compiler/build/src/CMakeFiles/compiler.dir
-/home/dgood/Projects/C/compiler/build/src/CMakeFiles/edit_cache.dir
-/home/dgood/Projects/C/compiler/build/src/CMakeFiles/rebuild_cache.dir
