@@ -24,19 +24,20 @@ size_t *create_size_t_array(size_t count, ...) {
     return array;
 }
 
-// uint8_t *create_uint8_array(const size_t count, ...) {
-//     va_list ap;
-//     va_start(ap, count);
-//     uint8_t *array = malloc(sizeof(*array) * count);
-//     if (array == NULL) {
-//         err(EXIT_FAILURE, "malloc failed");
-//     }
-//     for (size_t i = 0; i < count; i++) {
-//         array[i] = va_arg(ap, int);
-//     }
-//     va_end(ap);
-//     return array;
-// }
+uint8_t *create_uint8_array(const size_t count, ...) {
+    va_list ap;
+    va_start(ap, count);
+    uint8_t *array = malloc(sizeof(*array) * count);
+    if (array == NULL) {
+        err(EXIT_FAILURE, "malloc failed");
+    }
+    for (size_t i = 0; i < count; i++) {
+        array[i] = va_arg(ap, int);
+    }
+    va_end(ap);
+    return array;
+}
+
 //
 // uint8_t *size_t_to_uint8_be(size_t value, size_t width) {
 //     uint8_t *array = malloc(sizeof(*array) * width);
