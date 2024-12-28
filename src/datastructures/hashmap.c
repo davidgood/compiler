@@ -5,7 +5,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <stdbool.h>
 
 
 /**
@@ -27,19 +26,19 @@ void *hashtable_get(const hashtable *table, void *key) {
             return entry->value;
         list_node = list_node->next;
     }
-    return NULL;
+    return nullptr;
 }
 
 static hashtable_entry *find_entry(const linked_list *list, const hashtable_entry *other_entry,
-                                   _Bool (*           key_equals)(void *, void *)) {
+                                   bool (*            key_equals)(void *, void *)) {
     const list_node *node = list->head;
     while (node) {
-        hashtable_entry *entry = (node->data);
+        hashtable_entry *entry = node->data;
         if (key_equals(entry->key, other_entry->key))
             return entry;
         node = node->next;
     }
-    return NULL;
+    return nullptr;
 }
 
 /**
@@ -140,7 +139,7 @@ void hashtable_remove_and_free(hashtable *t, void *key) {
     }
 
     const hashtable_entry temp_entry = {key, NULL};
-    list_node *           prev       = NULL;
+    list_node *           prev       = nullptr;
     list_node *           current    = entry_list->head;
 
     while (current != NULL) {
@@ -253,42 +252,6 @@ hashtable_entry *hashtable_body_allocate(const unsigned int capacity) {
     return calloc(capacity, sizeof(hashtable_entry));
 }
 
-/*// Ensure proper memory management in free_entry_list
-static void free_entry_list(const hashtable *table, linked_list *entry_list) {
-    list_node *current = entry_list->head;
-
-    while (current != NULL) {
-        list_node *next = current->next;
-
-        hashtable_entry *entry = current->data;
-        if (table->free_key) {
-            table->free_key(entry->key);
-        }
-        if (table->free_value) {
-            table->free_value(entry->value);
-        }
-
-        free(entry);
-        free(current);
-
-        current = next;
-    }
-    free(entry_list);
-}
-
-// Ensure proper memory management in hashtable_destroy
-void hashtable_destroy(hashtable *t) {
-    for (size_t i = 0; i < t->table_size; i++) {
-        linked_list *entry_list = t->table[i];
-        if (entry_list != NULL) {
-            free_entry_list(t, entry_list);
-        }
-    }
-    free(t->table);
-    arraylist_destroy(t->used_slots);
-    free(t);
-}*/
-
 static void free_hashtable_entry(void *data) {
     hashtable_entry *entry = data;
 
@@ -307,12 +270,12 @@ static void free_hashtable_entry(void *data) {
 }
 
 
-static void free_entry_list(linked_list *entry_list) {
+/*static void free_entry_list(linked_list *entry_list) {
     if (entry_list == NULL)
         return;
 
     linked_list_free(entry_list, free_hashtable_entry);
-}
+}*/
 
 
 void hashtable_destroy(hashtable *t) {
@@ -334,7 +297,7 @@ void hashtable_destroy(hashtable *t) {
 
 size_t string_hash_function(void *key) {
     unsigned long hash = 5381;
-    char *        str  = (char *) key;
+    char *        str  = key;
     int           c;
     while ((c = (unsigned char) *str++))
         hash  = ((hash << 5) + hash) + c;
@@ -342,8 +305,8 @@ size_t string_hash_function(void *key) {
 }
 
 bool string_equals(void *key1, void *key2) {
-    char *strkey1 = (char *) key1;
-    char *strkey2 = (char *) key2;
+    char *strkey1 = key1;
+    char *strkey2 = key2;
     return strcmp(strkey1, strkey2) == 0;
 }
 
@@ -377,7 +340,7 @@ void hashtable_visualize(const hashtable *table) {
     printf("Hashtable Visualization:\n");
     printf("Table Size: %zu\n", table->table_size);
     printf("Key Count: %zu\n", table->key_count);
-    printf("Used Slots (%zu): [", table->used_slots->size);
+    printf("Used Slots (%u): [", table->used_slots->size);
     for (size_t i = 0; i < table->used_slots->size; i++) {
         size_t *index = (size_t *) table->used_slots->body[i];
         printf("%zu", *index);
@@ -394,7 +357,7 @@ void hashtable_visualize(const hashtable *table) {
             printf("  [%zu]: ", i);
             list_node *node = bucket->head;
             while (node) {
-                hashtable_entry *entry = (hashtable_entry *) node->data;
+                hashtable_entry *entry = node->data;
                 printf("(Key: %p, Value: %p) -> ", entry->key, entry->value);
                 node = node->next;
             }

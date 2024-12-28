@@ -4,11 +4,8 @@
 
 #include "lexer.h"
 #include <ctype.h>
-#include <err.h>
 #include <stdlib.h>
 #include <string.h>
-
-#include "lexer.h"
 
 #include <assert.h>
 
@@ -207,7 +204,7 @@ token *lexer_next_token(lexer *l) {
                 read_char(l);
                 read_char(l);
             } else {
-                t->literal = NULL;
+                t->literal = nullptr;
                 t->type    = ILLEGAL;
                 read_char(l);
             }
@@ -219,7 +216,7 @@ token *lexer_next_token(lexer *l) {
                 read_char(l);
                 read_char(l);
             } else {
-                t->literal = NULL;
+                t->literal = nullptr;
                 t->type    = ILLEGAL;
                 read_char(l);
             }
@@ -234,7 +231,7 @@ token *lexer_next_token(lexer *l) {
                 t->literal = read_identifier(l);
                 t->type    = token_get_type(t->literal);
             } else {
-                t->literal = NULL;
+                t->literal = nullptr;
                 t->type    = ILLEGAL;
                 read_char(l);
             }

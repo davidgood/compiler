@@ -19,13 +19,13 @@ void *_copy_object(void *obj) {
 }
 
 void *_copy_symbol(void *obj) {
-    const symbol *src = obj;
-    symbol *new_symbol = symbol_init(src->name, src->scope, src->index);
+    const symbol *src        = obj;
+    symbol *      new_symbol = symbol_init(src->name, src->scope, src->index);
     return new_symbol;
 }
 
 char *get_err_msg(const char *s, ...) {
-    char *msg = NULL;
+    char *  msg = nullptr;
     va_list ap;
     va_start(ap, s);
     const int retval = vasprintf(&msg, s, ap);
@@ -38,8 +38,8 @@ char *get_err_msg(const char *s, ...) {
 
 int compare_object_hash_keys(const void *v1, const void *v2) {
     // Cast v1 and v2 to pointers to ast_node *
-    ast_node *n1 = *(ast_node **)v1;
-    ast_node *n2 = *(ast_node **)v2;
+    ast_node *n1 = *(ast_node **) v1;
+    ast_node *n2 = *(ast_node **) v2;
 
     // Check if function pointers are valid
     if (n1 == NULL || n2 == NULL || n1->string == NULL || n2->string == NULL) {
@@ -47,8 +47,8 @@ int compare_object_hash_keys(const void *v1, const void *v2) {
     }
 
     // Get the strings from the nodes
-    char *s1 = n1->string((ast_hash_literal *)n1);
-    char *s2 = n2->string((ast_hash_literal *)n2);
+    char *s1 = n1->string((ast_hash_literal *) n1);
+    char *s2 = n2->string((ast_hash_literal *) n2);
 
     // Compare the strings
     const int ret = strcmp(s1, s2);

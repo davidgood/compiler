@@ -4,7 +4,7 @@
 #include "instructions.h"
 
 #include <err.h>
-#include <stdarg.h>
+
 #include "../opcode/opcode.h"
 #include "scope.h"
 
@@ -58,7 +58,7 @@ void change_operand(const compiler *compiler, const size_t op_pos, const size_t 
 void replace_last_pop_with_return(const compiler *compiler) {
     compilation_scope *top_scope = get_top_scope(compiler);
     const size_t       lastpos   = top_scope->last_instruction.position;
-    instructions *     new_ins   = opcode_make_instruction(OP_RETURN_VALUE, 0);
+    instructions *     new_ins   = opcode_make_instruction(OP_RETURN_VALUE, nullptr);
     replace_instruction(compiler, lastpos, new_ins);
     instructions_free(new_ins);
     top_scope->last_instruction.opcode = OP_RETURN_VALUE;

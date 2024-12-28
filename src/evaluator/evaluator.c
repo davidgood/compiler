@@ -94,7 +94,7 @@ static object_object *eval_string_infix_expression(const char *         operator
         memcpy(new_string + left_value->length, right_value->value,
                right_value->length);
         new_string[new_len]           = 0;
-        object_string *new_string_obj = object_create_string(NULL, 0);
+        object_string *new_string_obj = object_create_string(nullptr, 0);
         new_string_obj->value         = new_string;
         new_string_obj->length        = new_len;
         return (object_object *) new_string_obj;
@@ -238,21 +238,6 @@ static object_object *eval_identifier_expression(ast_expression *exp, const envi
     return object_copy_object(value_obj);
 }
 
-/*static arraylist *eval_expressions_to_array_list(const arraylist *expression_list,
-                                                 environment *    env) {
-    arraylist *values = arraylist_create(expression_list->size, object_free);
-    for (size_t i = 0; i < expression_list->size; i++) {
-        object_object *value = evaluator_eval((ast_node *) expression_list->body[i], env);
-        if (is_error(value)) {
-            arraylist_destroy(values);
-            values = arraylist_create(1, object_free);
-            arraylist_add(values, value);
-            return values;
-        }
-        arraylist_add(values, value);
-    }
-    return values;
-}*/
 static arraylist *eval_expressions_to_array_list(const arraylist *expression_list, environment *env) {
     arraylist *values = arraylist_create(expression_list->size, object_free);
     for (size_t i = 0; i < expression_list->size; i++) {
@@ -325,18 +310,6 @@ static object_object *apply_function(object_object *function_obj, linked_list *a
     }
 }
 
-/*static object_object *eval_array_index_expression(object_object *left_value,
-                                                  object_object *index_value) {
-    const object_array *array_obj = (object_array *) left_value;
-    const object_int *  index_obj = (object_int *) index_value;
-    if (index_obj->value < 0 || index_obj->value > array_obj->elements->size -
-        1) {
-        return (object_object *) object_create_null();
-    }
-
-    /* we need to copy the return value because the left_value and index_value objects need to be freed #1#
-    return object_copy_object(array_obj->elements->body[index_obj->value]);
-}*/
 static object_object *eval_array_index_expression(object_object *left_value,
                                                   object_object *index_value) {
     const object_array *array_obj = (object_array *) left_value;

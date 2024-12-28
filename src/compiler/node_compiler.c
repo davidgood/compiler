@@ -13,7 +13,7 @@
 
 compiler_error compile_expression_node(compiler *compiler, ast_expression *expression_node) {
     compiler_error          error;
-    compiler_error          none_error = {COMPILER_ERROR_NONE, NULL};
+    compiler_error          none_error = {COMPILER_ERROR_NONE, nullptr};
     ast_infix_expression *  infix_exp;
     ast_prefix_expression * prefix_exp;
     ast_integer *           int_exp;
@@ -42,7 +42,7 @@ compiler_error compile_expression_node(compiler *compiler, ast_expression *expre
                 error = compile(compiler, (ast_node *) infix_exp->left);
                 if (error.error_code != COMPILER_ERROR_NONE)
                     return error;
-                emit(compiler, OP_GREATER_THAN, 0);
+                emit(compiler, OP_GREATER_THAN, nullptr);
                 break;
             }
             error = compile(compiler, (ast_node *) infix_exp->left);
@@ -52,19 +52,19 @@ compiler_error compile_expression_node(compiler *compiler, ast_expression *expre
             if (error.error_code != COMPILER_ERROR_NONE)
                 return error;
             if (strcmp(infix_exp->operator, "+") == 0)
-                emit(compiler, OP_ADD, 0);
+                emit(compiler, OP_ADD, nullptr);
             else if (strcmp(infix_exp->operator, "-") == 0)
-                emit(compiler, OP_SUB, 0);
+                emit(compiler, OP_SUB, nullptr);
             else if (strcmp(infix_exp->operator, "*") == 0)
-                emit(compiler, OP_MUL, 0);
+                emit(compiler, OP_MUL, nullptr);
             else if (strcmp(infix_exp->operator, "/") == 0)
-                emit(compiler, OP_DIV, 0);
+                emit(compiler, OP_DIV, nullptr);
             else if (strcmp(infix_exp->operator, ">") == 0)
-                emit(compiler, OP_GREATER_THAN, 0);
+                emit(compiler, OP_GREATER_THAN, nullptr);
             else if (strcmp(infix_exp->operator, "==") == 0)
-                emit(compiler, OP_EQUAL, 0);
+                emit(compiler, OP_EQUAL, nullptr);
             else if (strcmp(infix_exp->operator, "!=") == 0)
-                emit(compiler, OP_NOT_EQUAL, 0);
+                emit(compiler, OP_NOT_EQUAL, nullptr);
             else {
                 error.error_code = COMPILER_UNKNOWN_OPERATOR;
                 error.msg        = get_err_msg("Unknown operator %s", infix_exp->operator);
@@ -77,9 +77,9 @@ compiler_error compile_expression_node(compiler *compiler, ast_expression *expre
             if (error.error_code != COMPILER_ERROR_NONE)
                 return error;
             if (strcmp(prefix_exp->operator, "-") == 0)
-                emit(compiler, OP_MINUS, 0);
+                emit(compiler, OP_MINUS, nullptr);
             else if (strcmp(prefix_exp->operator, "!") == 0)
-                emit(compiler, OP_BANG, 0);
+                emit(compiler, OP_BANG, nullptr);
             else {
                 error.error_code = COMPILER_UNKNOWN_OPERATOR;
                 error.msg        = get_err_msg("Unknown operator %s", prefix_exp->operator);
@@ -96,9 +96,9 @@ compiler_error compile_expression_node(compiler *compiler, ast_expression *expre
             bool_exp = (ast_boolean_expression *) expression_node;
             bool_obj = object_create_bool(bool_exp->value);
             if (bool_obj->value)
-                emit(compiler, OP_TRUE, 0);
+                emit(compiler, OP_TRUE, nullptr);
             else
-                emit(compiler, OP_FALSE, 0);
+                emit(compiler, OP_FALSE, nullptr);
             break;
         case STRING_EXPRESSION:
             str_exp = (ast_string *) expression_node;
@@ -122,7 +122,7 @@ compiler_error compile_expression_node(compiler *compiler, ast_expression *expre
             after_consequence_pos = scope->instructions->length;
             change_operand(compiler, op_jmp_false_pos, after_consequence_pos);
             if (if_exp->alternative == NULL) {
-                emit(compiler, OP_NULL, 0);
+                emit(compiler, OP_NULL, nullptr);
             } else {
                 error = compile(compiler, (ast_node *) if_exp->alternative);
                 if (error.error_code != COMPILER_ERROR_NONE)
@@ -179,7 +179,7 @@ compiler_error compile_expression_node(compiler *compiler, ast_expression *expre
             error = compile(compiler, (ast_node *) index_exp->index);
             if (error.error_code != COMPILER_ERROR_NONE)
                 return error;
-            emit(compiler, OP_INDEX, 0);
+            emit(compiler, OP_INDEX, nullptr);
             break;
         case FUNCTION_LITERAL:
             func_exp = (ast_function_literal *) expression_node;
@@ -198,7 +198,7 @@ compiler_error compile_expression_node(compiler *compiler, ast_expression *expre
             if (last_instruction_is(compiler, OP_POP))
                 replace_last_pop_with_return(compiler);
             if (!last_instruction_is(compiler, OP_RETURN_VALUE))
-                emit(compiler, OP_RETURN, 0);
+                emit(compiler, OP_RETURN, nullptr);
 
             arraylist *free_symbols = arraylist_clone(compiler->symbol_table->free_symbols, _copy_symbol, symbol_free);
             size_t num_locals = compiler->symbol_table->symbol_count;
@@ -236,7 +236,7 @@ compiler_error compile_expression_node(compiler *compiler, ast_expression *expre
 
 compiler_error compile_statement_node(compiler *compiler, ast_statement *statement_node) {
     compiler_error            error;
-    compiler_error            none_error = {COMPILER_ERROR_NONE, NULL};
+    compiler_error            none_error = {COMPILER_ERROR_NONE, nullptr};
     ast_expression_statement *expression_stmt;
     ast_block_statement *     block_stmt;
     ast_let_statement *       let_stmt;
@@ -249,7 +249,7 @@ compiler_error compile_statement_node(compiler *compiler, ast_statement *stateme
             error = compile_expression_node(compiler, expression_stmt->expression);
             if (error.error_code != COMPILER_ERROR_NONE)
                 return error;
-            emit(compiler, OP_POP, 0);
+            emit(compiler, OP_POP, nullptr);
             break;
         case BLOCK_STATEMENT:
             block_stmt = (ast_block_statement *) statement_node;
@@ -275,7 +275,7 @@ compiler_error compile_statement_node(compiler *compiler, ast_statement *stateme
             error = compile(compiler, (ast_node *) ret_stmt->return_value);
             if (error.error_code != COMPILER_ERROR_NONE)
                 return error;
-            emit(compiler, OP_RETURN_VALUE, 0);
+            emit(compiler, OP_RETURN_VALUE, nullptr);
             break;
         default:
             return none_error;

@@ -340,7 +340,7 @@ static vm_error execute_minus_operator(virtual_machine *vm) {
     object_int *result      = object_create_int(-int_operand->value);
     vm_replace_top(vm, (object_object *) result);
     vm_err.code = VM_ERROR_NONE;
-    vm_err.msg  = NULL;
+    vm_err.msg  = nullptr;
     return vm_err;
 }
 

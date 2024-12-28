@@ -16,11 +16,10 @@
 #include "environment.h"
 #include "../opcode/opcode.h"
 
-static int create_count = 0;
 
 const object_bool TRUE_OBJ  = {{OBJECT_BOOL, inspect, object_get_hash, object_equals, 1}, true};
 const object_bool FALSE_OBJ = {{OBJECT_BOOL, inspect, object_get_hash, object_equals, 1}, false};
-const object_null NULL_OBJ  = {{OBJECT_NULL, inspect, NULL, NULL, 1}};
+const object_null NULL_OBJ  = {{OBJECT_NULL, inspect, nullptr, nullptr, 1}};
 
 /*********************************************************************************
  ******************************  UTILITY FUNCTIONS *******************************
@@ -45,7 +44,7 @@ static char *join_expressions_list(arraylist *list) {
     char *temp   = nullptr;
     int   ret;
     for (size_t i = 0; i < list->size; i++) {
-        object_object *elem        = (object_object *) list->body[i];
+        object_object *elem        = list->body[i];
         char *         elem_string = elem->inspect(elem);
         if (string == NULL) {
             ret = asprintf(&temp, "%s", elem_string);
@@ -68,14 +67,14 @@ static char *join_expressions_table(hashtable *table) {
     char *temp   = nullptr;
     int   ret;
     for (size_t i = 0; i < table->table_size; i++) {
-        size_t *     index      = (size_t *) table->used_slots->body[i];
+        size_t *     index      = table->used_slots->body[i];
         linked_list *entry_list = table->table[*index];
         list_node *  entry_node = entry_list->head;
         while (entry_node != NULL) {
-            hashtable_entry *entry      = (hashtable_entry *) entry_node->data;
+            hashtable_entry *entry      = entry_node->data;
             entry_node                  = entry_node->next;
-            object_object *key_obj      = (object_object *) entry->key;
-            object_object *value_obj    = (object_object *) entry->value;
+            object_object *key_obj      = entry->key;
+            object_object *value_obj    = entry->value;
             char *         key_string   = key_obj->inspect(key_obj);
             char *         value_string = value_obj->inspect(value_obj);
             if (string == NULL) {
@@ -185,8 +184,8 @@ static bool hash_equals(object_hash *hash1, object_hash *hash2) {
         return false;
     }
     for (size_t i = 0; i < hash1->pairs->key_count; i++) {
-        size_t *index1 = (size_t *) hash1->pairs->used_slots->body[i];
-        size_t *index2 = (size_t *) hash2->pairs->used_slots->body[i];
+        size_t *index1 = hash1->pairs->used_slots->body[i];
+        size_t *index2 = hash2->pairs->used_slots->body[i];
         if (*index1 != *index2) {
             /** since we are using same hash functions, and both tables
              *  are supposed to have equal length, they must have same
@@ -457,7 +456,7 @@ void object_free(void *v) {
 }
 
 void *_object_copy_object(void *object) {
-    return object_copy_object((object_object *) object);
+    return object_copy_object(object);
 }
 
 object_object *object_copy_object(object_object *object) {

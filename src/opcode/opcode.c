@@ -33,13 +33,11 @@ instructions *opcode_make_instruction(Opcode op, size_t *operands) {
     instructions *instruction = malloc(sizeof(instructions));
     if (!instruction) {
         err(EXIT_FAILURE, "Could not allocate memory for instruction");
-        return NULL;
     }
 
     instruction->bytes = malloc(instruction_len);
     if (!instruction->bytes) {
         err(EXIT_FAILURE, "Could not allocate memory for instruction bytes");
-        return NULL;
     }
 
     // Set the Opcode
@@ -58,7 +56,7 @@ instructions *opcode_make_instruction(Opcode op, size_t *operands) {
         offset += width;
     }
 
-    instruction->length = instruction->capacity = instruction_len;
+    instruction->length = instruction->capacity = (unsigned char) instruction_len;
 
     return instruction;
 }
@@ -320,7 +318,7 @@ Opcode vm_instruction_decode(const uint8_t *bytes, size_t *operands) {
         return OP_INVALID; // Return an invalid opcode if input is NULL
     }
 
-    Opcode            op  = (Opcode) bytes[0];
+    Opcode            op  = bytes[0];
     OpcodeDefinition *def = opcode_definition_lookup(op);
 
     if (!def) {

@@ -14,7 +14,7 @@
 #include "../ast/ast.h"
 #include "../datastructures/conversions.h"
 #include "../lexer/lexer.h"
-#include <stdbool.h>
+
 
 static ast_expression *parse_identifier_expression(parser *);
 
@@ -503,7 +503,7 @@ static char *program_token_literal(void *prog_obj) {
 }
 
 static char *hash_literal_token_literal(void *exp) {
-    ast_hash_literal *hash_exp = (ast_hash_literal *) exp;
+    ast_hash_literal *hash_exp = exp;
     return hash_exp->token->literal;
 }
 
@@ -548,12 +548,12 @@ static char *infix_expression_token_literal(void *exp) {
 }
 
 static char *boolean_expression_token_literal(void *exp) {
-    ast_boolean_expression *bool_exp = (ast_boolean_expression *) exp;
+    ast_boolean_expression *bool_exp = exp;
     return bool_exp->token->literal;
 }
 
 static char *if_expression_token_literal(void *exp) {
-    ast_if_expression *if_exp = (ast_if_expression *) exp;
+    ast_if_expression *if_exp = exp;
     return if_exp->token->literal;
 }
 
@@ -598,12 +598,12 @@ static char *identifier_string(void *id) {
 }
 
 static char *integer_string(void *node) {
-    ast_integer *int_exp = (ast_integer *) node;
+    ast_integer *int_exp = node;
     return long_to_string(int_exp->value);
 }
 
 static char *prefix_expression_string(void *node) {
-    ast_prefix_expression *prefix_exp     = (ast_prefix_expression *) node;
+    ast_prefix_expression *prefix_exp     = node;
     char *                 str            = nullptr;
     char *                 operand_string = prefix_exp->right->node.string(prefix_exp->right);
     asprintf(&str, "(%s%s)", prefix_exp->operator, operand_string);
@@ -678,7 +678,7 @@ static char *hash_literal_string(void *exp) {
         void *obj = hash_exp->pairs->table[i];
         if (obj == NULL)
             continue;
-        hashtable_entry *entry       = (hashtable_entry *) obj;
+        hashtable_entry *entry       = obj;
         ast_expression * keyexp      = entry->key;
         ast_expression * valuexp     = entry->value;
         char *           keystring   = keyexp->node.string(keyexp);
@@ -743,12 +743,12 @@ static char *if_expression_string(void *exp) {
 }
 
 static char *array_literal_string(void *exp) {
-    ast_array_literal *array  = (ast_array_literal *) exp;
+    ast_array_literal *array  = exp;
     char *             string = nullptr;
     char *             temp   = nullptr;
     int                ret;
     for (size_t i = 0; i < array->elements->size; i++) {
-        ast_expression *element        = (ast_expression *) arraylist_get(array->elements, i);
+        ast_expression *element        = arraylist_get(array->elements, i);
         char *          element_string = element->node.string(element);
         if (string == NULL)
             ret = asprintf(&temp, "%s", element_string);
@@ -770,7 +770,7 @@ static char *array_literal_string(void *exp) {
 }
 
 static char *index_exp_string(void *exp) {
-    ast_index_expression *index_exp    = (ast_index_expression *) exp;
+    ast_index_expression *index_exp    = exp;
     char *                string       = nullptr;
     char *                left_string  = index_exp->left->node.string(index_exp->left);
     char *                index_string = index_exp->index->node.string(index_exp->index);
@@ -791,7 +791,7 @@ char *join_parameters_list(linked_list *parameters_list) {
 
     list_node *list_node = parameters_list->head;
     while (list_node != NULL) {
-        ast_identifier *param        = (ast_identifier *) list_node->data;
+        ast_identifier *param        = list_node->data;
         char *          param_string = param->expression.node.string(param);
         if (string == NULL) {
             asprintf(&temp, "%s", param_string);
@@ -813,7 +813,7 @@ char *join_parameters_list(linked_list *parameters_list) {
 }
 
 static char *function_literal_string(void *exp) {
-    ast_function_literal *func               = (ast_function_literal *) exp;
+    ast_function_literal *func               = exp;
     char *                params_string      = join_parameters_list(func->parameters);
     char *                func_string        = nullptr;
     char *                func_token_literal = func->expression.node.token_literal(func);
@@ -832,12 +832,12 @@ static char *function_literal_string(void *exp) {
 }
 
 static char *function_literal_token_literal(void *exp) {
-    ast_function_literal *func = (ast_function_literal *) exp;
+    ast_function_literal *func = exp;
     return func->token->literal;
 }
 
 static char *call_expression_string(void *exp) {
-    ast_call_expression *call_exp        = (ast_call_expression *) exp;
+    ast_call_expression *call_exp        = exp;
     char *               args_string     = join_parameters_list(call_exp->arguments);
     char *               function_string = call_exp->function->node.string(call_exp->function);
     char *               string          = nullptr;
@@ -851,13 +851,13 @@ static char *call_expression_string(void *exp) {
 }
 
 static char *call_expression_token_literal(void *exp) {
-    ast_call_expression *call_exp = (ast_call_expression *) exp;
+    ast_call_expression *call_exp = exp;
     return call_exp->token->literal;
 }
 
 static char *program_string(void *prog_ptr) {
     // TODO: maybe we could optimize this
-    ast_program *program     = (ast_program *) prog_ptr;
+    ast_program *program     = prog_ptr;
     char *       prog_string = nullptr;
     char *       temp_string = nullptr;
     for (int i = 0; i < program->statement_count; i++) {
@@ -1015,7 +1015,7 @@ void *create_statement(parser *parser, ast_statement_type stmt_type) {
 parser *parser_init(lexer *l) {
     parser *parser = malloc(sizeof(*parser));
     if (parser == NULL) {
-        return NULL;
+        return nullptr;
     }
     parser->lexer    = l;
     parser->cur_tok  = nullptr;
@@ -1079,7 +1079,7 @@ static int expect_peek(parser *parser, token_type tok_type) {
 }
 
 static char *ident_token_literal(void *node) {
-    ast_identifier *ident = (ast_identifier *) node;
+    ast_identifier *ident = node;
     return ident->token->literal;
 }
 
@@ -1119,7 +1119,7 @@ static ast_expression *parse_expression(parser *parser, operator_precedence prec
     prefix_parse_fn prefix_fn = prefix_fns[parser->cur_tok->type];
     if (prefix_fn == NULL) {
         handle_no_prefix_fn(parser);
-        return NULL;
+        return nullptr;
     }
     ast_expression *left_exp = prefix_fn(parser);
 
@@ -1149,14 +1149,14 @@ static ast_let_statement *parse_let_statement(parser *parser) {
 
     if (!expect_peek(parser, IDENT)) {
         free_statement((ast_statement *) let_stmt);
-        return NULL;
+        return nullptr;
     }
 
     ast_identifier *ident = (ast_identifier *) parse_identifier_expression(parser);
     let_stmt->name        = ident;
     if (!expect_peek(parser, ASSIGN)) {
         free_statement((ast_statement *) let_stmt);
-        return NULL;
+        return nullptr;
     }
     parser_next_token(parser);
     let_stmt->value = parse_expression(parser, LOWEST);
@@ -1175,7 +1175,7 @@ static ast_let_statement *parse_let_statement(parser *parser) {
 }
 
 static ast_return_statement *parse_return_statement(parser *parser) {
-    ast_return_statement *ret_stmt = (ast_return_statement *) create_statement(parser, RETURN_STATEMENT);
+    ast_return_statement *ret_stmt = create_statement(parser, RETURN_STATEMENT);
     parser_next_token(parser);
     ret_stmt->return_value = parse_expression(parser, LOWEST);
     if (parser->peek_tok->type == SEMICOLON) {
@@ -1187,7 +1187,7 @@ static ast_return_statement *parse_return_statement(parser *parser) {
 ast_program *program_init(void) {
     ast_program *program = malloc(sizeof(*program));
     if (program == NULL)
-        return NULL;
+        return nullptr;
     program->node.token_literal = program_token_literal;
     program->node.string        = program_string;
     program->node.type          = PROGRAM;
@@ -1195,7 +1195,7 @@ ast_program *program_init(void) {
     program->statements         = calloc(64, sizeof(*program->statements));
     if (program->statements == NULL) {
         free(program);
-        return NULL;
+        return nullptr;
     }
     program->statement_count = 0;
     return program;
@@ -1211,7 +1211,7 @@ ast_program *parse_program(parser *parser) {
             int status = add_statement_to_program(program, stmt);
             if (status != 0) {
                 program_free(program);
-                return NULL;
+                return nullptr;
             }
         }
         parser_next_token(parser);
@@ -1246,12 +1246,12 @@ ast_statement *parser_parse_statement(parser *parser) {
 }
 
 static char *int_exp_token_literal(void *node) {
-    ast_integer *int_exp = (ast_integer *) node;
+    ast_integer *int_exp = node;
     return int_exp->token->literal;
 }
 
 static char *index_exp_token_literal(void *exp) {
-    ast_index_expression *index_exp = (ast_index_expression *) exp;
+    ast_index_expression *index_exp = exp;
     return index_exp->token->literal;
 }
 
@@ -1355,7 +1355,7 @@ static ast_expression *parse_hash_literal(parser *parser) {
             hashtable_destroy(hash_exp->pairs);
             token_free(hash_exp->token);
             free(hash_exp);
-            return NULL;
+            return nullptr;
         }
 
         parser_next_token(parser);
@@ -1365,13 +1365,13 @@ static ast_expression *parse_hash_literal(parser *parser) {
             hashtable_destroy(hash_exp->pairs);
             token_free(hash_exp->token);
             free(hash_exp);
-            return NULL;
+            return nullptr;
         }
     }
 
     if (!expect_peek(parser, RBRACE)) {
         free_hash_literal(hash_exp);
-        return NULL;
+        return nullptr;
     }
     return (ast_expression *) hash_exp;
 }
@@ -1418,7 +1418,7 @@ static arraylist *parse_expression_list(parser *parser, token_type stop_token_ty
 
     if (!expect_peek(parser, stop_token_type)) {
         arraylist_destroy(expression_list);
-        return NULL;
+        return nullptr;
     }
     return expression_list;
 }
@@ -1521,17 +1521,17 @@ static ast_expression *parse_while_expression(parser *parser) {
 
     if (!expect_peek(parser, LPAREN)) {
         free_while_expression(while_exp);
-        return NULL;
+        return nullptr;
     }
     parser_next_token(parser);
     while_exp->condition = parse_expression(parser, LOWEST);
     if (while_exp->condition == NULL || !expect_peek(parser, RPAREN)) {
         free_while_expression(while_exp);
-        return NULL;
+        return nullptr;
     }
     if (!expect_peek(parser, LBRACE)) {
         free_while_expression(while_exp);
-        return NULL;
+        return nullptr;
     }
     while_exp->body = parse_block_statement(parser);
     if (while_exp->body == NULL) {
@@ -1563,19 +1563,19 @@ static ast_expression *parse_if_expression(parser *parser) {
     if (!expect_peek(parser, LPAREN)) {
         token_free(if_exp->token);
         free(if_exp);
-        return NULL;
+        return nullptr;
     }
 
     parser_next_token(parser);
     if_exp->condition = parse_expression(parser, LOWEST);
     if (!expect_peek(parser, RPAREN)) {
         free_if_expression(if_exp);
-        return NULL;
+        return nullptr;
     }
 
     if (!expect_peek(parser, LBRACE)) {
         free_if_expression(if_exp);
-        return NULL;
+        return nullptr;
     }
 
     if_exp->consequence = parse_block_statement(parser);
@@ -1584,7 +1584,7 @@ static ast_expression *parse_if_expression(parser *parser) {
         parser_next_token(parser);
         if (!expect_peek(parser, LBRACE)) {
             free_if_expression(if_exp);
-            return NULL;
+            return nullptr;
         }
         if_exp->alternative = parse_block_statement(parser);
     }
@@ -1620,19 +1620,19 @@ static ast_expression *parse_function_literal(parser *parser) {
     ast_function_literal *function = create_function_literal(parser);
     if (!expect_peek(parser, LPAREN)) {
         free_function_literal(function);
-        return NULL;
+        return nullptr;
     }
     parse_function_parameters(parser, function);
     if (function->parameters == NULL) {
         free_function_literal(function);
-        return NULL;
+        return nullptr;
     }
 
     if (!expect_peek(parser, LBRACE)) {
         linked_list_free(function->parameters, free_identifier);
         token_free(function->token);
         free(function);
-        return NULL;
+        return nullptr;
     }
 
     function->body = parse_block_statement(parser);
@@ -1698,7 +1698,7 @@ static ast_expression *parse_infix_expression(parser *parser, ast_expression *le
         free(infix_exp->operator);
         token_free(infix_exp->token);
         free(infix_exp);
-        return NULL;
+        return nullptr;
     }
     return (ast_expression *) infix_exp;
 }
@@ -1709,7 +1709,7 @@ static ast_expression *parse_call_expression(parser *parser, ast_expression *fun
     parse_call_arguments(parser, call_exp);
     if (call_exp->arguments == NULL) {
         free_call_expression(call_exp);
-        return NULL;
+        return nullptr;
     }
     call_exp->function = function;
     return (ast_expression *) call_exp;
@@ -1886,8 +1886,8 @@ static ast_expression *copy_hash_literal(ast_expression *exp) {
     ast_hash_literal *copy     = create_hash_literal(hash_exp->token);
     for (size_t i = 0; i < hash_exp->pairs->key_count; i++) {
         hashtable_entry *entry     = (hashtable_entry *) hash_exp->pairs->table[i];
-        ast_expression * key_exp   = (ast_expression *) entry->key;
-        ast_expression * value_exp = (ast_expression *) entry->value;
+        ast_expression * key_exp   = entry->key;
+        ast_expression * value_exp = entry->value;
         hashtable_set(copy->pairs, copy_expression(key_exp), copy_expression(value_exp));
     }
     return (ast_expression *) copy;
@@ -1952,7 +1952,7 @@ ast_expression *copy_expression(ast_expression *exp) {
         case HASH_LITERAL:
             return copy_hash_literal(exp);
         default:
-            return NULL;
+            return nullptr;
     }
 }
 

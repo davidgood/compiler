@@ -1,0 +1,6 @@
+option('target_group',
+       type : 'combo',
+       choices : ['release', 'test'],
+       value : 'release',
+       description : 'Select the group to build (release or test)'
+)

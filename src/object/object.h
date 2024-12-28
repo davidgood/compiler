@@ -28,18 +28,18 @@ typedef enum {
 } object_type;
 
 static const char *type_names[] = {
-    "INTEGER",
-    "BOOLEAN",
-    "NULL",
-    "RETURN_VALUE",
-    "MONKEY_ERROR",
-    "FUNCTION",
-    "STRING",
-    "BUILTIN",
-    "ARRAY",
-    "HASH",
-    "COMPILED_FUNCTION",
-    "CLOSURE"
+        "INTEGER",
+        "BOOLEAN",
+        "NULL",
+        "RETURN_VALUE",
+        "ERROR",
+        "FUNCTION",
+        "STRING",
+        "BUILTIN",
+        "ARRAY",
+        "HASH",
+        "COMPILED_FUNCTION",
+        "CLOSURE"
 };
 
 #define MAX_FREE_VARIABLES 256
@@ -129,7 +129,7 @@ char *inspect(object_object *);
 
 bool object_equals(void *, void *);
 
-size_t object_get_hash(void *); // non-static for tests
+size_t object_get_hash(void *);
 
 extern const object_bool TRUE_OBJ;
 extern const object_bool FALSE_OBJ;

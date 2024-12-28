@@ -58,7 +58,7 @@ size_t add_constant(compiler *compiler, object_object *obj) {
 
 compiler_error compile(compiler *compiler, ast_node *node) {
     compiler_error error;
-    compiler_error none_error = {COMPILER_ERROR_NONE, NULL};
+    compiler_error none_error = {COMPILER_ERROR_NONE, nullptr};
     switch (node->type) {
         case PROGRAM:
             ast_program *program = (ast_program *) node;

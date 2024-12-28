@@ -18,8 +18,8 @@ symbol_table *symbol_table_init(void) {
     table->symbol_count = 0;
     table->store        = hashtable_create(string_hash_function, string_equals,
                                     free, symbol_free);
-    table->outer        = NULL;
-    table->free_symbols = arraylist_create(ARRAYLIST_INITIAL_CAPACITY, NULL);
+    table->outer        = nullptr;
+    table->free_symbols = arraylist_create(ARRAYLIST_INITIAL_CAPACITY, nullptr);
     return table;
 }
 
@@ -90,7 +90,7 @@ symbol *symbol_resolve(symbol_table *table, const char *name) {
     if (obj == NULL && table->outer != NULL) {
         symbol *sym = symbol_resolve(table->outer, name);
         if (sym == NULL)
-            return NULL;
+            return nullptr;
         if (sym->scope == GLOBAL || sym->scope == BUILTIN)
             return sym;
         return symbol_define_free(table, sym);

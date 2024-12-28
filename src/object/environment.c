@@ -45,7 +45,7 @@ void *environment_get(const environment *env, char *name) {
 
     if (env->outer != NULL)
         return environment_get(env->outer, name);
-    return NULL;
+    return nullptr;
 }
 
 void environment_free(environment *env) {
@@ -65,7 +65,7 @@ environment *copy_env(const environment *env) {
         while (node != NULL) {
             const hashtable_entry *entry = (hashtable_entry *) node->data;
             const char *           key   = (char *) entry->key;
-            object_object *        value = (object_object *) entry->value;
+            object_object *        value = entry->value;
             environment_put(new_env, strdup(key), object_copy_object(value));
             node = node->next;
         }

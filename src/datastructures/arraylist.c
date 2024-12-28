@@ -195,7 +195,7 @@ void arraylist_clear(arraylist *l) {
 arraylist *arraylist_slice(const arraylist *  l, const unsigned int index,
                            const unsigned int length) {
     assert(index + length <= l->size);
-    arraylist *new_list = arraylist_create(ARRAYLIST_INITIAL_CAPACITY, NULL);
+    arraylist *new_list = arraylist_create(ARRAYLIST_INITIAL_CAPACITY, nullptr);
     arraylist_allocate(new_list, length);
     memmove(new_list->body, l->body + index, length * sizeof(void *));
     new_list->size = length;
@@ -269,7 +269,7 @@ char *arraylist_zip(const arraylist *l, const char *delim) {
 }
 
 char *arraylist_to_string(const arraylist *l) {
-    return arraylist_zip(l, NULL);
+    return arraylist_zip(l, nullptr);
 }
 
 void *arraylist_to_array(const arraylist *l) {
