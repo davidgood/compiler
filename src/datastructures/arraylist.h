@@ -16,6 +16,7 @@ typedef struct {
     unsigned int size;     // Count of items currently in list
     unsigned int capacity; // Allocated memory size, in items
     void **      body;
+
     void (*free_func)(void *); // Function to free memory of items
     // Pointer to allocated memory for items (of size capacity * sizeof(void*))
 } arraylist;
@@ -36,38 +37,10 @@ void var_destroy(const destory_args args);
 #define arraylist_destroy(...) var_destroy((destory_args){__VA_ARGS__});
 /******************************************************************************/
 
-/**
- * Safe Variadic function to copy an arraylist.
- */
-typedef struct {
-    arraylist *l;
 
-    void * (*copy_func)(void *);
-} clone_args;
+arraylist *arraylist_create(size_t capacity, void (*free_func)(void *));
 
-void clone_base(arraylist *l, ...);
-
-arraylist *var_clone(clone_args args);
-
-#define arraylist_clone(...) var_clone((clone_args){__VA_ARGS__});
-/******************************************************************************/
-
-/**
- * Safe Variadic function to copy an arraylist.
- */
-typedef struct {
-    size_t size;
-
-    void (*free_func)(void *);
-} create_args;
-
-void create_base(size_t size, ...);
-
-arraylist *var_create(create_args args);
-
-#define arraylist_create(...) var_create((create_args){__VA_ARGS__});
-/******************************************************************************/
-
+arraylist *arraylist_clone(const arraylist *l, void *(*copy_func)(void *), void (*free_func)(void *));
 
 void arraylist_sort(const arraylist *l, int (*cmp_func)(const void *, const void *));
 
@@ -83,7 +56,7 @@ arraylist *arraylist_slice(const arraylist *l, unsigned int index,
 
 void arraylist_clear(arraylist *l);
 
-void *arraylist_remove(arraylist *l, unsigned int index);
+void arraylist_remove_and_free(arraylist *l, unsigned int index);
 
 void arraylist_insert(arraylist *l, unsigned int index, void *value);
 
@@ -102,6 +75,8 @@ char *arraylist_to_string(const arraylist *l);
 void *arraylist_to_array(const arraylist *l);
 
 void arraylist_allocate(arraylist *l, unsigned int size);
+
+void log_active_arraylists(void);
 
 #define arraylist_iterate(l, index, item) \
 for (index = 0, item = l->body[0]; index < l->size; item = l->body[++index])

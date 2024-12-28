@@ -44,7 +44,7 @@ hashtable *hashtable_create(size_t (*hash_func)(void *),
                             void (*  free_key)(void *),
                             void (*  free_value)(void *));
 
-void hashtable_remove(hashtable *, void *);
+void hashtable_remove_and_free(hashtable *, void *);
 
 void hashtable_resize(hashtable *, unsigned int);
 

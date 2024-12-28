@@ -52,9 +52,9 @@ static char *builtin_inspect(object_object *object) {
 static object_object *_puts(linked_list *arguments) {
     const list_node *node = arguments->tail;
     while (node != NULL) {
-        object_object * arg = (object_object *) node->data;
-        node     = node->next;
-        char *s  = arg->inspect(arg);
+        object_object *arg = node->data;
+        node               = node->next;
+        char *s            = arg->inspect(arg);
         printf("%s\n", s);
         free(s);
     }
@@ -82,7 +82,7 @@ static object_object *len(linked_list *arguments) {
                 "wrong number of arguments. got=%zu, want=1", arguments->size);
     }
 
-    object_object *arg = (object_object *) arguments->tail->data;
+    object_object *arg = arguments->tail->data;
     switch (arg->type) {
         case OBJECT_STRING:
             str = (object_string *) arg;
@@ -106,7 +106,7 @@ static object_object *first(linked_list *arguments) {
                                     arguments->size);
     }
 
-    object_object *arg = (object_object *) arguments->head->data;
+    object_object *arg = arguments->head->data;
     if (arg->type != OBJECT_ARRAY) {
         return (object_object *) object_create_error(
                 "argument to `first` must be ARRAY, got %s", get_type_name(arg->type));
@@ -126,7 +126,7 @@ last(linked_list *arguments) {
                                     arguments->size);
     }
 
-    object_object *arg = (object_object *) arguments->head->data;
+    object_object *arg = arguments->head->data;
     if (arg->type != OBJECT_ARRAY) {
         return (object_object *) object_create_error(
                 "argument to `last` must be ARRAY, got %s", get_type_name(arg->type)
@@ -135,7 +135,7 @@ last(linked_list *arguments) {
 
     const object_array *array = (object_array *) arg;
     if (array->elements->size > 0) {
-        return (object_object *) object_copy_object(
+        return object_copy_object(
                 arraylist_get(array->elements, array->elements->size - 1));
     }
     return (object_object *) object_create_null();
@@ -150,7 +150,7 @@ static object_object *rest(linked_list *arguments) {
                                     arguments->size);
     }
 
-    object_object *arg = (object_object *) arguments->head->data;
+    object_object *arg = arguments->head->data;
     if (arg->type != OBJECT_ARRAY) {
         return (object_object *) object_create_error(
                 "argument to `rest` must be ARRAY, got %s",
@@ -163,7 +163,7 @@ static object_object *rest(linked_list *arguments) {
         return (object_object *) object_create_null();
     }
 
-    arraylist *rest_elements = arraylist_create(array->elements->size - 1);
+    arraylist *rest_elements = arraylist_create(array->elements->size - 1, nullptr);
     for (size_t i = 1; i < array->elements->size; i++) {
         object_object *obj = object_copy_object(array->elements->body[i]);
         arraylist_add(rest_elements, obj);
@@ -181,7 +181,7 @@ static object_object *push(linked_list *arguments) {
                                     arguments->size);
     }
 
-    object_object *arg = (object_object *) arguments->head->data;
+    object_object *arg = arguments->head->data;
     if (arg->type != OBJECT_ARRAY) {
         return (object_object *)
                 object_create_error("argument to `push` must be ARRAY, got %s",
@@ -189,7 +189,7 @@ static object_object *push(linked_list *arguments) {
     }
 
     const object_array *array             = (object_array *) arg;
-    arraylist *         new_list_elements = arraylist_create(arguments->size + 1);
+    arraylist *         new_list_elements = arraylist_create(arguments->size + 1, nullptr);
     for (size_t i = 0; i < array->elements->size; i++) {
         obj = object_copy_object(array->elements->body[i]);
         arraylist_add(new_list_elements, obj);
@@ -216,6 +216,6 @@ object_builtin *get_builtins(const char *name) {
         return (object_builtin *) &BUILTIN_PUTS;
     if (strcmp(name, "type") == 0)
         return (object_builtin *) &BUILTIN_TYPE;
-    return NULL;
+    return nullptr;
 }
 

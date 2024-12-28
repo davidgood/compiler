@@ -1,62 +1,63 @@
 /**
- * Arraylist implementation
- * (c) 2011 @marekweb
- *
- * Uses dynamic extensible arrays.
+ * Macro to shift a section of memory by an offset, used when inserting or removing items.
  */
+#define arraylist_memshift(s, offset, length) memmove((s) + (offset), (s), (length) * sizeof(*(s)))
+
 #include "arraylist.h"
 #include <assert.h>
 #include <err.h>
-#include <stdarg.h>
 #include <stdio.h>
-#include <stdlib.h>
 #include <string.h>
-/*
- * Interface section used for `makeheaders`.
- */
-#if INTERFACE
+#include "../logging/log.h"
 
-struct arraylist {
-	unsigned int size; // Count of items currently in list
-	unsigned int capacity; // Allocated memory size, in items
-	void** body; // Pointer to allocated memory for items (of size capacity * sizeof(void*))
-};
+static arraylist *active_lists[1024];
+static size_t     active_count = 0;
 
-/**
- * Iterates over a list, using the provided `unsigned int index` and `void* item`
- * variables as containers.
- */
-#define arraylist_iterate(l, index, item) \
-	for (index = 0, item = l->body[0]; index < l->size; item = l->body[++index])
+void track_arraylist(arraylist *list) {
+    active_lists[active_count++] = list;
+}
 
-#endif
+void untrack_arraylist(arraylist *list) {
+    for (size_t i = 0; i < active_count; i++) {
+        if (active_lists[i] == list) {
+            active_lists[i] = active_lists[--active_count];
+            return;
+        }
+    }
+}
 
-/**
- * Macro to shift a section of memory by an offset, used when inserting or removing items.
- */
-#define arraylist_memshift(s, offset, length) memmove((s) + (offset), (s), (length)* sizeof(s));
+void log_active_arraylists(void) {
+    log_debug("Active Arraylists (%zu):", active_count);
+    for (size_t i = 0; i < active_count; i++) {
+        log_debug("  %p", active_lists[i]);
+    }
+}
 
 /**
  * Create a new, empty arraylist.
  */
-arraylist *var_create(create_args args) {
+arraylist *arraylist_create(size_t capacity, void (*free_func)(void *)) {
     arraylist *new_list = malloc(sizeof(arraylist));
-    if (new_list == NULL) {
-        errx(EXIT_FAILURE, "Failed to create arraylist");
+    if (!new_list) {
+        perror("Error: Failed to allocate memory for arraylist");
+        exit(EXIT_FAILURE);
     }
+
     new_list->size      = 0;
+    new_list->capacity  = capacity;
+    new_list->free_func = free_func;
 
-    // Allocate the array
-    new_list->body = malloc(sizeof(void *) * args.size);
-    if (new_list->body == NULL) {
+    new_list->body = malloc(sizeof(void *) * capacity);
+    if (!new_list->body) {
         free(new_list);
-        errx(EXIT_FAILURE, "Failed to allocate memory for arraylist");
+        perror("Error: Failed to allocate memory for arraylist body");
+        exit(EXIT_FAILURE);
     }
-    new_list->capacity = args.size;
-    new_list->free_func = args.free_func;
-
+    //log_debug("Created Arraylist %p", new_list);
+    track_arraylist(new_list);
     return new_list;
 }
+
 
 /**
  * Allocate sufficient array capacity for at least `size` elements.
@@ -74,10 +75,11 @@ void arraylist_allocate(arraylist *l, const unsigned int size) {
 
         void **new_body = realloc(l->body, sizeof(void *) * new_capacity);
         if (!new_body) {
-            err(EXIT_FAILURE, "Failed to allocate memory for arraylist");
+            perror("Failed to allocate memory for arraylist");
+            exit(EXIT_FAILURE);
         }
 
-        l->body = new_body;
+        l->body     = new_body;
         l->capacity = new_capacity;
     }
 }
@@ -94,6 +96,7 @@ extern inline unsigned int arraylist_size(const arraylist *l) {
  * Add item at the end of the list.
  */
 void arraylist_add(arraylist *l, void *item) {
+    //log_debug("Arraylist %p, adding %p", l, item);
     arraylist_allocate(l, l->size + 1);
     // add new item to the end of the list
     l->body[l->size] = item;
@@ -150,18 +153,35 @@ void arraylist_insert(arraylist *l, const unsigned int index, void *value) {
 /**
  * Remove the item at index, shifting the following items back by one spot.
  */
-void *arraylist_remove(arraylist *l, const unsigned int index) {
+void arraylist_remove_and_free(arraylist *l, const unsigned int index) {
+    // Check bounds
+    if (index >= l->size) {
+        fprintf(stderr, "Error: Index out of bounds\n");
+        return;
+    }
+
+    // Store the value to return
     void *value = l->body[index];
-    arraylist_memshift(l->body + index + 1, -1, l->size - index);
+
+    if (l->free_func != NULL) {
+        l->free_func(value);
+    }
+
+    // Shift elements left to fill the gap
+    if (index < l->size - 1) {
+        arraylist_memshift(l->body + index + 1, -1, l->size - index - 1);
+    }
+
+    // Decrement size
     l->size--;
-    return value;
 }
+
 
 /**
  * Clear list of all items.
  */
 void arraylist_clear(arraylist *l) {
-    for (size_t i=0; i < l->size; i++) {
+    for (size_t i = 0; i < l->size; i++) {
         if (l->free_func != NULL) {
             l->free_func(l->body[i]);
         }
@@ -175,7 +195,7 @@ void arraylist_clear(arraylist *l) {
 arraylist *arraylist_slice(const arraylist *  l, const unsigned int index,
                            const unsigned int length) {
     assert(index + length <= l->size);
-    arraylist *new_list = arraylist_create(ARRAYLIST_INITIAL_CAPACITY);
+    arraylist *new_list = arraylist_create(ARRAYLIST_INITIAL_CAPACITY, nullptr);
     arraylist_allocate(new_list, length);
     memmove(new_list->body, l->body + index, length * sizeof(void *));
     new_list->size = length;
@@ -192,30 +212,31 @@ arraylist *arraylist_slice_end(const arraylist *l, const unsigned int index) {
 /**
  *  Clone the arraylist.
  */
-arraylist *var_clone(const clone_args args) {
-    arraylist *new_list = arraylist_create(ARRAYLIST_INITIAL_CAPACITY, args.l->free_func);
-    if (args.l->size == 0) {
+arraylist *arraylist_clone(const arraylist *l, void *(*copy_func)(void *), void (*free_func)(void *)) {
+    arraylist *new_list = arraylist_create(ARRAYLIST_INITIAL_CAPACITY, free_func);
+    if (l->size == 0) {
         return new_list;
     }
-    arraylist_allocate(new_list, args.l->size);
-    for (unsigned int i = 0; i < args.l->size; i++) {
-        if (args.copy_func != NULL) {
-            void *item = args.copy_func(args.l->body[i]);
-            arraylist_add(new_list, item);
-        }
+    if (!copy_func) {
+        err(EXIT_FAILURE, "Copy function must be provided.");
     }
-    new_list->size = args.l->size;
+    arraylist_allocate(new_list, l->size);
+    for (unsigned int i = 0; i < l->size; i++) {
+        void *item = copy_func(l->body[i]);
+        arraylist_add(new_list, item);
+    }
+    new_list->size = l->size;
     return new_list;
 }
 
 char *arraylist_zip(const arraylist *l, const char *delim) {
     const size_t delim_len = strlen(delim);
     size_t       total_len = 0;
-    char *       result    = NULL;
+    char *       result    = nullptr;
     unsigned int i;
 
     if (l == NULL || l->size == 0) {
-        return NULL;
+        return nullptr;
     }
 
     char *item;
@@ -226,7 +247,7 @@ char *arraylist_zip(const arraylist *l, const char *delim) {
     // Allocate the result string
     result = malloc(total_len + 1);
     if (result == NULL) {
-        return NULL;
+        return nullptr;
     }
 
     // Copy the strings into the result
@@ -248,7 +269,7 @@ char *arraylist_zip(const arraylist *l, const char *delim) {
 }
 
 char *arraylist_to_string(const arraylist *l) {
-    return arraylist_zip(l, NULL);
+    return arraylist_zip(l, nullptr);
 }
 
 void *arraylist_to_array(const arraylist *l) {
@@ -296,17 +317,22 @@ void arraylist_sort(const arraylist *l, int (*cmp_func)(const void *, const void
     qsort(l->body, l->size, sizeof(void *), cmp_func);
 }
 
-void var_destroy(const destory_args args) {
-    if (args.l == NULL) {
+void var_destroy(destory_args args) {
+    if (args.l == NULL || args.l->body == NULL) {
         return;
     }
     if (args.l->free_func != NULL) {
         for (unsigned i = 0; i < args.l->size; i++) {
             if (args.l->body[i] != NULL) {
+                //log_debug("Arraylist %p calling free_func on %p", args.l, args.l->body[i]);
                 args.l->free_func(args.l->body[i]);
+                args.l->body[i] = nullptr;
             }
         }
     }
+    untrack_arraylist(args.l);
     free(args.l->body);
+    args.l->body = nullptr;
     free(args.l);
+    args.l = nullptr;
 }

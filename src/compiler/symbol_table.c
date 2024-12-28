@@ -18,8 +18,8 @@ symbol_table *symbol_table_init(void) {
     table->symbol_count = 0;
     table->store        = hashtable_create(string_hash_function, string_equals,
                                     free, symbol_free);
-    table->outer        = NULL;
-    table->free_symbols = arraylist_create(ARRAYLIST_INITIAL_CAPACITY);
+    table->outer        = nullptr;
+    table->free_symbols = arraylist_create(ARRAYLIST_INITIAL_CAPACITY, nullptr);
     return table;
 }
 
@@ -31,8 +31,8 @@ symbol_table *enclosed_symbol_table_init(symbol_table *outer) {
 
 symbol *symbol_define(symbol_table *table, const char *name) {
     const symbol_scope scope = table->outer == NULL ? GLOBAL : LOCAL;
-    symbol *             s     = symbol_init(name, scope, table->symbol_count++);
-    char *               n     = strdup(name);
+    symbol *           s     = symbol_init(name, scope, table->symbol_count++);
+    char *             n     = strdup(name);
     if (n == NULL)
         err(EXIT_FAILURE, "malloc failed");
     hashtable_set(table->store, n, s);
@@ -70,7 +70,7 @@ symbol *symbol_define_builtin(const symbol_table *table, const size_t index,
 
 symbol *symbol_init(const char *   name, const symbol_scope scope,
                     const uint16_t index) {
-    symbol *s = malloc(sizeof(*s));
+    symbol *s = malloc(sizeof(symbol));
     if (s == NULL) {
         err(EXIT_FAILURE, "malloc failed");
     }
@@ -90,7 +90,7 @@ symbol *symbol_resolve(symbol_table *table, const char *name) {
     if (obj == NULL && table->outer != NULL) {
         symbol *sym = symbol_resolve(table->outer, name);
         if (sym == NULL)
-            return NULL;
+            return nullptr;
         if (sym->scope == GLOBAL || sym->scope == BUILTIN)
             return sym;
         return symbol_define_free(table, sym);
@@ -99,9 +99,8 @@ symbol *symbol_resolve(symbol_table *table, const char *name) {
 }
 
 void symbol_free(void *o) {
-    symbol *s = o;
-    free(s->name);
-    free(s);
+    free(((symbol *) o)->name);
+    free(o);
 }
 
 void symbol_table_free(symbol_table *table) {

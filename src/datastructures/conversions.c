@@ -9,7 +9,6 @@
 #include <stdio.h>
 #include <stdarg.h>
 #include <stdlib.h>
-#include <stdbool.h>
 
 size_t *create_size_t_array(size_t count, ...) {
     va_list ap;
@@ -19,7 +18,7 @@ size_t *create_size_t_array(size_t count, ...) {
         err(EXIT_FAILURE, "malloc failed");
     }
     for (size_t i = 0; i < count; i++) {
-        array[i] = (size_t) va_arg(ap, size_t);
+        array[i] = va_arg(ap, size_t);
     }
     va_end(ap);
     return array;
@@ -39,28 +38,34 @@ uint8_t *create_uint8_array(const size_t count, ...) {
     return array;
 }
 
-static size_t power_ceil(size_t x) {
-    size_t power = 1;
-    while (x >>= 1)
-        power++;
-    return power;
-}
+//
+// uint8_t *size_t_to_uint8_be(size_t value, size_t width) {
+//     uint8_t *array = malloc(sizeof(*array) * width);
+//     if (array == NULL) {
+//         err(EXIT_FAILURE, "malloc failed");
+//     }
+//     uint64_t newval = htobe16(value); // to make sure we work on both BE and LE archs
+//     uint8_t *x      = (uint8_t *) &newval;
+//     int      j      = width - 1;
+//     int      i      = sizeof(value) - 1;
+//     while (j >= 0) {
+//         array[j--] = x[i--];
+//     }
+//     return array;
+// }
 
-uint8_t *size_t_to_uint8_be(size_t value, size_t width) {
-    uint8_t *array = malloc(sizeof(*array) * width);
-    if (array == NULL) {
-        errx(EXIT_FAILURE, "malloc failed");
-    }
-    uint64_t newval = htobe64(value); // to make sure we work on both BE and LE archs
-    uint8_t *x = (uint8_t *) &newval;
-    int j = width - 1;
-    int i = sizeof(value) - 1;
-    while (j >= 0) {
-        array[j--] = x[i--];
-    }
-    return array;
-}
 
+void put_uint16_big_endian(uint8_t *b, const size_t b_len, const uint16_t v) {
+    // Early bounds check
+    if (b_len < 2) {
+        fprintf(stderr, "Error: Insufficient buffer length\n");
+        exit(EXIT_FAILURE); // Handle error appropriately
+    }
+
+    // Write the high byte first, then the low byte
+    b[0] = (v >> 8) & 0xFF; // Extract high byte
+    b[1] = v & 0xFF;        // Extract low byte
+}
 
 size_t be_to_size_t(const uint8_t *bytes) {
     if (bytes[0] == 0) {

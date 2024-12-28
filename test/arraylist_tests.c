@@ -24,9 +24,9 @@ void test_arraylist_create(void) {
 }
 
 void test_arraylist_add(void) {
-    arraylist *list = arraylist_create(ARRAYLIST_INITIAL_CAPACITY, free);
-    int *value = malloc(sizeof(int));
-    *value = 42;
+    arraylist *list  = arraylist_create(ARRAYLIST_INITIAL_CAPACITY, free);
+    int *      value = malloc(sizeof(int));
+    *value           = 42;
     arraylist_add(list, value);
     TEST_ASSERT_EQUAL_UINT(1, list->size);
     TEST_ASSERT_EQUAL_INT(42, *(int *)arraylist_get(list, 0));
@@ -34,36 +34,34 @@ void test_arraylist_add(void) {
 }
 
 void test_arraylist_get(void) {
-    arraylist *list = arraylist_create(ARRAYLIST_INITIAL_CAPACITY, free);
-    int *value = malloc(sizeof(int));
-    *value = 42;
+    arraylist *list  = arraylist_create(ARRAYLIST_INITIAL_CAPACITY, free);
+    int *      value = malloc(sizeof(int));
+    *value           = 42;
     arraylist_add(list, value);
-    int *retrieved_value = (int *)arraylist_get(list, 0);
+    int *retrieved_value = (int *) arraylist_get(list, 0);
     TEST_ASSERT_NOT_NULL(retrieved_value);
     TEST_ASSERT_EQUAL_INT(42, *retrieved_value);
     arraylist_destroy(list);
 }
 
 void test_arraylist_set(void) {
-    arraylist *list = arraylist_create(ARRAYLIST_INITIAL_CAPACITY, free);
-    int *value1 = malloc(sizeof(int));
-    *value1 = 42;
+    arraylist *list   = arraylist_create(ARRAYLIST_INITIAL_CAPACITY, free);
+    int *      value1 = malloc(sizeof(int));
+    *value1           = 42;
     arraylist_add(list, value1);
     int *value2 = malloc(sizeof(int));
-    *value2 = 84;
+    *value2     = 84;
     arraylist_set(list, 0, value2);
     TEST_ASSERT_EQUAL_INT(84, *(int *)arraylist_get(list, 0));
     arraylist_destroy(list);
 }
 
 void test_arraylist_remove(void) {
-    arraylist *list = arraylist_create(ARRAYLIST_INITIAL_CAPACITY, free);
-    int *value = malloc(sizeof(int));
-    *value = 42;
+    arraylist *list  = arraylist_create(ARRAYLIST_INITIAL_CAPACITY, free);
+    int *      value = malloc(sizeof(int));
+    *value           = 42;
     arraylist_add(list, value);
-    int *removed_value = (int *)arraylist_remove(list, 0);
-    TEST_ASSERT_EQUAL_INT(42, *removed_value);
-    free(removed_value);
+    arraylist_remove_and_free(list, 0);
     TEST_ASSERT_EQUAL_UINT(0, list->size);
     arraylist_destroy(list);
 }
@@ -72,7 +70,7 @@ void test_arraylist_clear(void) {
     arraylist *list = arraylist_create(ARRAYLIST_INITIAL_CAPACITY, free);
     for (int i = 0; i < 10; i++) {
         int *value = malloc(sizeof(int));
-        *value = i;
+        *value     = i;
         arraylist_add(list, value);
     }
     arraylist_clear(list);
@@ -82,7 +80,7 @@ void test_arraylist_clear(void) {
 
 static int compare_integers(const void *v1, const void *v2) {
     const int i1 = **(int **) v1;
-    const int i2 = **(int **)v2;
+    const int i2 = **(int **) v2;
     return i1 - i2;
 }
 
@@ -93,9 +91,9 @@ void test_arraylist_sort(void) {
     int *a = malloc(sizeof(int));
     int *b = malloc(sizeof(int));
     int *c = malloc(sizeof(int));
-    *a = 3;
-    *b = 1;
-    *c = 2;
+    *a     = 3;
+    *b     = 1;
+    *c     = 2;
 
     arraylist_add(list, a);
     arraylist_add(list, b);

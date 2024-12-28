@@ -9,7 +9,7 @@
 #include "../compiler/compiler_core.h"
 #include "../datastructures/arraylist.h"
 #include "../object/object.h"
-#include "../object/opcode.h"
+#include "../opcode/opcode.h"
 #include "frame.h"
 
 #define STACKSIZE 2048
@@ -26,12 +26,12 @@ typedef enum vm_error_code {
 } vm_error_code;
 
 static const char *VM_ERROR_DESC[] = {
-        "VM_ERROR_NONE",
-        "STACKOVERFLOW",
-        "UNSUPPORTED_OPERAND",
-        "UNSUPPORTED_OPERATOR",
-        "VM_NON_FUNCTION",
-        "VM_WRONG_NUMBER_OF_ARGUMENTS"
+    "VM_ERROR_NONE",
+    "STACKOVERFLOW",
+    "UNSUPPORTED_OPERAND",
+    "UNSUPPORTED_OPERATOR",
+    "VM_NON_FUNCTION",
+    "VM_WRONG_NUMBER_OF_ARGUMENTS"
 };
 
 typedef struct vm_error {
@@ -48,6 +48,7 @@ typedef struct virtual_machine {
     object_object *stack[STACKSIZE];
     object_object *globals[GLOBALS_SIZE];
     size_t         sp;
+    size_t         stack_count;
 } virtual_machine;
 
 virtual_machine *vm_init(const bytecode *);

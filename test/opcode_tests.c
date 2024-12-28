@@ -2,7 +2,7 @@
 // Created by dgood on 12/18/24.
 //
 #include "../Unity/src/unity.h"
-#include "../src/object/opcode.h"
+#include "../src/opcode/opcode.h"
 #include "../src/datastructures/conversions.h"
 #include "test_utils.h"
 #include <stdlib.h>
@@ -44,10 +44,10 @@ void test_opcode_definition_lookup(void) {
 
 void test_vm_instruction_init(void) {
     size_t operands[] = {65534};
-    instructions *ins = instruction_init(OP_CONSTANT, operands, 1);
+    instructions *ins = opcode_make_instruction(OP_CONSTANT, operands);
 
     TEST_ASSERT_NOT_NULL(ins);
-    TEST_ASSERT_EQUAL(3, ins->size);
+    TEST_ASSERT_EQUAL(3, ins->capacity);
     TEST_ASSERT_EQUAL(3, ins->length);
     TEST_ASSERT_EQUAL_UINT8(OP_CONSTANT, ins->bytes[0]);
     TEST_ASSERT_EQUAL_UINT8(0xff, ins->bytes[1]);
@@ -59,7 +59,7 @@ void test_vm_instruction_init(void) {
 
 void test_vm_instruction_encode(void) {
     size_t operands[] = {256};
-    instructions *ins = instruction_init(OP_CONSTANT, operands, 1);
+    instructions *ins = opcode_make_instruction(OP_CONSTANT, operands);
 
     TEST_ASSERT_NOT_NULL(ins);
     TEST_ASSERT_EQUAL_UINT8(OP_CONSTANT, ins->bytes[0]);
@@ -81,7 +81,7 @@ void test_vm_instruction_decode(void) {
 }
 
 void test_invalid_opcode(void) {
-    OpcodeDefinition *def = opcode_definition_lookup(999);
+    OpcodeDefinition *def = opcode_definition_lookup(255);
     TEST_ASSERT_NULL(def);
 }
 
@@ -135,9 +135,9 @@ void test_instruction_init(void) {
         printf("%s\n", t.desc);
         instructions *actual;
         if (t.op != OP_CLOSURE)
-            actual = instruction_init(t.op, t.operands[0]);
+            actual = opcode_make_instruction(t.op, t.operands);
         else
-            actual = instruction_init(t.op, t.operands[0], t.operands[1]);
+            actual = opcode_make_instruction(t.op, t.operands);
         const size_t actual_len   = actual->length;
         const size_t expected_len = t.expected_instructions_len;
         TEST_ASSERT_EQUAL_INT(actual_len, expected_len);
@@ -149,11 +149,11 @@ void test_instruction_init(void) {
 
 void test_instructions_string(void) {
     instructions *ins_array[5] = {
-        instruction_init(OP_ADD),
-        instruction_init(OP_CONSTANT, 2),
-        instruction_init(OP_CONSTANT, 65535),
-        instruction_init(OP_GET_LOCAL, 1),
-        instruction_init(OP_CLOSURE, 65535, 255)
+        opcode_make_instruction(OP_ADD, 0),
+        opcode_make_instruction(OP_CONSTANT, (size_t[]){2}),
+        opcode_make_instruction(OP_CONSTANT, (size_t[]){65535}),
+        opcode_make_instruction(OP_GET_LOCAL, (size_t[]){1}),
+        opcode_make_instruction(OP_CLOSURE, (size_t[]){65535, 255})
     };
 
     const char *expected_string = "0000 OP_ADD\n" \

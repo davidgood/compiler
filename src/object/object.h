@@ -8,7 +8,7 @@
 #include "../ast/ast.h"
 #include "../datastructures/arraylist.h"
 #include "environment.h"
-#include "opcode.h"
+#include "../opcode/opcode.h"
 #include <stddef.h>
 #include <stdbool.h>
 
@@ -32,7 +32,7 @@ static const char *type_names[] = {
         "BOOLEAN",
         "NULL",
         "RETURN_VALUE",
-        "MONKEY_ERROR",
+        "ERROR",
         "FUNCTION",
         "STRING",
         "BUILTIN",
@@ -82,10 +82,10 @@ typedef struct {
 } object_error;
 
 typedef struct {
-    object_object         object;
-    linked_list *parameters; // list of identifiers
-    ast_block_statement * body;
-    environment *         env;
+    object_object        object;
+    linked_list *        parameters; // list of identifiers
+    ast_block_statement *body;
+    environment *        env;
 } object_function;
 
 typedef struct {
@@ -95,10 +95,10 @@ typedef struct {
 } object_string;
 
 typedef struct {
-    object_object   object;
+    object_object object;
     instructions *instructions;
-    size_t          num_locals;
-    size_t          num_args;
+    size_t        num_locals;
+    size_t        num_args;
 } object_compiled_fn;
 
 typedef object_object *(*builtin_fn)(linked_list *);
@@ -129,7 +129,7 @@ char *inspect(object_object *);
 
 bool object_equals(void *, void *);
 
-size_t object_get_hash(void *); // non-static for tests
+size_t object_get_hash(void *);
 
 extern const object_bool TRUE_OBJ;
 extern const object_bool FALSE_OBJ;
@@ -140,6 +140,7 @@ extern const object_null NULL_OBJ;
 
 
 object_int *object_create_int(long);
+
 object_error *object_create_error(const char *, ...);
 
 object_function *object_create_function(linked_list *, ast_block_statement *,
@@ -152,12 +153,14 @@ object_builtin *object_create_builtin(builtin_fn);
 object_array *object_create_array(arraylist *);
 
 object_hash *object_create_hash(hashtable *);
+
 object_return_value *object_create_return_value(object_object *);
 
 object_compiled_fn *object_create_compiled_fn(instructions *, size_t, size_t);
 
 object_closure *object_create_closure(object_compiled_fn *fn, const arraylist *);
-//object_bool *get_monkey_true(void);
+
+void *_object_copy_object(void *);
 
 object_object *object_copy_object(object_object *);
 

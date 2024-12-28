@@ -62,9 +62,8 @@ static object_object *eval_integer_infix_expression(const char *operator,
         return (object_object *)
                 object_create_bool(left_value->value > right_value->value);
     else if (strcmp(operator, "==") == 0)
-        return (object_object *)
-                (object_object *) object_create_bool(
-                        left_value->value == right_value->value);
+        return (object_object *) object_create_bool(
+                left_value->value == right_value->value);
     else if (strcmp(operator, "!=") == 0)
         return (object_object *)
                 object_create_bool(left_value->value != right_value->value);
@@ -95,7 +94,7 @@ static object_object *eval_string_infix_expression(const char *         operator
         memcpy(new_string + left_value->length, right_value->value,
                right_value->length);
         new_string[new_len]           = 0;
-        object_string *new_string_obj = object_create_string(NULL, 0);
+        object_string *new_string_obj = object_create_string(nullptr, 0);
         new_string_obj->value         = new_string;
         new_string_obj->length        = new_len;
         return (object_object *) new_string_obj;
@@ -239,11 +238,10 @@ static object_object *eval_identifier_expression(ast_expression *exp, const envi
     return object_copy_object(value_obj);
 }
 
-static arraylist *eval_expressions_to_array_list(const arraylist *expression_list,
-                                                 environment *    env) {
-    arraylist *values = arraylist_create(expression_list->size);
+static arraylist *eval_expressions_to_array_list(const arraylist *expression_list, environment *env) {
+    arraylist *values = arraylist_create(expression_list->size, object_free);
     for (size_t i = 0; i < expression_list->size; i++) {
-        object_object *value = evaluator_eval((ast_node *) expression_list->body[i], env);
+        object_object *value = evaluator_eval(expression_list->body[i], env);
         if (is_error(value)) {
             arraylist_destroy(values);
             values = arraylist_create(1, object_free);
@@ -256,14 +254,14 @@ static arraylist *eval_expressions_to_array_list(const arraylist *expression_lis
 }
 
 static linked_list *eval_expressions_to_linked_list(const linked_list *expression_list,
-                                                             environment *               env) {
-    linked_list *values   = linked_list_create();
-    const list_node *     exp_node = expression_list->head;
+                                                    environment *      env) {
+    linked_list *    values   = linked_list_create(object_free);
+    const list_node *exp_node = expression_list->head;
     while (exp_node != NULL) {
-        object_object *value = evaluator_eval((ast_node *) exp_node->data, env);
+        object_object *value = evaluator_eval(exp_node->data, env);
         if (is_error(value)) {
-            linked_list_free(values, NULL);
-            values = linked_list_create();
+            linked_list_free(values, nullptr);
+            values = linked_list_create(object_free);
             linked_list_addNode(values, value);
             return values;
         }
@@ -316,13 +314,15 @@ static object_object *eval_array_index_expression(object_object *left_value,
                                                   object_object *index_value) {
     const object_array *array_obj = (object_array *) left_value;
     const object_int *  index_obj = (object_int *) index_value;
-    if (index_obj->value < 0 || index_obj->value > array_obj->elements->size -
-        1) {
+
+    if (index_obj->value < 0 || index_obj->value >= array_obj->elements->size) {
         return (object_object *) object_create_null();
     }
 
-    /* we need to copy the return value because the left_value and index_value objects need to be freed */
-    return object_copy_object(array_obj->elements->body[index_obj->value]);
+    // Return a reference instead of copying the object
+    object_object *result = array_obj->elements->body[index_obj->value];
+    result->refcount++; // Increment refcount for the reference
+    return result;
 }
 
 static object_object *eval_string_index_expression(object_object *left_value,
@@ -339,6 +339,7 @@ static object_object *eval_hash_index_expression(object_object *left_value,
                                                  object_object *index_value) {
     const object_hash *hash_obj = (object_hash *) left_value;
     if (index_value->hash == NULL) {
+        //hashtable_destroy(left_value);
         return (object_object *) object_create_error("unusable as a hash key: %s",
                                                      get_type_name(
                                                              index_value->type));
@@ -363,7 +364,7 @@ static object_object *eval_index_expression(object_object *left_value,
 }
 
 static object_object *eval_while_expression(const ast_while_expression *while_exp, environment *env) {
-    object_object *result    = NULL;
+    object_object *result    = nullptr;
     object_object *condition = evaluator_eval((ast_node *) while_exp->condition, env);
     if (is_error(condition)) {
         return condition;
@@ -376,18 +377,35 @@ static object_object *eval_while_expression(const ast_while_expression *while_ex
         }
         object_free(condition);
         condition = evaluator_eval((ast_node *) while_exp->condition, env);
-        if (is_truthy(condition))
+        if (is_truthy(condition)) {
             object_free(result);
+        }
     }
+    object_free(condition);
     if (result == NULL) {
         return (object_object *) object_create_null();
     }
     return result;
 }
 
+static object_object *eval_array_literal(const ast_array_literal *array_exp, environment *env) {
+    arraylist *elements = arraylist_create(array_exp->elements->size, object_free);
+
+    for (size_t i = 0; i < array_exp->elements->size; i++) {
+        object_object *value = evaluator_eval(array_exp->elements->body[i], env);
+        if (is_error(value)) {
+            arraylist_destroy(elements);
+            return value;
+        }
+        arraylist_add(elements, value);
+    }
+
+    return (object_object *) object_create_array(elements);
+}
+
 static object_object *eval_hash_literal(const ast_hash_literal *hash_exp, environment *env) {
     hashtable *pairs = hashtable_create(object_get_hash,
-                                        object_equals, NULL, NULL);
+                                        object_equals, object_free, object_free);
     arraylist *keys = hashtable_get_keys(hash_exp->pairs);
     if (keys != NULL) {
         for (size_t i = 0; i < keys->size; i++) {
@@ -427,7 +445,7 @@ static object_object *eval_expression(ast_expression *exp, environment *env) {
     object_object *         function_value;
     object_object *         call_exp_value;
     object_object *         index_exp_value;
-    linked_list *  arguments_value;
+    linked_list *           arguments_value;
     ast_function_literal *  function_exp;
     ast_call_expression *   call_exp;
     ast_string *            string_exp;
@@ -485,32 +503,20 @@ static object_object *eval_expression(ast_expression *exp, environment *env) {
                 return function_value;
             }
             arguments_value = eval_expressions_to_linked_list(call_exp->arguments, env);
-            if (arguments_value->size == 1 &&
-                is_error(arguments_value->head->data)) {
+            if (arguments_value->size == 1 && is_error(arguments_value->head->data)) {
                 object_free(function_value);
                 exp_value = object_copy_object(arguments_value->head->data);
-                linked_list_free(arguments_value, NULL);
+                linked_list_free(arguments_value, object_free);
                 return exp_value;
             }
             call_exp_value = apply_function(function_value, arguments_value);
             object_free(function_value);
-            linked_list_free(arguments_value, NULL);
+            linked_list_free(arguments_value, object_free);
             return call_exp_value;
         case STRING_EXPRESSION:
             string_exp = (ast_string *) exp;
             return (object_object *) object_create_string(
                     string_exp->value, string_exp->length);
-        case ARRAY_LITERAL:
-            array_exp = (ast_array_literal *) exp;
-            arraylist *elements = eval_expressions_to_array_list(
-                    array_exp->elements, env);
-            if (elements->size == 1 && is_error(elements->body[0])) {
-                object_free(array_exp);
-                exp_value = object_copy_object(elements->body[0]);
-                arraylist_destroy(elements);
-                return exp_value;
-            }
-            return (object_object *) object_create_array(elements);
         case INDEX_EXPRESSION:
             index_exp = (ast_index_expression *) exp;
             left_value = evaluator_eval((ast_node *) index_exp->left, env);
@@ -526,6 +532,9 @@ static object_object *eval_expression(ast_expression *exp, environment *env) {
             object_free(left_value);
             object_free(exp_value);
             return index_exp_value;
+        case ARRAY_LITERAL:
+            array_exp = (ast_array_literal *) exp;
+            return eval_array_literal(array_exp, env);
         case HASH_LITERAL:
             hash_exp = (ast_hash_literal *) exp;
             return eval_hash_literal(hash_exp, env);
@@ -535,25 +544,27 @@ static object_object *eval_expression(ast_expression *exp, environment *env) {
         default:
             break;
     }
-    return NULL;
+    return nullptr;
 }
 
 static object_object *eval_block_statement(const ast_block_statement *block_stmt, environment *env) {
-    object_object *object = NULL;
+    object_object *object = nullptr;
     for (size_t i = 0; i < block_stmt->statement_count; i++) {
-        if (object)
+        if (object) {
             object_free(object);
+        }
         object = evaluator_eval((ast_node *) block_stmt->statements[i], env);
         if (object != NULL &&
             (object->type == OBJECT_RETURN_VALUE ||
-             object->type == OBJECT_ERROR))
+             object->type == OBJECT_ERROR)) {
             return object;
+        }
     }
     return object;
 }
 
 static object_object *eval_program(const ast_program *program, environment *env) {
-    object_object *object = NULL;
+    object_object *object = nullptr;
     for (size_t i = 0; i < program->statement_count; i++) {
         if (object) {
             object_free(object);
@@ -578,7 +589,7 @@ static object_object *eval_statement(ast_statement *statement, environment *env)
     ast_expression_statement *exp_stmt;
     ast_block_statement *     block_stmt;
     ast_return_statement *    ret_stmt;
-    ast_let_statement *        let_stmt;
+    ast_let_statement *       let_stmt;
     object_object *           evaluated;
     switch (statement->statement_type) {
         case EXPRESSION_STATEMENT:
@@ -590,21 +601,26 @@ static object_object *eval_statement(ast_statement *statement, environment *env)
         case RETURN_STATEMENT:
             ret_stmt = (ast_return_statement *) statement;
             evaluated = evaluator_eval((ast_node *) ret_stmt->return_value, env);
-            if (is_error(evaluated))
+            if (is_error(evaluated)) {
                 return evaluated;
-            return (object_object *) object_create_return_value(evaluated);
+            }
+            object_return_value *ret_val = object_create_return_value(evaluated);
+            free(evaluated);
+            return (object_object *) ret_val;
         case LET_STATEMENT:
             let_stmt = (ast_let_statement *) statement;
             evaluated = evaluator_eval((ast_node *) let_stmt->value, env);
-            if (is_error(evaluated))
+            if (is_error(evaluated)) {
                 return evaluated;
-            if (evaluated == NULL)
+            }
+            if (evaluated == NULL) {
                 evaluated = (object_object *) object_create_null();
+            }
             environment_put(env, strdup(let_stmt->name->value), evaluated);
         default:
             break;
     }
-    return NULL;
+    return nullptr;
 }
 
 object_object *evaluator_eval(ast_node *node, environment *env) {

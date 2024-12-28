@@ -7,7 +7,6 @@
 #include <ctype.h>
 #include <stdlib.h>
 #include <string.h>
-#include <stdbool.h>
 #include <stdio.h>
 
 void token_free(token *tok) {
@@ -70,15 +69,14 @@ token_type token_get_type(const char *literal) {
 token *token_copy(token *source) {
     token *destination = malloc(sizeof(*destination));
     if (destination == NULL) {
-        return NULL;
+        return nullptr;
     }
 
     destination->type    = source->type;
     destination->literal = strdup(source->literal);
     if (destination->literal == NULL) {
         free(destination);
-        return NULL;
+        return nullptr;
     }
-
     return destination;
 }

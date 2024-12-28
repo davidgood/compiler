@@ -1,10 +1,16 @@
 cmake_minimum_required(VERSION 3.30)
 project(compiler C)
 
-set(CMAKE_C_STANDARD 17)
+set(CMAKE_C_STANDARD 23)
 set(CMAKE_C_STANDARD_REQUIRED ON)
+set(CMAKE_BUILD_TYPE Debug)
+set(CMAKE_C_FLAGS_DEBUG "-g")
+
+add_definitions(-DDEBUG)
 
 add_executable(compiler main.c
+        logging/log.c
+        logging/log.h
         token/token.c
         token/token.h
         datastructures/hashmap.c
@@ -20,8 +26,8 @@ add_executable(compiler main.c
         object/environment.h
         object/object.c
         object/object.h
-        object/opcode.c
-        object/opcode.h
+        opcode/opcode.c
+        opcode/opcode.h
         parser/parser.c
         parser/parser.h
         parser/parser_tracing.c
@@ -53,4 +59,5 @@ add_executable(compiler main.c
         compiler/compiler_utils.c
         compiler/compiler_utils.h
         compiler/compiler_core.c
-        compiler/compiler_core.h)
+        compiler/compiler_core.h
+)

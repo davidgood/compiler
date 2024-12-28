@@ -24,7 +24,7 @@ environment *environment_create(void) {
     environment *env = malloc(sizeof(*env));
     assert(env != NULL);
     env->table = table;
-    env->outer = NULL;
+    env->outer = nullptr;
     return env;
 }
 
@@ -35,7 +35,7 @@ environment *environment_create_enclosed(environment *outer) {
 }
 
 void environment_put(environment *env, char *name, void *value) {
-    hashtable_set(env->table, (void *) name, value);
+    hashtable_set(env->table, name, value);
 }
 
 void *environment_get(const environment *env, char *name) {
@@ -45,7 +45,7 @@ void *environment_get(const environment *env, char *name) {
 
     if (env->outer != NULL)
         return environment_get(env->outer, name);
-    return NULL;
+    return nullptr;
 }
 
 void environment_free(environment *env) {
@@ -54,6 +54,7 @@ void environment_free(environment *env) {
 }
 
 environment *copy_env(const environment *env) {
+    fprintf(stdout, "Copying Environment\n");
     environment *new_env = environment_create();
     for (size_t i = 0; i < env->table->table_size; i++) {
         const linked_list *entry_list = env->table->table[i];
@@ -64,7 +65,7 @@ environment *copy_env(const environment *env) {
         while (node != NULL) {
             const hashtable_entry *entry = (hashtable_entry *) node->data;
             const char *           key   = (char *) entry->key;
-            object_object *                   value = (object_object *) entry->value;
+            object_object *        value = entry->value;
             environment_put(new_env, strdup(key), object_copy_object(value));
             node = node->next;
         }

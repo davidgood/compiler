@@ -1,2 +1,0 @@
-No symbol "ast_ingeger" in current context.
-$15 = {expression = {node = {type = (unknown: 0x43e200), token_literal = 0x0, string = 0x3}, expression_type = 65}, token = 0x1, value = 4266734}

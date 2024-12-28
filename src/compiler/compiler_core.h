@@ -6,7 +6,7 @@
 #define COMPILER_H
 #include "../ast/ast.h"
 #include "../datastructures/arraylist.h"
-#include "../object/opcode.h"
+#include "../opcode/opcode.h"
 #include "../object/object.h"
 #include "symbol_table.h"
 

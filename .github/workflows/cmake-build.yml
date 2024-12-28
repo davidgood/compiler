@@ -1,0 +1,59 @@
+name: CMake on a single platform
+
+on:
+  push:
+    branches: [ "*" ]
+  pull_request:
+    branches: [ "*" ]
+
+env:
+  BUILD_TYPE: Debug
+  TARGET_GROUP: test
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    container:
+      image: fedora
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Dependencies
+        run: |
+          dnf install -y cmake gcc valgrind g++
+
+      - name: Create Build Directory
+        run: mkdir -p build
+
+      - name: Configure CMake
+        run: |
+          cmake -B build \
+                -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} \
+                -DTARGET_GROUP=${{env.TARGET_GROUP}} \
+                -DCMAKE_C_STANDARD=23
+
+      - name: Build
+        run: cmake --build build --config ${{env.BUILD_TYPE}}
+
+      - name: List Tests
+        working-directory: build
+        run: ctest -N
+
+      - name: Run CTest
+        working-directory: build
+        run: ctest --output-on-failure > ctest_results.txt
+
+      - name: Upload CTest Results
+        uses: actions/upload-artifact@v4
+        with:
+          name: ctest-results
+          path: build/ctest_results.txt
+
+
+      - name: Run Tests with Valgrind
+        working-directory: build
+        run: |
+          for test_executable in $(ctest -N | grep 'Test #' | awk -F ': ' '{print $2}'); do
+            valgrind --leak-check=full --error-exitcode=1 ./bin/${test_executable}
+          done

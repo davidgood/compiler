@@ -4,33 +4,35 @@
 
 #include "scope.h"
 #include "compiler_utils.h"
+#include "../opcode/opcode.h"
 #include <err.h>
 
 compilation_scope *scope_init() {
-    compilation_scope *scope = malloc(sizeof(*scope));
+    compilation_scope *scope = malloc(sizeof(compilation_scope));
     if (scope == NULL) {
         err(EXIT_FAILURE, "malloc failed");
     }
-    scope->instructions = malloc(sizeof(*scope->instructions));
+    scope->instructions = malloc(sizeof(instructions));
     if (scope->instructions == NULL) {
         err(EXIT_FAILURE, "malloc failed");
     }
-    scope->instructions->bytes = NULL;
-    scope->instructions->length = 0;
-    scope->instructions->size = 0;
+    scope->instructions->bytes    = nullptr;
+    scope->instructions->length   = 0;
+    scope->instructions->capacity = 0;
     return scope;
 }
 
 void _scope_free(void *scope) {
     scope_free(scope);
 }
+
 void scope_free(compilation_scope *scope) {
     if (!scope) {
         return;
     }
     if (scope->instructions) {
         instructions_free(scope->instructions);
-        scope->instructions = NULL;
+        scope->instructions = nullptr;
     }
     free(scope);
 }
@@ -42,7 +44,7 @@ compilation_scope *get_top_scope(const compiler *compiler) {
 symbol_table *symbol_table_copy(const symbol_table *src) {
     symbol_table *new_table = symbol_table_init();
     hashtable_destroy(new_table->store);
-    new_table->store = hashtable_clone(src->store, _strdup, _copy_symbol);
+    new_table->store        = hashtable_clone(src->store, _strdup, _copy_symbol);
     new_table->symbol_count = src->symbol_count;
     return new_table;
 }
