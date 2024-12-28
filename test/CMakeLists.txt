@@ -4,7 +4,8 @@ project(compiler_tests C)
 set(CMAKE_C_STANDARD 23)
 set(CMAKE_C_STANDARD_REQUIRED ON)
 set(CMAKE_BUILD_TYPE Debug)
-set(CMAKE_C_FLAGS_DEBUG "-g")
+set(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS} -g --coverage")
+set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} --coverage")
 
 # Include Unity sources
 include_directories(${CMAKE_SOURCE_DIR}/Unity/src)
