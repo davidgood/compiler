@@ -53,7 +53,7 @@ jobs:
         working-directory: build
         run: |
           lcov --capture --directory . --output-file coverage.info
-          lcov --list coverage_filtered.info
+          lcov --list coverage.info
 
       # Generate HTML Coverage Report
       - name: Generate HTML Coverage Report
