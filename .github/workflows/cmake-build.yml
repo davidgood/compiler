@@ -58,7 +58,7 @@ jobs:
       # Generate HTML Coverage Report
       - name: Generate HTML Coverage Report
         working-directory: build
-        run: genhtml coverage_filtered.info --output-directory coverage_html
+        run: genhtml coverage.info --output-directory coverage_html
 
       # Upload Coverage Reports
       - name: Upload Coverage Reports
