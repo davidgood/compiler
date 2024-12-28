@@ -32,13 +32,13 @@ jobs:
         run: mkdir -p build
 
       - name: Configure CMake
-        run: cmake -B ${{github.workspace}}/build \
+        run: cmake -B build \
           -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} \
           -DTARGET_GROUP=${{env.TARGET_GROUP}} -DCMAKE_C_STANDARD=23
 
       - name: Build
         # Build your program with the given configuration
-        run: cmake --build ${{github.workspace}}/build --config ${{env.BUILD_TYPE}}
+        run: cmake -B build --config ${{env.BUILD_TYPE}}
 
       - name: CTest
         working-directory: build
