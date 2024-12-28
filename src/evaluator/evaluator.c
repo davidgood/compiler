@@ -617,6 +617,7 @@ static object_object *eval_statement(ast_statement *statement, environment *env)
                 evaluated = (object_object *) object_create_null();
             }
             environment_put(env, strdup(let_stmt->name->value), evaluated);
+            break;
         default:
             break;
     }

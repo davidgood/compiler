@@ -129,11 +129,11 @@ int log_add_fp(FILE *fp, int level) {
 
 
 static void init_event(log_Event *ev, void *udata) {
-  if (!ev->time) {
-    time_t t = time(NULL);
-    ev->time = localtime(&t);
-  }
-  ev->udata = udata;
+    if (!ev->time) {
+        const time_t t = time(nullptr);
+        ev->time = localtime(&t);
+    }
+    ev->udata = udata;
 }
 
 

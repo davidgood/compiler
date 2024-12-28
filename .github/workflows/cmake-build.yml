@@ -1,4 +1,4 @@
-name: CMake on a single platform
+name: CMake with Coverage
 
 on:
   push:
@@ -17,40 +17,64 @@ jobs:
       image: fedora
 
     steps:
+      # Checkout repository
       - uses: actions/checkout@v4
 
+      # Install Dependencies
       - name: Install Dependencies
         run: |
-          dnf install -y cmake gcc valgrind g++
+          dnf install -y cmake gcc gcov lcov g++ valgrind
 
+      # Create Build Directory
       - name: Create Build Directory
         run: mkdir -p build
 
+      # Configure CMake
       - name: Configure CMake
         run: |
           cmake -B build \
                 -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} \
                 -DTARGET_GROUP=${{env.TARGET_GROUP}} \
-                -DCMAKE_C_STANDARD=23
+                -DCMAKE_C_STANDARD=23 \
+                -DCMAKE_C_FLAGS="--coverage" \
+                -DCMAKE_EXE_LINKER_FLAGS="--coverage"
 
+      # Build
       - name: Build
         run: cmake --build build --config ${{env.BUILD_TYPE}}
 
-      - name: List Tests
-        working-directory: build
-        run: ctest -N
-
+      # Run Tests and Generate Coverage Data
       - name: Run CTest
         working-directory: build
         run: ctest --output-on-failure > ctest_results.txt
 
+      # Capture Coverage Data
+      - name: Capture Coverage Data
+        working-directory: build
+        run: |
+          lcov --capture --directory . --output-file coverage.info
+          lcov --list coverage.info
+
+      # Generate HTML Coverage Report
+      - name: Generate HTML Coverage Report
+        working-directory: build
+        run: genhtml coverage.info --output-directory coverage_html
+
+      # Upload Coverage Reports
+      - name: Upload Coverage Reports
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-reports
+          path: build/coverage_html
+
+      # Upload CTest Results
       - name: Upload CTest Results
         uses: actions/upload-artifact@v4
         with:
           name: ctest-results
           path: build/ctest_results.txt
 
-
+      # Run Tests with Valgrind
       - name: Run Tests with Valgrind
         working-directory: build
         run: |

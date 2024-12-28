@@ -856,31 +856,42 @@ static char *call_expression_token_literal(void *exp) {
 }
 
 static char *program_string(void *prog_ptr) {
-    // TODO: maybe we could optimize this
-    ast_program *program     = prog_ptr;
-    char *       prog_string = nullptr;
-    char *       temp_string = nullptr;
+    ast_program *program = prog_ptr;
+    char *prog_string = nullptr; // Final program string
+    char *temp_string = nullptr; // Temporary buffer for concatenation
+
     for (int i = 0; i < program->statement_count; i++) {
-        ast_statement *stmt        = program->statements[i];
-        char *         stmt_string = stmt->node.string(stmt);
+        ast_statement *stmt = program->statements[i];
+        char *stmt_string = stmt->node.string(stmt); // Get statement string
+        if (!stmt_string) {
+            if (prog_string) free(prog_string);
+            err(EXIT_FAILURE, "stmt->node.string returned NULL");
+        }
+
         if (prog_string != NULL) {
-            asprintf(&temp_string, "%s %s", prog_string, stmt_string);
-            free(prog_string);
-        } else {
-            asprintf(&temp_string, "%s", stmt_string);
-        }
-        free(stmt_string);
-        if (temp_string == NULL) {
-            if (prog_string != NULL) {
+            // Concatenate existing program string with new statement string
+            if (asprintf(&temp_string, "%s %s", prog_string, stmt_string) == -1) {
+                free(stmt_string);
                 free(prog_string);
+                err(EXIT_FAILURE, "asprintf failed");
             }
-            err(EXIT_FAILURE, "malloc failed");
+            free(prog_string); // Free the old program string
+        } else {
+            // First statement string
+            if (asprintf(&temp_string, "%s", stmt_string) == -1) {
+                free(stmt_string);
+                err(EXIT_FAILURE, "asprintf failed");
+            }
         }
-        prog_string = temp_string;
-        temp_string = nullptr;
+
+        free(stmt_string); // Free the statement string after use
+        prog_string = temp_string; // Update program string with new value
+        temp_string = nullptr; // Reset temp_string to avoid double-free
     }
-    return prog_string;
+
+    return prog_string; // Return the concatenated program string
 }
+
 
 static ast_let_statement *create_let_statement(parser *parser) {
     ast_let_statement *let_stmt = malloc(sizeof(*let_stmt));
