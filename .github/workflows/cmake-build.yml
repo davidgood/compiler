@@ -40,9 +40,16 @@ jobs:
         working-directory: build
         run: ctest -N
 
-      - name: CTest
+      - name: Run CTest
         working-directory: build
-        run: ctest --output-on-failure
+        run: ctest --output-on-failure > ctest_results.txt
+
+      - name: Upload CTest Results
+        uses: actions/upload-artifact@v3
+        with:
+          name: ctest-results
+          path: build/ctest_results.txt
+
 
       - name: Run Tests with Valgrind
         working-directory: build
