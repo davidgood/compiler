@@ -26,27 +26,29 @@ jobs:
 
       - name: Install Dependencies
         run: |
-          dnf update -y && dnf install -y cmake gcc valgrind g++
+          dnf install -y cmake gcc valgrind g++
 
       - name: Create build directory
         run: mkdir -p build
 
       - name: Configure CMake
-        run: cmake -B ${{github.workspace}}/build -DTARGET_GROUP=${{env.BUILD_TYPE}} -DCMAKE_C_STANDARD=23
+        run: cmake -B ${{github.workspace}}/build \
+          -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} \
+          -DTARGET_GROUP=${{env.TARGET_GROUP}} -DCMAKE_C_STANDARD=23
 
       - name: Build
         # Build your program with the given configuration
         run: cmake --build ${{github.workspace}}/build --config ${{env.BUILD_TYPE}}
 
-      - name: Test
+      - name: CTest
         working-directory: ${{github.workspace}}/build
         # Execute tests defined by the CMake configuration.
         # See https://cmake.org/cmake/help/latest/manual/ctest.1.html for more detail
-        run: ctest -C ${{env.BUILD_TYPE}}
+        run: ctest --output-on-failure
 
       - name: Run tests with Valgrind
         working-directory: build
         run: |
           for test_executable in $(ctest -N | grep 'Test #' | awk -F ': ' '{print $2}'); do
-            valgrind --leak-check=full --error-exitcode=1 ./test/${test_executable}
+            valgrind --leak-check=full --error-exitcode=1 ./bin/${test_executable}
           done
