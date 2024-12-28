@@ -27,12 +27,12 @@ jobs:
       - name: Install Dependencies
         run: |
           dnf update -y && dnf install -y cmake gcc g++
-          
+
       - name: Create build directory
         run: mkdir -p build
 
       - name: Configure CMake
-        run: cmake -B build -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DCMAKE_C_STANDARD=23
+        run: cmake -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DCMAKE_C_STANDARD=23
 
       - name: Build
         # Build your program with the given configuration
