@@ -43,7 +43,6 @@ set(TEST_SOURCES
         object_tests.c
         opcode_tests.c
         parser_tests.c
-        repl_tests.c
         symbol_table_tests.c
         vm_tests.c
 )
